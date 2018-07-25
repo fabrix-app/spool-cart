@@ -1,0 +1,5 @@
+export { ManualFulfillmentProvider } from './fulfillmentProvider/index'
+export { DefaultGeolocationProvider } from './geolocationProvider/index'
+export { DefaultImageProvider } from './imageProvider/index'
+export { DefaultShippingProvider } from './shippingProvider/index'
+export { DefaultTaxProvider } from './taxProvider/index'

@@ -1,0 +1,441 @@
+[
+  {
+    "handle": "makerbot-replicator",
+    "title": "Maker Bot Replicator",
+    "body": "<strong>Good 3D Printer!</strong>",
+    "vendors": [
+      "Makerbot"
+    ],
+    "type": "3D Printer",
+    "price": 100000,
+    "published": true,
+    "inventory_policy": "continue",
+    "inventory_quantity": 1000,
+    "tags": [
+      "equipment",
+      "productivity"
+    ],
+    "weight": 20,
+    "weight_unit": "lb",
+    "sku": "printer-m-123",
+    "images": [
+      {
+        "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+        "alt": "Hello World"
+      }
+    ],
+    "variants": [
+      {
+        "title": "Mini",
+        "price": "90000",
+        "sku": "printer-w-123",
+        "images": [
+          {
+            "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+            "alt": "Hello World 2"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "handle": "flashforge-finder",
+    "title": "Flashforge Finder 3D Printer",
+    "body": "<strong>Good 3D Printer!</strong>",
+    "vendors": [
+      "Flashforge"
+    ],
+    "type": "3D Printer",
+    "price": 100000,
+    "published": true,
+    "inventory_policy": "deny",
+    "inventory_quantity": 2,
+    "tags": [
+      "new equipment",
+      "new productivity"
+    ],
+    "weight": 20,
+    "weight_unit": "lb",
+    "sku": "printer-f-123",
+    "images": [
+      {
+        "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+        "alt": "Flashforge 3D Printer"
+      }
+    ]
+  },
+  {
+    "handle": "digital-download",
+    "title": "Digital download!",
+    "body": "<strong>Awesome Download!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "Digital Download",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "inventory_quantity": 1,
+    "tags": [
+      "digital"
+    ],
+    "sku": "download-123"
+  },
+  {
+    "handle": "subscription-test",
+    "title": "Subscription Test!",
+    "body": "<strong>Subscription Test!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "subscription",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "exclude_payment_types": ["Account Balance"],
+    "tags": [
+      "subscription"
+    ],
+    "collections": [
+      "Dummy Collection",
+      {
+        "handle": "test-discount",
+        "title": "Test Discount",
+        "discount_type": "rate",
+        "discount_scope": "global",
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true
+      }
+    ],
+    "sku": "subscription-123"
+  },
+  {
+    "handle": "discount-test",
+    "title": "Discount Test!",
+    "body": "<strong>Discount Test!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "subscription",
+    "price": 100000,
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "tags": [
+      "monthly subscription"
+    ],
+    "collections": [
+      {
+        "handle": "test-discount-2",
+        "title": "Test Discount 2",
+        "discount_type": "rate",
+        "discount_scope": "individual",
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true
+      },
+      {
+        "handle": "test-discount-3",
+        "title": "Test Discount 3",
+        "discount_type": "rate",
+        "discount_scope": "individual",
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true,
+        "discount_product_exclude": [
+          "subscription"
+        ]
+      }
+    ],
+    "sku": "discount-1234"
+  },
+  {
+    "handle": "subscription-no-discount-test",
+    "title": "Subscription no discount Test!",
+    "body": "<strong>Subscription no discount Test!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "subscription",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "exclude_payment_types": ["Account Balance"],
+    "tags": [
+      "subscription"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "subscription-test-123"
+  },
+  {
+    "handle": "ignore-account-balance",
+    "title": "Ignore Account Balance!",
+    "body": "<strong>Ignore Account Balance!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": ["Account Balance"],
+    "tags": [
+      "account balance"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "ignore-account-balance-123"
+  },
+  {
+    "handle": "accepts-account-balance",
+    "title": "Accepts Account Balance!",
+    "body": "<strong>Accepts Account Balance!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "account balance"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "accepts-account-balance-123"
+  },
+  {
+    "handle": "product-with-discount-collection",
+    "title": "Product with Discount Collection",
+    "body": "<strong>Product with Discount Collection</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "discount collection"
+    ],
+    "collections": [
+      "Dummy Collection",
+      {
+        "handle": "product-with-discount-collection-test",
+        "title": "Product with discount Collection test",
+        "discount_type": "rate",
+        "discount_scope": "individual",
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true
+      }
+    ],
+    "sku": "discount-collection-123"
+  },
+  {
+    "handle": "product-with-manual-fulfillment",
+    "title": "Product with Manual Fulfillment",
+    "body": "<strong>Product with Manual Fulfillment</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "manual fulfillment"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "manual-fulfillment-123"
+  },
+  {
+    "handle": "product-with-manual-payment",
+    "title": "Product with Manual Payment",
+    "body": "<strong>Product with Manual Payment</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "manual payment"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "manual-payment-123"
+  },
+  {
+    "handle": "product-with-purchase-history",
+    "title": "Product with Purchase History",
+    "body": "<strong>Product with Purchase History</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "purchase-history"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "purchase-history-123"
+  },
+  {
+    "handle": "product-with-discount",
+    "title": "Product with discount",
+    "body": "<strong>Product with discount</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "product-discount"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "product-discount-123"
+  },
+  {
+    "handle": "product-with-property-pricing",
+    "title": "Product with property pricing",
+    "body": "<strong>Product with property pricing</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "property_pricing": {
+      "engraving": {
+        "price": 100,
+        "image": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150"
+      },
+      "Gold Inlay": {
+        "price": 100000,
+        "image": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150"
+      }
+    },
+    "tags": [
+      "product-property-pricing"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "product-property-pricing-123"
+  },
+  {
+    "handle": "physical-product",
+    "title": "Physical Product",
+    "body": "<strong>Physical Product</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "physical",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": true,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "physical-product"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "physical-product-123"
+  },
+  {
+    "handle": "product-quantity-test",
+    "title": "Product Quantity Test",
+    "body": "<strong>Product Quantity Test</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "purchase-history"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "purchase-quantity-123"
+  }
+]

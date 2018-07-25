@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Create Test Discount",
+    "description": "Create Test Discount Description",
+    "code": "123",
+    "discount_type": "rate",
+    "discount_rate": 100,
+    "discount_scope": "global",
+    "status": "enabled",
+    "minimum_order_amount": 0,
+    "usage_limit": 0,
+    "applies_to_id": 1,
+    "applies_to_model": "product"
+  },
+  {
+    "name": "Create Test Discount 2",
+    "description": "Create Test Discount 2 Description",
+    "code": "1234",
+    "discount_type": "rate",
+    "discount_scope": "global",
+    "discount_rate": 100,
+    "status": "enabled",
+    "minimum_order_amount": 0,
+    "usage_limit": 0
+  },
+  {
+    "name": "Create Individual Test Discount 3",
+    "description": "Create Individual Test Discount 3 Description",
+    "code": "12345",
+    "discount_type": "rate",
+    "discount_scope": "individual",
+    "discount_rate": 100,
+    "status": "enabled",
+    "minimum_order_amount": 0,
+    "usage_limit": 0
+  }
+]
