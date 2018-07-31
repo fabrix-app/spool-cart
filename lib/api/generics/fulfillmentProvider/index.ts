@@ -5,8 +5,7 @@ import { Generic } from '@fabrix/spool-generics'
 const _ = require('lodash')
 export class ManualFulfillmentProvider extends Generic {
   constructor(config) {
-    super()
-    this.config = config
+    super(config)
   }
 
   /**

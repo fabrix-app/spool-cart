@@ -1,10 +1,40 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { values } from 'lodash'
 
-const helpers = require('engine-helpers')
-const _ = require('lodash')
-const INTERVALS = require('../../lib').Enums.INTERVALS
-const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
+import { INTERVALS } from '../../enums'
+import { INVENTORY_POLICY } from '../../enums'
+
+// tslint:disable:no-shadowed-variable
+export class ProductUploadResolver extends SequelizeResolver {
+  batch(options, batch) {
+    const self = this
+
+    options.limit = options.limit || 100
+    options.offset = options.offset || 0
+    options.regressive = options.regressive || false
+
+    const recursiveQuery = function(options) {
+      let count = 0
+      return self.findAndCountAll(options)
+        .then(results => {
+          count = results.count
+          return batch(results.rows)
+        })
+        .then(batched => {
+          if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+            options.offset = options.regressive ? 0 : options.offset + options.limit
+            return recursiveQuery(options)
+          }
+          else {
+            return Promise.resolve()
+          }
+        })
+    }
+    return recursiveQuery(options)
+  }
+}
+
 /**
  * @module ProductUpload
  * @description Product Upload Model
@@ -12,54 +42,18 @@ const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
 export class ProductUpload extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return ProductUploadResolver
   }
 
   static config (app, Sequelize) {
     return {
-      migrate: 'drop', //override default models configurations if needed
+      migrate: 'drop', // override default models configurations if needed
       store: 'uploads',
       options: {
         underscored: true,
         enums: {
           INTERVALS: INTERVALS,
           INVENTORY_POLICY: INVENTORY_POLICY
-        },
-        classMethods: {
-          /**
-           *
-           * @param options
-           * @param batch
-           * @returns Promise.<T>
-           */
-          batch: function (options, batch) {
-            const self = this
-            options.limit = options.limit || 10
-            options.offset = options.offset || 0
-            options.regressive = options.regressive || false
-
-            const recursiveQuery = function(options) {
-              let count = 0
-              return self.findAndCountAll(options)
-                .then(results => {
-                  results.count.map(counts => {
-                    count = count + 1
-                  })
-                  // count = results.count
-                  return batch(results.rows)
-                })
-                .then(batched => {
-                  if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
-                    options.offset = options.regressive ? 0 : options.offset + options.limit
-                    return recursiveQuery(options)
-                  }
-                  else {
-                    return batched
-                  }
-                })
-            }
-            return recursiveQuery(options)
-          }
         }
       }
     }
@@ -99,26 +93,42 @@ export class ProductUpload extends Model {
         type: Sequelize.TEXT
       },
       // 'Vendors'
-      vendors: helpers.JSONB('ProductUpload', app, Sequelize, 'vendors', {
+      vendors: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'vendors', {
+      //   defaultValue: []
+      // }),
       // 'Type'
       type: {
         type: Sequelize.STRING,
         allowNull: false
       },
       // 'Tags'
-      tags: helpers.JSONB('ProductUpload', app, Sequelize, 'tags', {
+      tags: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'tags', {
+      //   defaultValue: []
+      // }),
       // 'Collections'
-      collections: helpers.JSONB('ProductUpload', app, Sequelize, 'collections', {
+      collections: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'collections', {
+      //   defaultValue: []
+      // }),
       // 'Associations'
-      associations: helpers.JSONB('ProductUpload', app, Sequelize, 'associations', {
+      associations: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'associations', {
+      //   defaultValue: []
+      // }),
       // 'Published'
       published: {
         type: Sequelize.BOOLEAN
@@ -134,18 +144,30 @@ export class ProductUpload extends Model {
       //   defaultValue: []
       // }),
       // { 'Option / * Name' : 'Option / * Value' }
-      option: helpers.JSONB('ProductUpload', app, Sequelize, 'option', {
-        // name: string, value:string
+      option: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'option', {
+      //   // name: string, value:string
+      //   defaultValue: {}
+      // }),
       // Property Based Pricing
-      property_pricing: helpers.JSONB('ProductUpload', app, Sequelize, 'property_pricing', {
-        defaultValue: {}
-      }),
-      // 'Images Sources'
-      images: helpers.JSONB('ProductUpload', app, Sequelize, 'images', {
+      property_pricing: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'property_pricing', {
+      //   defaultValue: {}
+      // }),
+      // 'Images Sources'
+      images: {
+        type: Sequelize.JSONB,
+        defaultValue: []
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'images', {
+      //   defaultValue: []
+      // }),
       // 'Variant SKU'
       sku: {
         type: Sequelize.STRING
@@ -175,7 +197,7 @@ export class ProductUpload extends Model {
       // 'Variant Inventory Policy'
       inventory_policy: {
         type: Sequelize.ENUM,
-        values: _.values(INVENTORY_POLICY)
+        values: values(INVENTORY_POLICY)
         // defaultValue: INVENTORY_POLICY.DENY
       },
       max_quantity: {
@@ -220,9 +242,13 @@ export class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Variant Images'
-      variant_images: helpers.JSONB('ProductUpload', app, Sequelize, 'variant_images', {
+      variant_images: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'variant_images', {
+      //   defaultValue: []
+      // }),
       // 'Gift Card'
       gift_card: {
         type: Sequelize.STRING
@@ -239,7 +265,7 @@ export class ProductUpload extends Model {
       // 'Subscription Unit'
       subscription_unit: {
         type: Sequelize.ENUM,
-        values: _.values(INTERVALS)
+        values: values(INTERVALS)
         // defaultValue: INTERVALS.NONE
       },
       // 'Subscription Interval'
@@ -248,13 +274,21 @@ export class ProductUpload extends Model {
         // defaultValue: 0
       },
       // 'Shops' Shop handles
-      shops: helpers.JSONB('ProductUpload', app, Sequelize, 'shops', {
+      shops: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'shops', {
+      //   defaultValue: []
+      // }),
       // 'Shops Quantity'
-      shops_quantity: helpers.JSONB('ProductUpload', app, Sequelize, 'shops_quantity', {
+      shops_quantity: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'shops_quantity', {
+      //   defaultValue: []
+      // }),
 
       // The Average Shipping Cost
       average_shipping: {
@@ -263,21 +297,33 @@ export class ProductUpload extends Model {
       },
 
       // Payment types that can not be used to purchase this product
-      exclude_payment_types: helpers.JSONB('ProductUpload', app, Sequelize, 'exclude_payment_types', {
+      exclude_payment_types: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'exclude_payment_types', {
+      //   defaultValue: []
+      // }),
 
-      google: helpers.JSONB('ProductUpload', app, Sequelize, 'google', {
+      google: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'google', {
+      //   defaultValue: {}
+      // }),
 
-      amazon: helpers.JSONB('ProductUpload', app, Sequelize, 'amazon', {
+      amazon: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('ProductUpload', app, Sequelize, 'amazon', {
+      //   defaultValue: {}
+      // }),
 
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }

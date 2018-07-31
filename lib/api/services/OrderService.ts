@@ -3,17 +3,17 @@
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
-const Errors = require('engine-errors')
-const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
-const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
-const ORDER_STATUS = require('../../lib').Enums.ORDER_STATUS
-const ORDER_FULFILLMENT = require('../../lib').Enums.ORDER_FULFILLMENT
-// const PAYMENT_KIND = require('../../lib').Enums.PAYMENT_KIND
-// const orders.fulfillment_kind = require('../../lib').Enums.orders.fulfillment_kind
-const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
-const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
-const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
-const ORDER_CANCEL = require('../../lib').Enums.ORDER_CANCEL
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { PAYMENT_PROCESSING_METHOD } from '../../enums'
+import { FULFILLMENT_STATUS } from '../../enums'
+import { ORDER_STATUS } from '../../enums'
+import { ORDER_FULFILLMENT } from '../../enums'
+// import { PAYMENT_KIND } from '../../enums'
+// import { orders.fulfillment_kind } from '../../enums'
+import { TRANSACTION_STATUS } from '../../enums'
+import { TRANSACTION_KIND } from '../../enums'
+import { ORDER_FINANCIAL } from '../../enums'
+import { ORDER_CANCEL } from '../../enums'
 /**
  * @module OrderService
  * @description Order Service
@@ -42,19 +42,19 @@ export class OrderService extends Service {
     let totalPrice = obj.total_price
     let totalOverrides = 0
     let deduction = 0
-    let resOrder = {}
-    let resCustomer = {}
-    let resBillingAddress = {}
-    let resShippingAddress = {}
+    let resOrder: {[key: string]: any} = {}
+    let resCustomer: {[key: string]: any} = {}
+    let resBillingAddress: {[key: string]: any} = {}
+    let resShippingAddress: {[key: string]: any} = {}
 
     // Validate obj cart
     if (!obj.cart_token && !obj.subscription_token) {
-      const err = new Errors.FoundError(Error('Missing a Cart token or a Subscription token'))
+      const err = new ModelError('E_NOT_FOUND', 'Missing a Cart token or a Subscription token')
       return Promise.reject(err)
     }
     // Validate payment details
     if (!obj.payment_details) {
-      const err = new Errors.FoundError(Error('Missing Payment Details'))
+      const err = new ModelError('E_NOT_FOUND', 'Missing Payment Details')
       return Promise.reject(err)
     }
 
@@ -94,11 +94,11 @@ export class OrderService extends Service {
           }
           // The customer exist, the order requires shipping, but no shipping information
           if (customer && !customer.shipping_address && !obj.shipping_address && obj.has_shipping) {
-            throw new Errors.FoundError(Error(`Could not find customer shipping address for id '${obj.customer_id}'`))
+            throw new ModelError('E_NOT_FOUND', `Could not find customer shipping address for id '${obj.customer_id}'`)
           }
           // The customer exist, the order requires shipping, but no billing information
           if (customer && !customer.billing_address && !obj.billing_address && obj.has_shipping) {
-            throw new Errors.FoundError(Error(`Could not find customer billing address for id '${obj.customer_id}'`))
+            throw new ModelError('E_NOT_FOUND', `Could not find customer billing address for id '${obj.customer_id}'`)
           }
           // Set a blank customer object if there isn't one for this order
           if (!customer) {
@@ -240,10 +240,10 @@ export class OrderService extends Service {
             phone: obj.phone || resCustomer.phone || null,
 
             // Types
-            fulfillment_kind: obj.fulfillment_kind || this.app.config.get('proxyCart.orders.fulfillment_kind'),
-            payment_kind: obj.payment_kind || this.app.config.get('proxyCart.orders.payment_kind'),
+            fulfillment_kind: obj.fulfillment_kind || this.app.config.get('cart.orders.fulfillment_kind'),
+            payment_kind: obj.payment_kind || this.app.config.get('cart.orders.payment_kind'),
             transaction_kind: obj.transaction_kind
-              || this.app.config.get('proxyCart.orders.transaction_kind')
+              || this.app.config.get('cart.orders.transaction_kind')
               || TRANSACTION_KIND.AUTHORIZE,
             // Gateway
             payment_gateway_names: paymentGatewayNames,
@@ -406,7 +406,10 @@ export class OrderService extends Service {
           throw new Error('Order not found')
         }
         resOrder = _order
-        if ([FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT].indexOf(resOrder.fulfillment_status) === -1 || resOrder.cancelled_at) {
+        if (
+          [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT]
+            .indexOf(resOrder.fulfillment_status) === -1 || resOrder.cancelled_at
+        ) {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
         }
 
@@ -458,7 +461,7 @@ export class OrderService extends Service {
       .then(() => {
         return resOrder.sendUpdatedEmail({transaction: options.transaction || null})
       })
-      .then(resOrder => {
+      .then(() => {
         return Order.findByIdDefault(resOrder.id)
       })
   }
@@ -479,10 +482,11 @@ export class OrderService extends Service {
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
 
         if (_order.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
+          // tslint:disable:max-line-length
           throw new Error(`Order status is ${_order.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
         }
 
@@ -535,7 +539,7 @@ export class OrderService extends Service {
     options = options || {}
     const Sequelize = this.app.models['Order'].sequelize
     return Sequelize.Promise.mapSeries(orders, order => {
-      return this.pay(order, {transaction: options.transaction || null})
+      return this.pay(order, order.payment_details, {transaction: options.transaction || null})
     })
   }
 
@@ -553,11 +557,11 @@ export class OrderService extends Service {
 
     let resOrderItem, resOrder
     return OrderItem.resolve(orderItem, {transaction: options.transaction || null})
-      .then(orderItem => {
-        if (!orderItem) {
-          throw new Errors.FoundError(Error('OrderItem not found'))
+      .then(_orderItem => {
+        if (!_orderItem) {
+          throw new ModelError('E_NOT_FOUND', 'OrderItem not found')
         }
-        resOrderItem = orderItem
+        resOrderItem = _orderItem
         return resOrderItem
       })
       .then(() => {
@@ -565,7 +569,7 @@ export class OrderService extends Service {
       })
       .then(order => {
         if (!order) {
-          throw new Errors.FoundError('Order not found')
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         const allowedStatuses = [
           ORDER_FINANCIAL.PAID,
@@ -574,15 +578,13 @@ export class OrderService extends Service {
         ]
 
         if (allowedStatuses.indexOf(order.financial_status) === -1) {
-          throw new Error(
-            `Order status is ${order.financial_status} not 
-            '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`
-          )
+          // tslint:disable:max-line-length
+          throw new Error(`Order status is ${ order.financial_status } not '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`)
         }
         // Bind DAO
         resOrder = order
         // Resolve transactions in case they aren't added yet
-        return resOrder.resolveTransactions({transaction: options.transaction || null})
+        return resOrder.resolveTransactions(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
 
@@ -645,25 +647,23 @@ export class OrderService extends Service {
     const Sequelize = Order.sequelize
     let resOrder
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         const allowedStatuses = [ORDER_FINANCIAL.PAID, ORDER_FINANCIAL.PARTIALLY_PAID, ORDER_FINANCIAL.PARTIALLY_REFUNDED]
-        if (allowedStatuses.indexOf(order.financial_status) === -1) {
-          throw new Error(
-            `Order status is ${order.financial_status} not 
-            '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`
-          )
+        if (allowedStatuses.indexOf(_order.financial_status) === -1) {
+          // tslint:disable:max-line-length
+          throw new Error(`Order status is ${ _order.financial_status } not '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`)
         }
-        return order
+        return _order
       })
-      .then(order => {
-        resOrder = order
-        return resOrder.resolveTransactions({transaction: options.transaction || null})
+      .then(_order => {
+        resOrder = _order
+        return resOrder.resolveTransactions(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
-        return resOrder.resolveRefunds({transaction: options.transaction || null})
+        return resOrder.resolveRefunds(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
         // Partially Refund because refunds was sent to method
@@ -676,11 +676,13 @@ export class OrderService extends Service {
             ) {
               // If this is a full Transaction refund
               if (refund.amount === refundTransaction.amount) {
-                return this.app.services.TransactionService.refund(refundTransaction, { transaction: options.transaction || null })
+                return this.app.services.TransactionService
+                  .refund(refundTransaction, { transaction: options.transaction || null })
               }
               // If this is a partial refund
               else {
-                return this.app.services.TransactionService.partiallyRefund(refundTransaction, refund.amount, { transaction: options.transaction || null })
+                return this.app.services.TransactionService
+                  .partiallyRefund(refundTransaction, refund.amount, { transaction: options.transaction || null })
               }
             }
           })
@@ -771,7 +773,7 @@ export class OrderService extends Service {
     return Order.resolve(order, { transaction: options.transaction || null })
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
 
         resOrder = _order
@@ -821,7 +823,7 @@ export class OrderService extends Service {
       .then(() => {
         return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
       })
-      .then(order => {
+      .then(() => {
         return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
   }
@@ -841,7 +843,7 @@ export class OrderService extends Service {
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return resOrder.resolveTransactions({transaction: options.transaction || null})
@@ -886,10 +888,10 @@ export class OrderService extends Service {
           })
         }
       })
-      .then(captures => {
+      .then(_captures => {
         return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
       })
-      .then(order => {
+      .then(_order => {
         return Order.findByIdDefault(resOrder.id, { transaction: options.transaction || null })
       })
   }
@@ -910,7 +912,7 @@ export class OrderService extends Service {
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return resOrder.resolveTransactions({ transaction: options.transaction || null })
@@ -955,10 +957,10 @@ export class OrderService extends Service {
           })
         }
       })
-      .then(voids => {
+      .then(_voids => {
         return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
       })
-      .then(order => {
+      .then(_order => {
         return Order.findByIdDefault(resOrder.id, { transaction: options.transaction || null })
       })
   }
@@ -979,7 +981,7 @@ export class OrderService extends Service {
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return resOrder.resolveTransactions({ transaction: options.transaction || null })
@@ -1019,15 +1021,15 @@ export class OrderService extends Service {
           })
         }
       })
-      .then(retries => {
-        return resOrder.saveFinancialStatus({transaction: options.transaction || null})
+      .then(_retries => {
+        return resOrder.saveFinancialStatus(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
         if (resOrder.financial_status === ORDER_FINANCIAL.PAID) {
-          return resOrder.sendPaidEmail({transaction: options.transaction || null})
+          return resOrder.sendPaidEmail(this.app, {transaction: options.transaction || null})
         }
         else if (resOrder.financial_status === ORDER_FINANCIAL.PARTIALLY_PAID) {
-          return resOrder.sendPartiallyPaidEmail({transaction: options.transaction || null})
+          return resOrder.sendPartiallyPaidEmail(this.app, {transaction: options.transaction || null})
         }
         return
       })
@@ -1054,11 +1056,15 @@ export class OrderService extends Service {
           throw new Error('Order not found')
         }
         resOrder = _order
-        if ([ORDER_FULFILLMENT.NONE, ORDER_FULFILLMENT.PENDING, ORDER_FULFILLMENT.SENT].indexOf(resOrder.fulfillment_status) < 0) {
+        if (
+          [ORDER_FULFILLMENT.NONE, ORDER_FULFILLMENT.PENDING, ORDER_FULFILLMENT.SENT]
+            .indexOf(resOrder.fulfillment_status) < 0
+        ) {
+          // tslint:disable:max-line-length
           throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}', '${ORDER_FULFILLMENT.PENDING}', '${ORDER_FULFILLMENT.SENT}'`)
         }
 
-        return resOrder.resolveTransactions({ transaction: options.transaction || null })
+        return resOrder.resolveTransactions(this.app, { transaction: options.transaction || null })
       })
       .then(() => {
         // Transactions that can be refunded
@@ -1177,18 +1183,18 @@ export class OrderService extends Service {
     const Tag = this.app.models['Tag']
     let resOrder, resTag
     return Order.resolve(order, { transaction: options.transaction || null })
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
-        resOrder = order
+        resOrder = _order
         return Tag.resolve(tag, { transaction: options.transaction || null })
       })
-      .then(tag => {
-        if (!tag) {
-          throw new Errors.FoundError(Error('Tag not found'))
+      .then(_tag => {
+        if (!_tag) {
+          throw new ModelError('E_NOT_FOUND', 'Tag not found')
         }
-        resTag = tag
+        resTag = _tag
         return resOrder.hasTag(resTag.id, { transaction: options.transaction || null })
       })
       .then(hasTag => {
@@ -1197,16 +1203,13 @@ export class OrderService extends Service {
         }
         return resOrder
       })
-      .then(tag => {
+      .then(_tag => {
         return Order.findByIdDefault(resOrder.id, { transaction: options.transaction || null })
       })
   }
 
   /**
-   *
-   * @param order
-   * @param tag
-   * @returns {Promise.<TResult>}
+   * Remove a Tag from an Order
    */
   removeTag(order, tag, options) {
     options = options || {}
@@ -1214,18 +1217,18 @@ export class OrderService extends Service {
     const Order = this.app.models['Order']
     const Tag = this.app.models['Tag']
     return Order.resolve(order, { transaction: options.transaction || null })
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
-        resOrder = order
+        resOrder = _order
         return Tag.resolve(tag, { transaction: options.transaction || null })
       })
-      .then(tag => {
-        if (!tag) {
-          throw new Errors.FoundError(Error('Tag not found'))
+      .then(_tag => {
+        if (!_tag) {
+          throw new ModelError('E_NOT_FOUND', 'Tag not found')
         }
-        resTag = tag
+        resTag = _tag
         return resOrder.hasTag(resTag.id, { transaction: options.transaction || null })
       })
       .then(hasTag => {
@@ -1234,7 +1237,7 @@ export class OrderService extends Service {
         }
         return resOrder
       })
-      .then(tag => {
+      .then(_tag => {
         return Order.findByIdDefault(resOrder.id, { transaction: options.transaction || null })
       })
   }
@@ -1258,7 +1261,7 @@ export class OrderService extends Service {
       // Add the admin id to the override
       override.admin_id = override.admin_id ? override.admin_id : admin.id
       // Make sure price is a number
-      override.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(override.price))
+      override.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(override.price, 10))
       return override
     })
     let resOrder
@@ -1278,7 +1281,7 @@ export class OrderService extends Service {
         return resOrder.save({transaction: options.transaction || null})
       })
       .then(createdItem => {
-        return resOrder.recalculate({ transaction: options.transaction || null })
+        return resOrder.recalculate(this.app, { transaction: options.transaction || null })
       })
       .then(() => {
         // Track Event
@@ -1298,7 +1301,7 @@ export class OrderService extends Service {
         })
       })
       .then(event => {
-        return resOrder //Order.findByIdDefault(resOrder.id)
+        return resOrder // Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1312,20 +1315,20 @@ export class OrderService extends Service {
   addItem(order, item, options) {
     options = options || {}
     if (!item) {
-      throw new Errors.FoundError(Error('Item is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
     let resOrder, resItem
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status} and can not be modified`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status} and can not be modified`)
         }
         // bind the dao
-        resOrder = order
+        resOrder = _order
         return resOrder.resolveOrderItems({ transaction: options.transaction || null })
       })
       .then(() => {
@@ -1368,7 +1371,7 @@ export class OrderService extends Service {
         })
       })
       .then(event => {
-        return resOrder //Order.findByIdDefault(resOrder.id)
+        return resOrder // Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1382,22 +1385,22 @@ export class OrderService extends Service {
   addItems(order, items, options) {
     options = options || {}
     if (!items) {
-      throw new Errors.FoundError(Error('Item is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
     let resOrder, resItems = []
     const Order = this.app.models['Order']
     const Sequelize = this.app.models['Product'].sequelize
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status} and can not be modified`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status} and can not be modified`)
         }
         // bind the dao
-        resOrder = order
-        return resOrder.resolveOrderItems({ transaction: options.transaction || null })
+        resOrder = _order
+        return resOrder.resolveOrderItems(this.app, { transaction: options.transaction || null })
       })
       .then(() => {
         // Resolve the item of the new order item
@@ -1456,7 +1459,7 @@ export class OrderService extends Service {
         })
       })
       .then(event => {
-        return resOrder //Order.findByIdDefault(resOrder.id)
+        return resOrder // Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1470,21 +1473,21 @@ export class OrderService extends Service {
   updateItem(order, item, options) {
     options = options || {}
     if (!item) {
-      throw new Errors.FoundError(Error('Item is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
     let resOrder, resItem
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
+        if (_order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${order.status}`)
         }
         // bind the dao
-        resOrder = order
-        return resOrder.resolveOrderItems({transaction: options.transaction || null})
+        resOrder = _order
+        return resOrder.resolveOrderItems(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
         // Resolve the item
@@ -1495,13 +1498,13 @@ export class OrderService extends Service {
           throw new Error('Could not resolve product and variant')
         }
         // Build the item
-        resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
+        resItem = resOrder.buildOrderItem(this.app, _item, item.quantity, item.properties)
         // Update the item
-        return resOrder.updateItem(resItem)
+        return resOrder.updateItem(this.app, resItem)
       })
       .then((updatedItem) => {
        // recalculate
-        return resOrder.recalculate({transaction: options.transaction || null})
+        return resOrder.recalculate(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
         // Track Event
@@ -1541,21 +1544,21 @@ export class OrderService extends Service {
   removeItem(order, item, options) {
     options = options || {}
     if (!item) {
-      throw new Errors.FoundError(Error('Item is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
     let resOrder, resItem
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status}`)
         }
         // bind the dao
-        resOrder = order
-        return resOrder.resolveOrderItems({transaction: options.transaction || null})
+        resOrder = _order
+        return resOrder.resolveOrderItems(this.app, {transaction: options.transaction || null})
       }).
       then(() => {
         // Resolve the item
@@ -1566,13 +1569,13 @@ export class OrderService extends Service {
           throw new Error('Could not resolve product and variant')
         }
         // Build the item
-        resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
+        resItem = resOrder.buildOrderItem(this.app, _item, item.quantity, item.properties)
         // Remove the item
-        return resOrder.removeItem(resItem)
+        return resOrder.removeItem(this.app, resItem)
       })
       .then(() => {
         // recalculate
-        return resOrder.recalculate({transaction: options.transaction || null})
+        return resOrder.recalculate(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
         // Track Event
@@ -1612,20 +1615,20 @@ export class OrderService extends Service {
   addShipping(order, shipping, options) {
     options = options || {}
     if (!shipping) {
-      throw new Errors.FoundError(Error('Shipping is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
     }
     let resOrder
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
+      .then(_order => {
+        if (!_order) {
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status}`)
         }
-        resOrder = order
-        return resOrder.addShipping(shipping, {transaction: options.transaction || null})
+        resOrder = _order
+        return resOrder.addShipping(this.app, shipping, {transaction: options.transaction || null})
       })
   }
 
@@ -1639,20 +1642,20 @@ export class OrderService extends Service {
   removeShipping(order, shipping, options) {
     options = options || {}
     if (!shipping) {
-      throw new Errors.FoundError(Error('Shipping is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
     }
     let resOrder
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         if (_order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${_order.status}`)
         }
         resOrder = _order
-        return resOrder.removeShipping(shipping, {transaction: options.transaction || null})
+        return resOrder.removeShipping(this.app, shipping, {transaction: options.transaction || null})
       })
   }
 
@@ -1666,20 +1669,20 @@ export class OrderService extends Service {
   addTaxes(order, taxes, options) {
     options = options || {}
     if (!taxes) {
-      throw new Errors.FoundError(Error('Taxes is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
     }
     let resOrder
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         if (_order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${_order.status}`)
         }
         resOrder = _order
-        return resOrder.addTaxes(taxes, {transaction: options.transaction || null})
+        return resOrder.addTaxes(this.app, taxes, {transaction: options.transaction || null})
       })
   }
 
@@ -1693,20 +1696,20 @@ export class OrderService extends Service {
   removeTaxes(order, taxes, options) {
     options = options || {}
     if (!taxes) {
-      throw new Errors.FoundError(Error('Taxes is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
     }
     let resOrder
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         if (_order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${_order.status}`)
         }
         resOrder = _order
-        return resOrder.removeTaxes(taxes, {transaction: options.transaction || null})
+        return resOrder.removeTaxes(this.app, taxes, {transaction: options.transaction || null})
       })
   }
 
@@ -1731,7 +1734,7 @@ export class OrderService extends Service {
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         if (_order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${_order.status}`)
@@ -1739,7 +1742,7 @@ export class OrderService extends Service {
         resOrder = _order
         // if this is missing id, this means we will be updating all fulfillment on the order.
         if (fulfillments.every(f => !f.id) && fulfillments.length === 1) {
-          return resOrder.getFulfillments({transaction: options.transaciton || null})
+          return resOrder.getFulfillments(this.app, {transaction: options.transaciton || null})
         }
         else {
           return []
@@ -1758,7 +1761,7 @@ export class OrderService extends Service {
 
         // console.log('BROKE',fulfillments)
 
-        return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
+        return resOrder.fulfill(this.app, fulfillments, {transaction: options.transaction || null})
       })
       .then(() => {
         return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)
@@ -1783,7 +1786,7 @@ export class OrderService extends Service {
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         if (_order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${_order.status}`)
@@ -1830,14 +1833,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.TransactionService.authorize(transaction, {transaction: options.transaction || null})
       })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         resTransaction = _transaction
         return resOrder.reload({transaction: options.transaction || null})
@@ -1864,14 +1867,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.TransactionService.capture(transaction, {transaction: options.transaction || null})
       })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         resTransaction = _transaction
         return resOrder.reload({transaction: options.transaction || null})
@@ -1898,14 +1901,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.TransactionService.sale(transaction, {transaction: options.transaction || null})
       })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         resTransaction = _transaction
         return resOrder.reload({transaction: options.transaction || null})
@@ -1932,14 +1935,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.TransactionService.refund(transaction, {transaction: options.transaction || null})
       })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         resTransaction = _transaction
         return resOrder.reload({transaction: options.transaction || null})
@@ -1966,14 +1969,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.TransactionService.retry(transaction, {transaction: options.transaction || null})
       })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         resTransaction = _transaction
         return resOrder.reload({transaction: options.transaction || null})
@@ -2000,14 +2003,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.TransactionService.cancel(transaction, {transaction: options.transaction || null})
       })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         resTransaction = _transaction
         return resOrder.reload({transaction: options.transaction || null})
@@ -2033,14 +2036,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.TransactionService.void(transaction, {transaction: options.transaction || null})
       })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         resTransaction = _transaction
         return resOrder.reload({transaction: options.transaction || null})
@@ -2068,14 +2071,14 @@ export class OrderService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new ModelError('E_NOT_FOUND', 'Order not found')
         }
         resOrder = _order
         return this.app.services.FulfillmentService.manualUpdateFulfillment(fulfillment, {transaction: options.transaction || null})
       })
       .then(_fulfillment => {
         if (!_fulfillment) {
-          throw new Errors.FoundError(Error('Fulfillment not found'))
+          throw new ModelError('E_NOT_FOUND', 'Fulfillment not found')
         }
         resFulfillment = _fulfillment
         return resOrder.reload({transaction: options.transaction || null})
@@ -2104,7 +2107,7 @@ export class OrderService extends Service {
     // const errors = []
     //
     // const start = moment().startOf('hour')
-    //   .subtract(this.app.config.get('proxyCart.orders.grace_period_days') || 0, 'days')
+    //   .subtract(this.app.config.get('cart.orders.grace_period_days') || 0, 'days')
     //
     // // let errorsTotal = 0
     // let ordersTotal = 0
@@ -2120,7 +2123,7 @@ export class OrderService extends Service {
     //     //   $gte: start.format('YYYY-MM-DD HH:mm:ss')
     //     // },
     //     // total_renewal_attempts: {
-    //     //   $gte: this.app.config.proxyCart.orders.retry_attempts || 1
+    //     //   $gte: this.app.config.cart.orders.retry_attempts || 1
     //     // },
     //     // // Not cancelled
     //     // cancelled: false

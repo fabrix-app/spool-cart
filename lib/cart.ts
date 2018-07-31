@@ -9,11 +9,11 @@ export const Cart = {
    * @param app
    */
   configure: (app) => {
-    const proxyCart = app.services.ProxyCartService
-    app.config.web.middlewares.cartInit = proxyCart.initialize(proxyCart)
-    app.config.web.middlewares.cartSession = proxyCart.authenticate(proxyCart)
-    app.config.web.middlewares.cartSessionCart = proxyCart.cart(proxyCart)
-    app.config.web.middlewares.cartSessionCustomer = proxyCart.customer(proxyCart)
+    const cart = app.services.ProxyCartService
+    app.config.web.middlewares.cartInit = cart.initialize(cart)
+    app.config.web.middlewares.cartSession = cart.authenticate(cart)
+    app.config.web.middlewares.cartSessionCart = cart.cart(cart)
+    app.config.web.middlewares.cartSessionCustomer = cart.customer(cart)
     return Promise.resolve()
   },
   /**

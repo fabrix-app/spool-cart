@@ -1,8 +1,35 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 
-const helpers = require('engine-helpers')
+// tslint:disable:no-shadowed-variable
+export class VendorUploadResolver extends SequelizeResolver {
+  batch(options, batch) {
+    const self = this
 
+    options.limit = options.limit || 100
+    options.offset = options.offset || 0
+    options.regressive = options.regressive || false
+
+    const recursiveQuery = function (options) {
+      let count = 0
+      return self.findAndCountAll(options)
+        .then(results => {
+          count = results.count
+          return batch(results.rows)
+        })
+        .then(batched => {
+          if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+            options.offset = options.regressive ? 0 : options.offset + options.limit
+            return recursiveQuery(options)
+          }
+          else {
+            return Promise.resolve()
+          }
+        })
+    }
+    return recursiveQuery(options)
+  }
+}
 /**
  * @module VendorUpload
  * @description Vendor Upload
@@ -10,7 +37,7 @@ const helpers = require('engine-helpers')
 export class VendorUpload extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return VendorUploadResolver
   }
 
   static config (app, Sequelize) {
@@ -18,40 +45,7 @@ export class VendorUpload extends Model {
       // migrate: 'drop', //override default models configurations if needed
       // store: 'uploads',
       options: {
-        underscored: true,
-        classMethods: {
-          /**
-           *
-           * @param options
-           * @param batch
-           * @returns Promise.<T>
-           */
-          batch: function (options, batch) {
-            const self = this
-            options.limit = options.limit || 10
-            options.offset = options.offset || 0
-            options.regressive = options.regressive || false
-
-            const recursiveQuery = function(options) {
-              let count = 0
-              return self.findAndCountAll(options)
-                .then(results => {
-                  count = results.count
-                  return batch(results.rows)
-                })
-                .then(batched => {
-                  if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
-                    options.offset = options.regressive ? 0 : options.offset + options.limit
-                    return recursiveQuery(options)
-                  }
-                  else {
-                    return batched
-                  }
-                })
-            }
-            return recursiveQuery(options)
-          }
-        }
+        underscored: true
       }
     }
   }
@@ -141,9 +135,13 @@ export class VendorUpload extends Model {
       billing_postal_code: {
         type: Sequelize.STRING
       },
-      products: helpers.JSONB('VendorUpload', app, Sequelize, 'products', {
+      products: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      })
+      }
+      //   helpers.JSONB('VendorUpload', app, Sequelize, 'products', {
+      //   defaultValue: []
+      // })
     }
   }
 }

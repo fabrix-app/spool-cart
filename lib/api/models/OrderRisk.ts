@@ -32,7 +32,7 @@ export class OrderRisk extends Model {
       },
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }

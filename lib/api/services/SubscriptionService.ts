@@ -5,10 +5,10 @@ import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
 const shortid = require('shortid')
 const moment = require('moment')
-const Errors = require('engine-errors')
-const SUBSCRIPTION_CANCEL = require('../../lib').Enums.SUBSCRIPTION_CANCEL
-const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
-const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { SUBSCRIPTION_CANCEL } from '../../enums'
+import { PAYMENT_PROCESSING_METHOD } from '../../enums'
+import { ORDER_FINANCIAL } from '../../enums'
 
 /**
  * @module SubscriptionService
@@ -178,7 +178,7 @@ export class SubscriptionService extends Service {
     options = options || {}
     const Subscription =  this.app.models.Subscription
 
-    update = _.omit(update,['id', 'created_at', 'updated_at'])
+    update = _.omit(update, ['id', 'created_at', 'updated_at'])
 
     let resSubscription
     return Subscription.resolve(subscription, options)
@@ -302,7 +302,7 @@ export class SubscriptionService extends Service {
     return Subscription.resolve(subscription, options)
       .then(_subscription => {
         if (!_subscription) {
-          throw new Errors.FoundError(Error('Subscription Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
         }
         resSubscription = _subscription
         return resSubscription.activate().save({transaction: options.transaction || null})
@@ -347,7 +347,7 @@ export class SubscriptionService extends Service {
     return Subscription.resolve(subscription, {transaction: options.transaction || null})
       .then(_subscription => {
         if (!_subscription) {
-          throw new Errors.FoundError(Error('Subscription Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
         }
         resSubscription = _subscription
         resSubscription.cancel_reason = null
@@ -399,7 +399,7 @@ export class SubscriptionService extends Service {
     return Subscription.resolve(subscription, options)
       .then(_subscription => {
         if (!_subscription) {
-          throw new Errors.FoundError(Error('Subscription Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
         }
 
         resSubscription = _subscription
@@ -461,7 +461,7 @@ export class SubscriptionService extends Service {
     return Subscription.resolve(subscription, options)
       .then(_subscription => {
         if (!_subscription) {
-          throw new Errors.FoundError(Error('Subscription Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
         }
         resSubscription = _subscription
         return Subscription.datastore.Promise.mapSeries(items, item => {
@@ -515,7 +515,7 @@ export class SubscriptionService extends Service {
       return Subscription.resolve(subscription, {transaction: options.transaction || null})
         .then(_subscription => {
           if (!_subscription) {
-            throw new Errors.FoundError(Error('Subscription Not Found'))
+            throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
           }
           resSubscription = _subscription
           // Build the order
@@ -606,7 +606,7 @@ export class SubscriptionService extends Service {
     return Subscription.resolve(subscription, options)
       .then(_subscription => {
         if (!_subscription) {
-          throw new Errors.FoundError(Error('Subscription Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
         }
         if (!_subscription.token) {
           throw new Error('Subscription is missing token and can not be retried')
@@ -692,14 +692,14 @@ export class SubscriptionService extends Service {
     return Subscription.resolve(subscription, {transaction: options.transaction || null})
       .then(_subscription => {
         if (!_subscription) {
-          throw new Errors.FoundError(Error('Subscription Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
         }
         resSubscription = _subscription
         return resSubscription.resolveCustomer({transaction: options.transaction || null})
       })
       .then(() => {
         if (!resSubscription.Customer) {
-          throw new Errors.FoundError(Error('Subscription Customer Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Subscription Customer Not Found')
         }
         // Resolve Shipping Address
         return resSubscription.Customer.resolveShippingAddress({transaction: options.transaction || null})
@@ -714,23 +714,23 @@ export class SubscriptionService extends Service {
           .then(source => {
             if (!source) {
               return {
-                payment_kind: 'immediate' || this.app.config.get('proxyCart.orders.payment_kind'),
-                transaction_kind: 'sale' || this.app.config.get('proxyCart.orders.transaction_kind'),
+                payment_kind: 'immediate' || this.app.config.get('cart.orders.payment_kind'),
+                transaction_kind: 'sale' || this.app.config.get('cart.orders.transaction_kind'),
                 payment_details: [],
-                fulfillment_kind: 'immediate' || this.app.config.get('proxyCart.orders.fulfillment_kind')
+                fulfillment_kind: 'immediate' || this.app.config.get('cart.orders.fulfillment_kind')
               }
             }
             else {
               return {
-                payment_kind: 'immediate' || this.app.config.get('proxyCart.orders.payment_kind'),
-                transaction_kind: 'sale' || this.app.config.get('proxyCart.orders.transaction_kind'),
+                payment_kind: 'immediate' || this.app.config.get('cart.orders.payment_kind'),
+                transaction_kind: 'sale' || this.app.config.get('cart.orders.transaction_kind'),
                 payment_details: [
                   {
                     gateway: source.gateway,
                     source: source,
                   }
                 ],
-                fulfillment_kind: 'immediate' || this.app.config.get('proxyCart.orders.fulfillment_kind')
+                fulfillment_kind: 'immediate' || this.app.config.get('cart.orders.fulfillment_kind')
               }
             }
           })
@@ -739,9 +739,9 @@ export class SubscriptionService extends Service {
         return resSubscription.buildOrder({
           // Request info
           payment_details: paymentDetails.payment_details,
-          transaction_kind: paymentDetails.transaction_kind || this.app.config.get('proxyCart.orders.transaction_kind'),
-          payment_kind: paymentDetails.payment_kind || this.app.config.get('proxyCart.orders.payment_kind'),
-          fulfillment_kind: paymentDetails.fulfillment_kind || this.app.config.get('proxyCart.orders.fulfillment_kind'),
+          transaction_kind: paymentDetails.transaction_kind || this.app.config.get('cart.orders.transaction_kind'),
+          payment_kind: paymentDetails.payment_kind || this.app.config.get('cart.orders.payment_kind'),
+          fulfillment_kind: paymentDetails.fulfillment_kind || this.app.config.get('cart.orders.fulfillment_kind'),
           processing_method: PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
           shipping_address: resSubscription.Customer.shipping_address,
           billing_address: resSubscription.Customer.billing_address,
@@ -768,7 +768,7 @@ export class SubscriptionService extends Service {
       return Subscription.resolve(subscription, {transaction: options.transaction || null})
         .then(_subscription => {
           if (!_subscription) {
-            throw new Errors.FoundError(Error('Subscription Not Found'))
+            throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
           }
           if (!(_subscription instanceof Subscription)) {
             throw new Error('Subscription did not resolve instance of Subscription')
@@ -868,7 +868,7 @@ export class SubscriptionService extends Service {
         },
         total_renewal_attempts: {
           $gt: 0,
-          $lt: this.app.config.get('proxyCart.subscriptions.retry_attempts') || 1
+          $lt: this.app.config.get('cart.subscriptions.retry_attempts') || 1
         },
         active: true
       },
@@ -916,7 +916,7 @@ export class SubscriptionService extends Service {
     const errors = []
 
     const start = moment().startOf('hour')
-      .subtract(this.app.config.get('proxyCart.subscriptions.grace_period_days') || 0, 'days')
+      .subtract(this.app.config.get('cart.subscriptions.grace_period_days') || 0, 'days')
 
     // let errorsTotal = 0
     let subscriptionsTotal = 0
@@ -931,7 +931,7 @@ export class SubscriptionService extends Service {
         $or: [
           {
             total_renewal_attempts: {
-              $gte: this.app.config.get('proxyCart.subscriptions.retry_attempts') || 1
+              $gte: this.app.config.get('cart.subscriptions.retry_attempts') || 1
             }
           },
           {
@@ -997,7 +997,7 @@ export class SubscriptionService extends Service {
     options = options || {}
 
     const start = moment()
-      .add(this.app.config.get('proxyCart.subscriptions.renewal_notice_days') || 0, 'days')
+      .add(this.app.config.get('cart.subscriptions.renewal_notice_days') || 0, 'days')
       .startOf('hour')
     const end = start.clone()
       .endOf('hour')

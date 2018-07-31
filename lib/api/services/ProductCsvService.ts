@@ -1,13 +1,11 @@
-
-
-
+// tslint:disable:no-console
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const csvParser = require('papaparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const PRODUCT_UPLOAD = require('../../lib').Enums.PRODUCT_UPLOAD
-const PRODUCT_META_UPLOAD = require('../../lib').Enums.PRODUCT_META_UPLOAD
+import { PRODUCT_UPLOAD } from '../../enums'
+import { PRODUCT_META_UPLOAD } from '../../enums'
 
 /**
  * @module ProductCsvService
@@ -26,7 +24,7 @@ export class ProductCsvService extends Service {
     const errors = []
     let errorsCount = 0, lineNumber = 1
 
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
       const options = {
         header: true,
         dynamicTyping: true,
@@ -45,7 +43,7 @@ export class ProductCsvService extends Service {
               parser.resume()
             })
         },
-        complete: (results, file) => {
+        complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
           EngineService.count('ProductUpload', { where: { upload_id: uploadID }})
@@ -66,7 +64,7 @@ export class ProductCsvService extends Service {
               return resolve(results)
             })
         },
-        error: (err, file) => {
+        error: (err, _file) => {
           return reject(err)
         }
       }
@@ -91,7 +89,7 @@ export class ProductCsvService extends Service {
         const keys = _.keys(PRODUCT_UPLOAD)
         const google = {}
         const amazon = {}
-        const upload = {
+        const upload: {[key: string]: any} = {
           upload_id: uploadID,
           options: {},
           properties: {},
@@ -137,10 +135,10 @@ export class ProductCsvService extends Service {
                 upload[k] = this.app.services.ProxyCartService.description(data)
               }
               else if (k === 'price') {
-                upload[k] = parseInt(data)
+                upload[k] = parseInt(data, 10)
               }
               else if (k === 'compare_at_price') {
-                upload[k] = parseInt(data)
+                upload[k] = parseInt(data, 10)
               }
               else if (k === 'tags') {
                 upload[k] = _.uniq(data.toString().split(',').map(tag => {
@@ -194,7 +192,7 @@ export class ProductCsvService extends Service {
               }
               else if (k === 'shops_quantity') {
                 upload[k] = data.toString().split(',').map(shopQty => {
-                  return parseInt(shopQty.trim())
+                  return parseInt(shopQty.trim(), 10)
                 })
               }
               else if (k === 'weight_unit') {
@@ -319,7 +317,7 @@ export class ProductCsvService extends Service {
                 && typeof matchProperties[4] !== 'undefined'
               ) {
 
-                const part = matchProperties[4].toLowerCase().replace(' ','_')
+                const part = matchProperties[4].toLowerCase().replace(' ', '_')
                 const index = Number(matchProperties[3]) - 1
                 if (typeof upload.properties[index] === 'undefined') {
                   upload.properties[index] = {
@@ -447,7 +445,7 @@ export class ProductCsvService extends Service {
 
           const handle = this.app.services.ProxyCartService.handle(product[0])
           const sku = this.app.services.ProxyCartService.title(product[1])
-          const res = {}
+          const res: {[key: string]: any} = {}
           if (handle && handle !== '') {
             res.handle = handle
             if (sku && sku !== '') {
@@ -569,7 +567,7 @@ export class ProductCsvService extends Service {
           handle: handle,
           upload_id: uploadId
         },
-        order: [['id','ASC']],
+        order: [['id', 'ASC']],
         // transaction: options.transaction || null
       })
         .then(products => {
@@ -730,7 +728,7 @@ export class ProductCsvService extends Service {
               parser.resume()
             })
         },
-        complete: (results, file) => {
+        complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
           EngineService.count('ProductMetaUpload', { where: { upload_id: uploadID }})
@@ -750,7 +748,7 @@ export class ProductCsvService extends Service {
               return resolve(results)
             })
         },
-        error: (err, file) => {
+        error: (err, _file) => {
           reject(err)
         }
       }
@@ -842,9 +840,9 @@ export class ProductCsvService extends Service {
         const Type = metadata.handle.indexOf(':') === -1 ? Product : ProductVariant
 
         let where = {}
-        const includes = [
+        const includes: any[] = [
           {
-            model: Metadata,
+            model: Metadata.instance,
             as: 'metadata',
             attributes: ['data', 'id']
           }
@@ -862,7 +860,7 @@ export class ProductCsvService extends Service {
             '$Product.handle$': this.app.services.ProxyCartService.handle(product[0])
           }
           includes.push({
-            model: Product,
+            model: Product.instance,
             attributes: ['handle']
           })
         }
@@ -960,7 +958,7 @@ export class ProductCsvService extends Service {
       where: {
         upload_id: uploadId
       },
-      transaction: options.transaction | null
+      transaction: options.transaction || null
     }, associations => {
 
       return AssociationUpload.datastore.Promise.mapSeries(associations, association => {

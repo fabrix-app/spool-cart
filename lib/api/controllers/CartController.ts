@@ -2,7 +2,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const lib = require('../../lib')
 const CART_STATUS = require('../../lib').Enums.CART_STATUS
 
@@ -111,7 +111,7 @@ export class CartController extends Controller {
     Cart.findByIdDefault(req.params.id, {})
       .then(cart => {
         if (!cart) {
-          throw new Errors.FoundError(Error(`Cart id ${req.params.id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Cart id ${req.params.id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, cart)
       })
@@ -138,7 +138,7 @@ export class CartController extends Controller {
     Cart.resolve(req.params.id, {})
       .then(cart => {
         if (!cart) {
-          throw new Errors.FoundError(Error(`Cart ${req.params.id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Cart ${req.params.id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, cart)
       })
@@ -197,16 +197,16 @@ export class CartController extends Controller {
     })
       .then(cart => {
         if (!cart) {
-          throw new Errors.FoundError(Error(`Cart id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Cart id ${ req.params.id } not found`)
         }
         if (!cart.customer_id) {
-          throw new Errors.FoundError(Error(`Cart id ${ req.params.id } customer not found`))
+          throw new ModelError('E_NOT_FOUND', `Cart id ${ req.params.id } customer not found`)
         }
         return Customer.findById(cart.customer_id)
       })
       .then(customer => {
         if (!customer) {
-          throw new Errors.FoundError(Error(`Cart id ${ req.params.id } customer not found`))
+          throw new ModelError('E_NOT_FOUND', `Cart id ${ req.params.id } customer not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })

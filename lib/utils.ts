@@ -9,7 +9,7 @@ export const Utils = {
     const fixtures = {
       shops: []
     }
-    fixtures.shops.push(app.config.proxyCart.nexus)
+    fixtures.shops.push(app.config.cart.nexus)
     // console.log('utils.buildShopFixtures', fixtures)
     return Promise.resolve(fixtures)
   },
@@ -62,10 +62,10 @@ export const Utils = {
     const fixtures = {
       countries: []
     }
-    if (!app.config.proxyCart.default_countries || app.config.proxyCart.default_countries.length === 0) {
-      app.config.proxyCart.default_countries = ['USA']
+    if (!app.config.cart.default_countries || app.config.cart.default_countries.length === 0) {
+      app.config.cart.default_countries = ['USA']
     }
-    app.config.proxyCart.default_countries.forEach(country => {
+    app.config.cart.default_countries.forEach(country => {
       fixtures.countries.push(country)
     })
     // console.log('utils.buildShopFixtures', fixtures)
@@ -102,7 +102,7 @@ export const Utils = {
         if (!resCountry) {
           return Promise.resolve()
         }
-        const create = {
+        const create: {[key: string]: any} = {
           code: resCountry.ISO.alpha2,
           name: resCountry.name,
           tax_name: resCountry.tax_name,
@@ -118,7 +118,7 @@ export const Utils = {
         }
 
         resCountry.states.forEach((state, i) => {
-          const newState = {
+          const newState: {[key: string]: any} = {
             code: state.code,
             name: state.name,
             tax_name: state.tax_name,

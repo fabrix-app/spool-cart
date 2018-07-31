@@ -1427,6 +1427,26 @@ export const routes = {
     }
   },
   '/collection/:id/collections': {
+    'GET': {
+      handler: 'CollectionController.collections'
+    },
+    config: {
+      prefix: 'cart.prefix',
+      validate: {
+        params: {
+          id: joi.alternatives().try(
+            joi.number(),
+            joi.string()
+          ).required()
+        }
+      },
+      app: {
+        permissions: {
+          resource_name: 'apiGetCollectionIdCollectionsRoute',
+          roles: ['admin', 'registered', 'public']
+        }
+      }
+    },
     'POST': {
       handler: 'CollectionController.addCollections',
       config: {
@@ -1513,26 +1533,6 @@ export const routes = {
         permissions: {
           resource_name: 'apiDeleteCollectionIdRemoveCollectionCollectionRoute',
           roles: ['admin']
-        }
-      }
-    }
-  },
-  '/collection/:id/collections': {
-    'GET': 'CollectionController.collections',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionIdCollectionsRoute',
-          roles: ['admin', 'registered', 'public']
         }
       }
     }
@@ -2068,6 +2068,43 @@ export const routes = {
     }
   },
   '/collection/:id/customers': {
+    'GET': {
+      handler: 'CollectionController.customers'
+    },
+    config: {
+      prefix: 'cart.prefix',
+      validate: {
+        params: {
+          id: joi.alternatives().try(
+            joi.number(),
+            joi.string()
+          ).required()
+        }
+      },
+      app: {
+        permissions: {
+          resource_name: 'apiGetCollectionIdCustomersRoute',
+          roles: ['admin']
+        }
+      }
+    }
+  },
+  '/collection/handle/:handle': {
+    'GET': 'CollectionController.findByHandle',
+    config: {
+      prefix: 'cart.prefix',
+      validate: {
+        params: {
+          handle: joi.string().required()
+        }
+      },
+      app: {
+        permissions: {
+          resource_name: 'apiGetCollectionHandleRoute',
+          roles: ['public', 'registered', 'admin']
+        }
+      }
+    },
     'POST': {
       handler: 'CollectionController.addCustomers',
       config: {
@@ -2154,43 +2191,6 @@ export const routes = {
         permissions: {
           resource_name: 'apiPostCollectionIdRemoveCustomerCustomerRoute',
           roles: ['admin']
-        }
-      }
-    }
-  },
-  '/collection/:id/customers': {
-    'GET': 'CollectionController.customers',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionIdCustomersRoute',
-          roles: ['admin']
-        }
-      }
-    }
-  },
-  '/collection/handle/:handle': {
-    'GET': 'CollectionController.findByHandle',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          handle: joi.string().required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionHandleRoute',
-          roles: ['public', 'registered', 'admin']
         }
       }
     }
@@ -2294,6 +2294,18 @@ export const routes = {
     }
   },
   '/customer': {
+    'GET': {
+      handler: 'CustomerController.session',
+      config: {
+        prefix: 'cart.prefix',
+        app: {
+          permissions: {
+            resource_name: 'apiGetCustomerRoute',
+            roles: ['public', 'registered', 'admin']
+          }
+        }
+      }
+    },
     'POST': {
       handler: 'CustomerController.createAndLogin',
       config: {
@@ -2345,26 +2357,6 @@ export const routes = {
         permissions: {
           resource_name: 'apiPostCustomerProcessUploadRoute',
           roles: ['admin']
-        }
-      }
-    }
-  },
-  '/customer/:id': {
-    'GET': 'CustomerController.findById',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCustomerIdRoute',
-          roles: ['admin', 'registered']
         }
       }
     }
@@ -2496,6 +2488,26 @@ export const routes = {
     }
   },
   '/customer/:id': {
+    'GET': {
+      handler: 'CustomerController.findById'
+    },
+    config: {
+      prefix: 'cart.prefix',
+      validate: {
+        params: {
+          id: joi.alternatives().try(
+            joi.number(),
+            joi.string()
+          ).required()
+        }
+      },
+      app: {
+        permissions: {
+          resource_name: 'apiGetCustomerIdRoute',
+          roles: ['admin', 'registered']
+        }
+      }
+    },
     'POST': {
       handler: 'CustomerController.update',
       config: {
@@ -4025,9 +4037,7 @@ export const routes = {
           }
         }
       }
-    }
-  },
-  '/customer/address/:address': {
+    },
     'POST': {
       handler: 'CustomerController.updateAddress',
       config: {
@@ -4299,9 +4309,7 @@ export const routes = {
           }
         }
       }
-    }
-  },
-  '/customer/subscription/:subscription': {
+    },
     'POST': {
       handler: 'CustomerController.subscriptionUpdate',
       config: {
@@ -4554,20 +4562,6 @@ export const routes = {
           permissions: {
             resource_name: 'apiGetCustomerSubscriptionsRoute',
             roles: ['admin', 'registered']
-          }
-        }
-      }
-    }
-  },
-  '/customer': {
-    'GET': {
-      handler: 'CustomerController.session',
-      config: {
-        prefix: 'cart.prefix',
-        app: {
-          permissions: {
-            resource_name: 'apiGetCustomerRoute',
-            roles: ['public', 'registered', 'admin']
           }
         }
       }
@@ -5083,51 +5077,7 @@ export const routes = {
           }
         }
       }
-    }
-  },
-  '/discount/:id/customers': {
-    'POST': {
-      handler: 'DiscountController.addCustomers',
-      config: {
-        prefix: 'cart.prefix',
-        validate: {
-          params: {
-            id: joi.alternatives().try(
-              joi.number(),
-              joi.string()
-            ).required()
-          }
-        },
-        app: {
-          permissions: {
-            resource_name: 'apiPostDiscountIdCustomersRoute',
-            roles: ['admin']
-          }
-        }
-      }
     },
-    'PUT': {
-      handler: 'DiscountController.addCustomers',
-      config: {
-        prefix: 'cart.prefix',
-        validate: {
-          params: {
-            id: joi.alternatives().try(
-              joi.number(),
-              joi.string()
-            ).required()
-          }
-        },
-        app: {
-          permissions: {
-            resource_name: 'apiPostDiscountIdCustomersRoute',
-            roles: ['admin']
-          }
-        }
-      }
-    }
-  },
-  '/discount/:id/customer/:customer': {
     'DELETE': {
       handler: 'DiscountController.removeCustomer',
       config: {
@@ -5169,6 +5119,46 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiGetDiscountIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'DiscountController.addCustomers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostDiscountIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'PUT': {
+      handler: 'DiscountController.addCustomers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostDiscountIdCustomersRoute',
             roles: ['admin']
           }
         }
@@ -5223,9 +5213,7 @@ export const routes = {
           }
         }
       }
-    }
-  },
-  '/discount/:id/cart/:cart': {
+    },
     'DELETE': {
       handler: 'DiscountController.removeCart',
       config: {
@@ -5432,9 +5420,7 @@ export const routes = {
           }
         }
       }
-    }
-  },
-  '/fulfillments': {
+    },
     'POST': {
       handler: 'FulfillmentController.create',
       config: {
@@ -5522,30 +5508,6 @@ export const routes = {
     }
   },
   // Products
-  '/products': {
-    'GET': {
-      handler: 'ProductController.findAll',
-      config: {
-        prefix: 'cart.prefix',
-        validate: {
-          query: {
-            offset: joi.number(),
-            limit: joi.number(),
-            sort: joi.array().items(joi.array()),
-            where: joi.any(),
-            include: joi.array().items(joi.string())
-          }
-        },
-        app: {
-          permissions: {
-            resource_name: 'apiGetProductsRoute',
-            roles: ['public', 'registered', 'admin']
-          }
-        }
-      }
-    }
-  },
-
   // TODO make this resolve instead of by Id only
   '/product/:id': {
     'GET': {
@@ -5799,6 +5761,27 @@ export const routes = {
     }
   },
   '/products': {
+    'GET': {
+      handler: 'ProductController.findAll',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetProductsRoute',
+            roles: ['public', 'registered', 'admin']
+          }
+        }
+      }
+    },
     'POST': {
       handler: 'ProductController.addProducts',
       config: {
@@ -7287,9 +7270,7 @@ export const routes = {
           }
         }
       }
-    }
-  },
-  '/product/:id/variant/:variant': {
+    },
     'DELETE': {
       handler: 'ProductController.removeVariant',
       config: {

@@ -3,10 +3,10 @@
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 // const _ = require('lodash')
-const Errors = require('engine-errors')
-const FULFILLMENT_SERVICE = require('../../lib').Enums.FULFILLMENT_SERVICE
-const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
-// const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { FULFILLMENT_SERVICE } from '../../enums'
+import { FULFILLMENT_STATUS } from '../../enums'
+// import { ORDER_FINANCIAL } from '../../enums'
 
 /**
  * @module FulfillmentService
@@ -133,6 +133,7 @@ export class FulfillmentService extends Service {
           throw new Error('Fulfillment not found')
         }
         if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(_fulfillment.status) > -1) {
+          // tslint:disable:max-line-length
           throw new Error(`Fulfillment status must be ${ FULFILLMENT_STATUS.PENDING }, ${ FULFILLMENT_STATUS.NONE }, ${FULFILLMENT_STATUS.PARTIAL}, ${FULFILLMENT_STATUS.SENT} to update`)
         }
 
@@ -169,12 +170,13 @@ export class FulfillmentService extends Service {
           throw new Error('Fulfillment not found')
         }
         if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(_fulfillment.status) > -1) {
+          // tslint:disable:max-line-length
           throw new Error(`Fulfillment status must be ${ FULFILLMENT_STATUS.PENDING }, ${ FULFILLMENT_STATUS.NONE }, ${FULFILLMENT_STATUS.PARTIAL}, ${FULFILLMENT_STATUS.SENT} to be cancelled`)
         }
 
         resFulfillment = _fulfillment
 
-        return resFulfillment.resolveOrderItems({transaction: options.transaction || null,})
+        return resFulfillment.resolveOrderItems(this.app, {transaction: options.transaction || null})
       })
       .then(() => {
         if ([FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.PENDING].indexOf(resFulfillment.status) > -1) {
@@ -190,6 +192,7 @@ export class FulfillmentService extends Service {
       .then(() => {
         resFulfillment.cancelled()
         return resFulfillment.fulfillUpdate(
+          this.app,
           {status: FULFILLMENT_STATUS.CANCELLED },
           {transaction: options.transaction || null}
         )
@@ -213,7 +216,7 @@ export class FulfillmentService extends Service {
     return OrderItem.resolve(item, {transaction: options.transaction || null})
       .then(_item => {
         if (!_item) {
-          throw new Errors.FoundError('Order Item not Found')
+          throw new ModelError('E_NOT_FOUND', 'Order Item not Found')
         }
         resOrderItem = _item
         return Fulfillment.find({
@@ -242,7 +245,7 @@ export class FulfillmentService extends Service {
             .then(() => {
               return resFulfillment.reload({transaction: options.transaction || null})
                 .then(() => {
-                  return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
+                  return resFulfillment.saveFulfillmentStatus(this.app, {transaction: options.transaction || null})
                 })
             })
             .then(() => {
@@ -275,7 +278,7 @@ export class FulfillmentService extends Service {
                 .then(() => {
                   return resFulfillment.reload({transaction: options.transaction || null})
                     .then(() => {
-                      return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
+                      return resFulfillment.saveFulfillmentStatus(this.app, {transaction: options.transaction || null})
                     })
                 })
                 .then(() => {
@@ -309,7 +312,7 @@ export class FulfillmentService extends Service {
     return OrderItem.resolve(item, {transaction: options.transaction || null})
       .then(_item => {
         if (!_item) {
-          throw new Errors.FoundError('Order Item not Found')
+          throw new ModelError('E_NOT_FOUND', 'Order Item not Found')
         }
         resOrderItem = _item
         return Fulfillment.find({
@@ -328,7 +331,7 @@ export class FulfillmentService extends Service {
       })
       .then(fulfillment => {
         if (!fulfillment) {
-          throw new Errors.FoundError('Fulfillment not found')
+          throw new ModelError('E_NOT_FOUND', 'Fulfillment not found')
         }
         resFulfillment = fulfillment
         return resFulfillment.hasOrder_item(resOrderItem.id, {transaction: options.transaction || null})
@@ -393,7 +396,7 @@ export class FulfillmentService extends Service {
       })
       .then(fulfillment => {
         if (!fulfillment) {
-          throw new Errors.FoundError('Fulfillment not found')
+          throw new ModelError('E_NOT_FOUND', 'Fulfillment not found')
         }
         resFulfillment = fulfillment
         return resFulfillment.hasOrder_item(resOrderItem, {transaction: options.transaction || null})

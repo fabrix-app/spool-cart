@@ -3,7 +3,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 const lib = require('../../lib')
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 /**
  * @module ProductController
@@ -24,7 +24,7 @@ export class ProductController extends Controller {
     Product.findByIdDefault(req.params.id, {req: req})
       .then(product => {
         if (!product) {
-          throw new Errors.FoundError(Error(`Product id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Product id ${ req.params.id } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, product)
       })
@@ -46,7 +46,7 @@ export class ProductController extends Controller {
     Product.findByHandleDefault(req.params.handle, {req: req})
       .then(product => {
         if (!product) {
-          throw new Errors.FoundError(Error(`Product handle ${ req.params.handle } not found`))
+          throw new ModelError('E_NOT_FOUND', `Product handle ${ req.params.handle } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, product)
       })
@@ -68,7 +68,7 @@ export class ProductController extends Controller {
     Product.resolve(req.params.id, {req: req})
       .then(product => {
         if (!product) {
-          throw new Errors.FoundError(Error(`Product ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Product ${ req.params.id } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, product)
       })
@@ -155,7 +155,7 @@ export class ProductController extends Controller {
     })
       .then(product => {
         if (!product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         return this.app.services.PermissionsService.sanitizeResult(req, product)
       })
@@ -774,8 +774,8 @@ export class ProductController extends Controller {
 
     // this.app.log.debug(image)
     ProductService.addImage(product, variant, image.path, req.body)
-      .then(image => {
-        return this.app.services.PermissionsService.sanitizeResult(req, image)
+      .then(_image => {
+        return this.app.services.PermissionsService.sanitizeResult(req, _image)
       })
       .then(result => {
         return res.json(result)

@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-const req = module.exports = {}
+const req: {[key: string]: any} = module.exports = {}
 
 /**
  * Initiate a login session for `cart`.
@@ -34,37 +34,38 @@ req.loginCart =
     options = options || {}
 
     let property = 'cart'
-    if (this._proxyCart && this._proxyCart.instance) {
-      property = this._proxyCart.instance._cartProperty || 'cart'
+    if (this._cart && this._cart.instance) {
+      property = this._cart.instance._cartProperty || 'cart'
     }
     const session = (options.session === undefined) ? true : options.session
 
     this[property] = cart
     if (session) {
-      if (!this._proxyCart) {
-        throw new Error('proxyCart.initialize() middleware not in use')
+      if (!this._cart) {
+        throw new Error('cart.initialize() middleware not in use')
       }
       if (typeof done !== 'function') {
         throw new Error('req#loginCart requires a callback function')
       }
 
-      this._proxyCart.instance.serializeCart(cart, (err, obj) => {
+      this._cart.instance.serializeCart(cart, (err, obj) => {
         if (err) {
           this[property] = null
           return done(err)
         }
-        if (!this._proxyCart.session) {
-          this._proxyCart.session = {}
+        if (!this._cart.session) {
+          this._cart.session = {}
         }
-        this._proxyCart.session.cart = obj
+        this._cart.session.cart = obj
         if (!this.session) {
           this.session = {}
         }
-        this.session[this._proxyCart.instance._key] = this._proxyCart.session
+        this.session[this._cart.instance._key] = this._cart.session
         done()
       })
     }
     else {
+      // tslint:disable:no-unused-expression
       done && done()
     }
   }
@@ -98,37 +99,38 @@ req.loginCustomer =
     options = options || {}
 
     let property = 'customer'
-    if (this._proxyCart && this._proxyCart.instance) {
-      property = this._proxyCart.instance._customerProperty || 'customer'
+    if (this._cart && this._cart.instance) {
+      property = this._cart.instance._customerProperty || 'customer'
     }
     const session = (options.session === undefined) ? true : options.session
 
     this[property] = customer
     if (session) {
-      if (!this._proxyCart) {
-        throw new Error('proxyCart.initialize() middleware not in use')
+      if (!this._cart) {
+        throw new Error('cart.initialize() middleware not in use')
       }
       if (typeof done !== 'function') {
         throw new Error('req#loginCustomer requires a callback function')
       }
 
-      this._proxyCart.instance.serializeCustomer(customer, (err, obj) => {
+      this._cart.instance.serializeCustomer(customer, (err, obj) => {
         if (err) {
           this[property] = null
           return done(err)
         }
-        if (!this._proxyCart.session) {
-          this._proxyCart.session = {}
+        if (!this._cart.session) {
+          this._cart.session = {}
         }
-        this._proxyCart.session.customer = obj
+        this._cart.session.customer = obj
         if (!this.session) {
           this.session = {}
         }
-        this.session[this._proxyCart.instance._key] = this._proxyCart.session
+        this.session[this._cart.instance._key] = this._cart.session
         done()
       })
     }
     else {
+      // tslint:disable:no-unused-expression
       done && done()
     }
   }
@@ -141,13 +143,13 @@ req.loginCustomer =
 req.logoutCart =
   req.logOutCart = function() {
     let property = 'cart'
-    if (this._proxyCart && this._proxyCart.instance) {
-      property = this._proxyCart.instance._cartProperty || 'cart'
+    if (this._cart && this._cart.instance) {
+      property = this._cart.instance._cartProperty || 'cart'
     }
 
     this[property] = null
-    if (this._proxyCart && this._proxyCart.session) {
-      delete this._proxyCart.session.cart
+    if (this._cart && this._cart.session) {
+      delete this._cart.session.cart
     }
   }
 
@@ -159,13 +161,13 @@ req.logoutCart =
 req.logoutCustomer =
   req.logOutCustomer = function() {
     let property = 'customer'
-    if (this._proxyCart && this._proxyCart.instance) {
-      property = this._proxyCart.instance._customerProperty || 'customer'
+    if (this._cart && this._cart.instance) {
+      property = this._cart.instance._customerProperty || 'customer'
     }
 
     this[property] = null
-    if (this._proxyCart && this._proxyCart.session) {
-      delete this._proxyCart.session.customer
+    if (this._cart && this._cart.session) {
+      delete this._cart.session.customer
     }
   }
 
@@ -177,8 +179,8 @@ req.logoutCustomer =
  */
 req.hasCart = function() {
   let property = 'cart'
-  if (this._proxyCart && this._proxyCart.instance) {
-    property = this._proxyCart.instance._cartProperty || 'cart'
+  if (this._cart && this._cart.instance) {
+    property = this._cart.instance._cartProperty || 'cart'
   }
 
   return !!(this[property])
@@ -202,8 +204,8 @@ req.hasNoCart = function() {
  */
 req.hasCustomer = function() {
   let property = 'customer'
-  if (this._proxyCart && this._proxyCart.instance) {
-    property = this._proxyCart.instance._customerProperty || 'customer'
+  if (this._cart && this._cart.instance) {
+    property = this._cart.instance._customerProperty || 'customer'
   }
 
   return !!(this[property])

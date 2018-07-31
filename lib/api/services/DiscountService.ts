@@ -1,13 +1,9 @@
-
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
 const moment = require('moment')
-const COLLECTION_DISCOUNT_TYPE = require('../../lib').Enums.COLLECTION_DISCOUNT_TYPE
-const COLLECTION_DISCOUNT_SCOPE = require('../../lib').Enums.COLLECTION_DISCOUNT_SCOPE
-const DISCOUNT_STATUS = require('../../lib').Enums.DISCOUNT_STATUS
+import { COLLECTION_DISCOUNT_TYPE } from '../../enums'
+import { COLLECTION_DISCOUNT_SCOPE } from '../../enums'
+import { DISCOUNT_STATUS } from '../../enums'
 /**
  * @module DiscountService
  * @description Discount Service
@@ -179,8 +175,7 @@ export class DiscountService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  calculateCollections(obj, collections, resolver, options) {
-    options = options || {}
+  calculateCollections(obj, collections, resolver, options: {[key: string]: any} = {}) {
     // Set the default
     const discountedLines = []
     let type
@@ -210,17 +205,17 @@ export class DiscountService extends Service {
         // Loop through collection and apply discounts, stop if there are no line items
         collections.forEach(collection => {
           // If the collection doesn't have a discount ignore
-          if (!collection.discount_rate > 0 && !collection.percentage > 0) {
+          if (!(collection.discount_rate > 0) && !(collection.percentage > 0)) {
             return
           }
 
           // If object is a cart/subscription with line items and they are empty then ignore
-          if (['cart','subscription'].indexOf(type) > -1 && resObj.line_items.length === 0) {
+          if (['cart', 'subscription'].indexOf(type) > -1 && resObj.line_items.length === 0) {
             return
           }
 
           // Set the default discounted line
-          const discountedLine = {
+          const discountedLine: {[key: string]: any} = {
             id: collection.id,
             model: 'collection',
             type: null,
@@ -230,7 +225,7 @@ export class DiscountService extends Service {
           }
 
           // if cart or subscription, add lines array for tracking
-          if (['cart','subscription'].indexOf(type) > -1) {
+          if (['cart', 'subscription'].indexOf(type) > -1) {
             discountedLine.lines = []
           }
 
@@ -247,7 +242,7 @@ export class DiscountService extends Service {
           // if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.GLOBAL) {
 
           // If cart or subscription
-          if (['cart','subscription'].indexOf(type) > -1) {
+          if (['cart', 'subscription'].indexOf(type) > -1) {
 
             let publish = false
 
@@ -317,7 +312,7 @@ export class DiscountService extends Service {
             }
 
             const calculatedPrice = Math.max(0, resObj.calculated_price - lineDiscountedLine.price)
-            const totalDeducted = Math.min(resObj.price,(resObj.price - (resObj.price - lineDiscountedLine.price)))
+            const totalDeducted = Math.min(resObj.price, (resObj.price - (resObj.price - lineDiscountedLine.price)))
             // Publish this to the parent discounted lines
             resObj.setCalculatedPrice(calculatedPrice)
             discountedLine.price = discountedLine.price + totalDeducted
@@ -335,8 +330,7 @@ export class DiscountService extends Service {
    *
    * @returns {Promise.<T>|*}
    */
-  expireThisHour(options) {
-    options = options || {}
+  expireThisHour(options: {[key: string]: any} = {}) {
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Discount = this.app.models['Discount']
@@ -386,8 +380,7 @@ export class DiscountService extends Service {
    *
    * @returns {Promise.<TResult>|*}
    */
-  startThisHour(options) {
-    options = options || {}
+  startThisHour(options: {[key: string]: any} = {}) {
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Discount = this.app.models['Discount']
@@ -441,8 +434,7 @@ export class DiscountService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addProducts(discount, products, options) {
-    options = options || {}
+  addProducts(discount, products, options: {[key: string]: any} = {}) {
     if (!Array.isArray(products)) {
       products = [products]
     }
@@ -464,8 +456,7 @@ export class DiscountService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addProduct(discount, product, options) {
-    options = options || {}
+  addProduct(discount, product, options: {[key: string]: any} = {}) {
     const Discount = this.app.models['Discount']
     const Product = this.app.models['Product']
 
@@ -505,8 +496,7 @@ export class DiscountService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  removeProduct(discount, product, options) {
-    options = options || {}
+  removeProduct(discount, product, options: {[key: string]: any} = {}) {
     const Discount = this.app.models['Discount']
     const Product = this.app.models['Product']
 
@@ -545,8 +535,7 @@ export class DiscountService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addCustomers(discount, customers, options) {
-    options = options || {}
+  addCustomers(discount, customers, options: {[key: string]: any} = {}) {
     if (!Array.isArray(customers)) {
       customers = [customers]
     }
@@ -568,8 +557,7 @@ export class DiscountService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addCustomer(discount, customer, options) {
-    options = options || {}
+  addCustomer(discount, customer, options: {[key: string]: any} = {}) {
     const Discount = this.app.models['Discount']
     const Customer = this.app.models['Customer']
 

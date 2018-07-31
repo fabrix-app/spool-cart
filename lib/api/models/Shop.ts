@@ -1,9 +1,187 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { pick, isString, isNumber, isObject, values, extend } from 'lodash'
+import { UNITS } from '../../enums'
 
-const _ = require('lodash')
-const Errors = require('engine-errors')
-const UNITS = require('../../lib').Enums.UNITS
+export class ShopResolver extends SequelizeResolver {
+  /**
+   * Resolve by instance Function
+   * @param shop
+   * @param options
+   */
+  resolveByInstance (shop, options: {[key: string]: any} = {}) {
+    return Promise.resolve(shop)
+  }
+  /**
+   * Resolve by id Function
+   * @param shop
+   * @param options
+   */
+  resolveById (shop, options: {[key: string]: any} = {}) {
+    return this.findById(shop.id, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Shop ${shop.id} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by token Function
+   * @param shop
+   * @param options
+   */
+  resolveByToken (shop, options: {[key: string]: any} = {}) {
+    return this.findOne(this.app.services.SequelizeService.mergeOptionDefaults(options, {
+      where: {
+        token: shop.token
+      }
+    }))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Shop token ${shop.token} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by handle Function
+   * @param shop
+   * @param options
+   */
+  resolveByHandle (shop, options: {[key: string]: any} = {}) {
+    return this.findOne(this.app.services.SequelizeService.mergeOptionDefaults(options, {
+      where: {
+        handle: shop.handle
+      }
+    }))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Shop handle ${shop.handle} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by number Function
+   * @param shop
+   * @param options
+   */
+  resolveByNumber (shop, options: {[key: string]: any} = {}) {
+    return this.findById(shop, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Shop ${shop.token} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by string Function
+   * @param shop
+   * @param options
+   */
+  resolveByString (shop, options: {[key: string]: any} = {}) {
+    return this.findOne(this.app.services.SequelizeService.mergeOptionDefaults(options, {
+      where: {
+        code: shop
+      }
+    }))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Shop ${shop} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Primary Resolve Function
+   * @param shop
+   * @param options
+   */
+  resolve(shop, options: {[key: string]: any} = {}) {
+    const resolvers = {
+      'instance': shop instanceof this.instance,
+      'id': !!(shop && isObject(shop) && shop.id),
+      'token': !!(shop && isObject(shop) && shop.token),
+      'handle': !!(shop && isObject(shop) && shop.handle),
+      'number': !!(shop && isNumber(shop)),
+      'string': !!(shop && isString(shop))
+    }
+    const type = Object.keys(resolvers).find((key) => resolvers[key])
+
+    switch (type) {
+      case 'instance': {
+        return this.resolveByInstance(shop, options)
+      }
+      case 'id': {
+        return this.resolveById(shop, options)
+      }
+      case 'token': {
+        return this.resolveByToken(shop, options)
+      }
+      case 'handle': {
+        return this.resolveByHandle(shop, options)
+      }
+      case 'number': {
+        return this.resolveByNumber(shop, options)
+      }
+      case 'string': {
+        return this.resolveByString(shop, options)
+      }
+      default: {
+        // TODO create proper error
+        const err = new Error(`Unable to resolve Shop ${shop}`)
+        return Promise.reject(err)
+      }
+    }
+  }
+  /**
+   *
+   * @param shops
+   * @param options
+   * @returns {*}
+   */
+  transformShops (shops = [], options: {[key: string]: any} = {}) {
+    const ShopModel = this
+    const Sequelize = ShopModel.sequelize
+
+    // Transform if necessary to objects
+    shops = shops.map(shop => {
+      if (shop && isNumber(shop)) {
+        return { id: shop }
+      }
+      else if (shop && isString(shop)) {
+        shop = { name: shop }
+        return shop
+      }
+      else if (shop && isObject(shop)) {
+        return shop
+      }
+    })
+    // Filter out undefined
+    shops = shops.filter(shop => shop)
+
+    return Sequelize.Promise.mapSeries(shops, shop => {
+      return ShopModel.findOne({
+        where: pick(shop, ['id', 'handle']),
+        attributes: ['id', 'name', 'handle'],
+        transaction: options.transaction || null
+      })
+      .then(foundShop => {
+        if (foundShop) {
+          return extend(foundShop, shop)
+        }
+        else {
+          return ShopModel.create(shop, {
+            transaction: options.transaction || null
+          })
+        }
+      })
+    })
+  }
+}
 
 /**
  * @module Shop
@@ -24,7 +202,7 @@ export class Shop extends Model {
         },
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.engine.live_mode
+        //     live_mode: app.config.get('engine.live_mode')
         //   }
         // },
         scopes: {
@@ -35,117 +213,11 @@ export class Shop extends Model {
           }
         },
         hooks: {
-          beforeValidate(values, options) {
-            if (!values.handle && values.name) {
-              values.handle = values.name
+          beforeValidate(shop, options) {
+            if (!shop.handle && shop.name) {
+              shop.handle = shop.name
             }
           }
-        },
-        classMethods: {
-          UNITS: UNITS,
-          // TODO
-          resolve: function(shop, options) {
-            if (!options) {
-              options = {}
-            }
-            const Shop =  this
-            if (shop instanceof Shop.instance) {
-              return Promise.resolve(shop)
-            }
-            else if (shop && _.isObject(shop) && shop.id) {
-              return Shop.findById(shop.id, options)
-                .then(resShop => {
-                  if (!resShop) {
-                    throw new Errors.FoundError(`Shop ${shop.id} not found`)
-                  }
-                  return resShop
-                })
-            }
-            else if (shop && _.isNumber(shop)) {
-              return Shop.findById(shop, {
-                transaction: options.transaction || null
-              })
-                .then(resShop => {
-                  if (!resShop) {
-                    throw new Errors.FoundError(`Shop ${shop} not found`)
-                  }
-                  return resShop
-                })
-            }
-            else if (shop && _.isString(shop)) {
-              return Shop.findOne({
-                where: {
-                  handle: shop
-                },
-                transaction: options.transaction || null
-              })
-                .then(resShop => {
-                  if (!resShop) {
-                    throw new Errors.FoundError(`Shop ${shop} not found`)
-                  }
-                  return resShop
-                })
-            }
-            else {
-              return Shop.findOne({
-                transaction: options.transaction || null
-              })
-                .then(resShop => {
-                  if (!resShop) {
-                    throw new Errors.FoundError(Error(`Shop ${shop} not found and could not resolve the default`))
-                  }
-                  return resShop
-                })
-              // const err = new Error('Unable to resolve Shop')
-              // Promise.reject(err)
-            }
-          },
-          /**
-           *
-           * @param shops
-           * @param options
-           * @returns {*}
-           */
-          transformShops: (shops, options) => {
-            options = options || {}
-            shops = shops || []
-            const Shop = app.models['Shop']
-            const Sequelize = Shop.sequelize
-
-            // Transform if necessary to objects
-            shops = shops.map(shop => {
-              if (shop && _.isNumber(shop)) {
-                return { id: shop }
-              }
-              else if (shop && _.isString(shop)) {
-                shop = { name: shop }
-                return shop
-              }
-              else if (shop && _.isObject(shop)) {
-                return shop
-              }
-            })
-            // Filter out undefined
-            shops = shops.filter(shop => shop)
-
-            return Sequelize.Promise.mapSeries(shops, shop => {
-              return Shop.findOne({
-                where: _.pick(shop, ['id', 'handle']),
-                attributes: ['id', 'name', 'handle'],
-                transaction: options.transaction || null
-              })
-                .then(foundShop => {
-                  if (foundShop) {
-                    return _.extend(foundShop, shop)
-                  }
-                  else {
-                    return Shop.create(shop, {
-                      transaction: options.transaction || null
-                    })
-                  }
-                })
-            })
-          },
         }
       }
     }
@@ -240,13 +312,13 @@ export class Shop extends Model {
       // A string representing the default unit of weight measurement for the shop.
       weight_unit: {
         type: Sequelize.ENUM,
-        values: _.values(UNITS),
+        values: values(UNITS),
         defaultValue: UNITS.G
       },
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -286,7 +358,7 @@ export class Shop extends Model {
         model: models.ShopProduct,
         foreignKey: 'shop_id'
       },
-      //constraints: false
+      // constraints: false
     })
   }
 }

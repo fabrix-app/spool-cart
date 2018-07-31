@@ -1,7 +1,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const lib = require('../../lib')
 
 /**
@@ -72,7 +72,7 @@ export class TransactionController extends Controller {
     Transaction.findById(id, {})
       .then(transaction => {
         if (!transaction) {
-          throw new Errors.FoundError(Error(`Transaction id ${id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Transaction id ${id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, transaction)
       })

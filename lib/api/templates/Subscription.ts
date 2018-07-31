@@ -52,7 +52,7 @@ ${subscriptionItems}
 
     let cancelTime = new Date(subscription.renews_on)
     cancelTime = moment(cancelTime)
-      .add(this.app.config.get('proxyCart.subscriptions.grace_period_days') || 0, 'days')
+      .add(this.app.config.get('cart.subscriptions.grace_period_days') || 0, 'days')
       .format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {

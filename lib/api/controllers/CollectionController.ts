@@ -1,13 +1,10 @@
-
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const lib = require('../../lib')
 const _ = require('lodash')
 /**
  * @module CollectionController
- * @description Generated Fabrix.js Controller.
+ * @description Generated Fabrix Controller.
  */
 export class CollectionController extends Controller {
   generalStats(req, res) {
@@ -42,7 +39,7 @@ export class CollectionController extends Controller {
     Collection.findByIdDefault(req.params.id, {})
       .then(collection => {
         if (!collection) {
-          throw new Errors.FoundError(Error(`Collection id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Collection id ${ req.params.id } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, collection)
       })
@@ -60,7 +57,7 @@ export class CollectionController extends Controller {
     Collection.findByHandleDefault(req.params.handle)
       .then(collection => {
         if (!collection) {
-          throw new Errors.FoundError(Error(`Collection handle ${ req.params.handle } not found`))
+          throw new ModelError('E_NOT_FOUND', `Collection handle ${ req.params.handle } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, collection)
       })
@@ -87,7 +84,7 @@ export class CollectionController extends Controller {
     })
       .then(collection => {
         if (!collection) {
-          throw new Errors.FoundError(Error(`Collection id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Collection id ${ req.params.id } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, collection)
       })
@@ -186,7 +183,7 @@ export class CollectionController extends Controller {
       })
       .then(collection => {
         if (!collection) {
-          throw new Errors.FoundError(Error('Collection Could was not Created'))
+          throw new ModelError('E_NOT_FOUND', 'Collection Could was not Created')
         }
         return this.app.services.PermissionsService.sanitizeResult(req, collection)
       })
@@ -213,7 +210,7 @@ export class CollectionController extends Controller {
       })
       .then(collection => {
         if (!collection) {
-          throw new Errors.FoundError(Error('Collection was not updated'))
+          throw new ModelError('E_NOT_FOUND', 'Collection was not updated')
         }
         return this.app.services.PermissionsService.sanitizeResult(req, collection)
       })

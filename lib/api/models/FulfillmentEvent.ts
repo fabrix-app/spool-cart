@@ -1,9 +1,100 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { isObject, isString, isNumber, values } from 'lodash'
+import { FULFILLMENT_EVENT_STATUS } from '../../enums'
 
-const _ = require('lodash')
-const Errors = require('engine-errors')
-const FULFILLMENT_EVENT_STATUS = require('../../lib').Enums.FULFILLMENT_EVENT_STATUS
+export class FulfillmentEventResolver extends SequelizeResolver {
+  /**
+   * Resolve by instance Function
+   * @param fulfillmentEvent
+   * @param options
+   */
+  resolveByInstance (fulfillmentEvent, options: {[key: string]: any} = {}) {
+    return Promise.resolve(fulfillmentEvent)
+  }
+  /**
+   * Resolve by id Function
+   * @param fulfillmentEvent
+   * @param options
+   */
+  resolveById (fulfillmentEvent, options: {[key: string]: any} = {}) {
+    return this.findById(fulfillmentEvent.id, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `FulfillmentEvent ${fulfillmentEvent.id} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by number Function
+   * @param fulfillmentEvent
+   * @param options
+   */
+  resolveByNumber (fulfillmentEvent, options: {[key: string]: any} = {}) {
+    return this.findById(fulfillmentEvent, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `FulfillmentEvent ${fulfillmentEvent.token} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by string Function
+   * @param fulfillmentEvent
+   * @param options
+   */
+  resolveByString (fulfillmentEvent, options: {[key: string]: any} = {}) {
+    return this.findOne(this.app.services.SequelizeService.mergeOptionDefaults(options, {
+      where: {
+        code: fulfillmentEvent
+      }
+    }))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `FulfillmentEvent ${fulfillmentEvent} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Primary Resolve Function
+   * @param fulfillmentEvent
+   * @param options
+   */
+  resolve(fulfillmentEvent, options: {[key: string]: any} = {}) {
+    const resolvers = {
+      'instance': fulfillmentEvent instanceof this.instance,
+      'id': !!(fulfillmentEvent && isObject(fulfillmentEvent) && fulfillmentEvent.id),
+      'number': !!(fulfillmentEvent && isNumber(fulfillmentEvent)),
+      'string': !!(fulfillmentEvent && isString(fulfillmentEvent))
+    }
+    const type = Object.keys(resolvers).find((key) => resolvers[key])
+
+    switch (type) {
+      case 'instance': {
+        return this.resolveByInstance(fulfillmentEvent, options)
+      }
+      case 'id': {
+        return this.resolveById(fulfillmentEvent, options)
+      }
+      case 'number': {
+        return this.resolveByNumber(fulfillmentEvent, options)
+      }
+      case 'string': {
+        return this.resolveByString(fulfillmentEvent, options)
+      }
+      default: {
+        // TODO create proper error
+        const err = new Error(`Unable to resolve FulfillmentEvent ${fulfillmentEvent}`)
+        return Promise.reject(err)
+      }
+    }
+  }
+}
+
 /**
  * @module FulfillmentEvent
  * @description Fulfillment Event Model
@@ -11,7 +102,7 @@ const FULFILLMENT_EVENT_STATUS = require('../../lib').Enums.FULFILLMENT_EVENT_ST
 export class FulfillmentEvent extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return FulfillmentEventResolver
   }
 
   static config (app, Sequelize) {
@@ -19,26 +110,26 @@ export class FulfillmentEvent extends Model {
       options: {
         underscored: true,
         hooks: {
-          beforeCreate: (values, options) => {
-            return app.services.FulfillmentService.beforeEventCreate(values, options)
+          beforeCreate: (fulfillmentEvent, options) => {
+            return app.services.FulfillmentService.beforeEventCreate(fulfillmentEvent, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          beforeUpdate: (values, options) => {
-            return app.services.FulfillmentService.beforeEventUpdate(values, options)
+          beforeUpdate: (fulfillmentEvent, options) => {
+            return app.services.FulfillmentService.beforeEventUpdate(fulfillmentEvent, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          afterCreate: (values, options) => {
-            return app.services.FulfillmentService.afterEventCreate(values, options)
+          afterCreate: (fulfillmentEvent, options) => {
+            return app.services.FulfillmentService.afterEventCreate(fulfillmentEvent, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          afterUpdate: (values, options) => {
-            return app.services.FulfillmentService.afterEventUpdate(values, options)
+          afterUpdate: (fulfillmentEvent, options) => {
+            return app.services.FulfillmentService.afterEventUpdate(fulfillmentEvent, options)
               .catch(err => {
                 return Promise.reject(err)
               })
@@ -46,36 +137,6 @@ export class FulfillmentEvent extends Model {
         },
         enums: {
           FULFILLMENT_EVENT_STATUS: FULFILLMENT_EVENT_STATUS
-        },
-        classMethods: {
-          resolve: function(fulfillmentEvent, options) {
-            const FulfillmentEvent =  this
-            if (fulfillmentEvent instanceof FulfillmentEvent.instance) {
-              return Promise.resolve(fulfillmentEvent)
-            }
-            else if (fulfillmentEvent && _.isObject(fulfillmentEvent) && fulfillmentEvent.id) {
-              return FulfillmentEvent.findById(fulfillmentEvent.id, options)
-                .then(resFulfillmentEvent => {
-                  if (!resFulfillmentEvent) {
-                    throw new Errors.FoundError(Error(`FulfillmentEvent ${fulfillmentEvent.id} not found`))
-                  }
-                  return resFulfillmentEvent
-                })
-            }
-            else if (fulfillmentEvent && (_.isString(fulfillmentEvent) || _.isNumber(fulfillmentEvent))) {
-              return FulfillmentEvent.findById(fulfillmentEvent, options)
-                .then(resFulfillmentEvent => {
-                  if (!resFulfillmentEvent) {
-                    throw new Errors.FoundError(Error(`FulfillmentEvent ${fulfillmentEvent} not found`))
-                  }
-                  return resFulfillmentEvent
-                })
-            }
-            else {
-              const err = new Error('Unable to resolve FulfillmentEvent')
-              return Promise.reject(err)
-            }
-          }
         }
       }
     }
@@ -89,7 +150,7 @@ export class FulfillmentEvent extends Model {
       },
       status: {
         type: Sequelize.ENUM,
-        values: _.values(FULFILLMENT_EVENT_STATUS)
+        values: values(FULFILLMENT_EVENT_STATUS)
       },
       message: {
         type: Sequelize.STRING

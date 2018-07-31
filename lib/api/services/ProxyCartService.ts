@@ -3,7 +3,8 @@
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { ValidationError } from '@fabrix/fabrix/dist/errors'
 const joi = require('joi')
 const sharp = require('sharp')
 const lib = require('../../lib')
@@ -18,10 +19,16 @@ const request = require('request')
  * @description ProxyCart Service
  */
 export class ProxyCartService extends Service {
+  _key
+  initialize
+  authenticate
+  cart
+  customer
+
   constructor(app) {
     super(app)
     // Middleware exports
-    this._key = 'proxyCart'
+    this._key = 'cart'
     this.initialize = require('../../lib/middleware/initialize')
     this.authenticate = require('../../lib/middleware/authenticate')
     this.cart = require('../../lib/middleware/cart')
@@ -84,7 +91,7 @@ export class ProxyCartService extends Service {
    * @returns {Promise}
    */
   buildImages(imageUrl, options) {
-    return new Promise((resolve, reject) =>{
+    return new Promise((resolve, reject) => {
       const images = {
         full: imageUrl,
         thumbnail: imageUrl,
@@ -315,7 +322,7 @@ export class ProxyCartService extends Service {
    * @returns {*}
    */
   formatCurrency(num, currency) {
-    currency = currency || this.app.config.get('proxyCart.default_currency')
+    currency = currency || this.app.config.get('cart.default_currency')
     return currencyFormatter.format(num / 100, { code: currency.toUpperCase() })
   }
   /**
@@ -328,7 +335,7 @@ export class ProxyCartService extends Service {
       joi.validate(address, lib.Schemas.address.address)
     }
     catch (err) {
-      throw new Errors.ValidationError(err)
+      throw new ValidationError(err)
     }
     try {
       address = this.normalizeAddress(address)

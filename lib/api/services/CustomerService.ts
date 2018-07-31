@@ -1,12 +1,8 @@
-
-/* eslint camelcase: [0] */
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
-const CUSTOMER_STATE = require('../../lib/enums').CUSTOMER_STATE
+import { CUSTOMER_STATE } from '../../enums'
 
 /**
  * @module CustomerService
@@ -46,8 +42,8 @@ export class CustomerService extends Service {
       customer.billing_address = customer.default_address
     }
 
-    let resCustomer = {}
-    const create =  Customer.build({
+    let resCustomer: {[key: string]: any} = {}
+    const create = Customer.build({
       first_name: customer.first_name,
       last_name: customer.last_name,
       email: customer.email,
@@ -95,15 +91,16 @@ export class CustomerService extends Service {
     })
 
     return create.save({transaction: options.transaction || null})
-      .then(createdCustomer => {
-        if (!createdCustomer) {
+      .then(_customer => {
+        if (!_customer) {
           throw new Error('Customer could not be created')
         }
-        resCustomer = createdCustomer
+        resCustomer = _customer
 
         // Shipping Address
         if (customer.shipping_address && !_.isEmpty(customer.shipping_address)) {
           return resCustomer.updateShippingAddress(
+            this.app,
             customer.shipping_address,
             {transaction: options.transaction || null}
           )
@@ -114,6 +111,7 @@ export class CustomerService extends Service {
         // Billing Address
         if (customer.billing_address && !_.isEmpty(customer.billing_address)) {
           return resCustomer.updateBillingAddress(
+            this.app,
             customer.billing_address,
             {transaction: options.transaction || null}
           )
@@ -174,7 +172,7 @@ export class CustomerService extends Service {
         else {
           return this.app.services.PaymentGenericService.createCustomer(resCustomer)
             .then(serviceCustomer => {
-              //const Account = this.app.models['Account']
+              // const Account = this.app.models['Account']
               // const CustomerAccount = this.app.models['CustomerAccount']
               let resAccount
               return Account.create({
@@ -298,7 +296,7 @@ export class CustomerService extends Service {
     const Tag = this.app.models['Tag']
 
     if (!customer.id) {
-      const err = new Errors.FoundError(Error('Customer is missing id'))
+      const err = new ModelError('E_NOT_FOUND', 'Customer is missing id')
       return Promise.reject(err)
     }
 
@@ -306,7 +304,7 @@ export class CustomerService extends Service {
     return Customer.findByIdDefault(customer.id, options)
       .then(_customer => {
         if (!_customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
         resCustomer = _customer
         const update = _.omit(customer, ['tags', 'metadata', 'shipping_address', 'billing_address', 'default_address'])
@@ -395,18 +393,18 @@ export class CustomerService extends Service {
     let type = 'credit'
 
     if (!customer.id) {
-      const err = new Errors.FoundError(Error('Customer is missing id'))
+      const err = new ModelError('E_NOT_FOUND', 'Customer is missing id')
       return Promise.reject(err)
     }
 
-    let resCustomer = {}
+    let resCustomer
     return Customer.resolve(customer, {
       transaction: options.transaction || null,
       create: false
     })
       .then(_customer => {
         if (!_customer) {
-          throw new Errors.FoundError(Error('Customer was not found'))
+          throw new ModelError('E_NOT_FOUND', 'Customer was not found')
         }
         if (!(_customer instanceof Customer.instance)) {
           throw new Error('Did not resolve instance of Customer')
@@ -461,7 +459,7 @@ export class CustomerService extends Service {
     return Customer.findById(customerId)
       .then(_customer => {
         if (!_customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
         resCustomer = _customer
         return resCustomer.hasCart(cartId)
@@ -492,7 +490,7 @@ export class CustomerService extends Service {
     return Customer.findById(customerId)
       .then(_customer => {
         if (!_customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
         resCustomer = _customer
         return resCustomer.hasCart(cartId)
@@ -524,8 +522,8 @@ export class CustomerService extends Service {
       return Promise.reject(err)
     }
     return Customer.findById(customerId)
-      .then(customer => {
-        return customer.setDefault_cart(cartId)
+      .then(_customer => {
+        return _customer.setDefault_cart(cartId)
       })
       .then(updatedCustomer => {
         return updatedCustomer
@@ -543,18 +541,18 @@ export class CustomerService extends Service {
     const Tag = this.app.models['Tag']
     let resCustomer, resTag
     return Customer.resolve(customer, {create: false})
-      .then(customer => {
-        if (!customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_customer => {
+        if (!_customer) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resCustomer = customer
+        resCustomer = _customer
         return Tag.resolve(tag)
       })
-      .then(tag => {
-        if (!tag) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_tag => {
+        if (!_tag) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resTag = tag
+        resTag = _tag
         return resCustomer.hasTag(resTag.id)
       })
       .then(hasTag => {
@@ -563,7 +561,7 @@ export class CustomerService extends Service {
         }
         return resCustomer
       })
-      .then(tag => {
+      .then(_tag => {
         return Customer.findByIdDefault(resCustomer.id)
       })
   }
@@ -579,18 +577,18 @@ export class CustomerService extends Service {
     const Tag = this.app.models['Tag']
     let resCustomer, resTag
     return Customer.resolve(customer, {create: false})
-      .then(customer => {
-        if (!customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_customer => {
+        if (!_customer) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resCustomer = customer
+        resCustomer = _customer
         return Tag.resolve(tag)
       })
-      .then(tag => {
-        if (!tag) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_tag => {
+        if (!_tag) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resTag = tag
+        resTag = _tag
         return resCustomer.hasTag(resTag.id)
       })
       .then(hasTag => {
@@ -599,13 +597,14 @@ export class CustomerService extends Service {
         }
         return resCustomer
       })
-      .then(tag => {
+      .then(_tag => {
         return Customer.findByIdDefault(resCustomer.id)
       })
   }
 
   /**
    * Add Multiple collections
+   * @param customer
    * @param collections
    * @param options
    * @returns {Promise.<*>}
@@ -633,23 +632,23 @@ export class CustomerService extends Service {
    * @param collection
    * @returns {Promise.<TResult>}
    */
-  addCollection(customer, collection) {
+  addCollection(customer, collection, options: {[key: string]: any} = {}) {
     const Customer = this.app.models['Customer']
     const Collection = this.app.models['Collection']
     let resCustomer, resCollection
     return Customer.resolve(customer, {create: false})
-      .then(customer => {
-        if (!customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_customer => {
+        if (!_customer) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resCustomer = customer
+        resCustomer = _customer
         return Collection.resolve(collection)
       })
-      .then(collection => {
-        if (!collection) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_collection => {
+        if (!_collection) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resCollection = collection
+        resCollection = _collection
         return resCustomer.hasCollection(resCollection.id)
       })
       .then(hasCollection => {
@@ -658,7 +657,7 @@ export class CustomerService extends Service {
         }
         return resCustomer
       })
-      .then(collection => {
+      .then(_collection => {
         return resCollection
       })
   }
@@ -674,18 +673,18 @@ export class CustomerService extends Service {
     const Collection = this.app.models['Collection']
     let resCustomer, resCollection
     return Customer.resolve(customer, {create: false})
-      .then(customer => {
-        if (!customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_customer => {
+        if (!_customer) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resCustomer = customer
+        resCustomer = _customer
         return Collection.resolve(collection)
       })
-      .then(collection => {
-        if (!collection) {
-          throw new Errors.FoundError(Error('Customer not found'))
+      .then(_collection => {
+        if (!_collection) {
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
-        resCollection = collection
+        resCollection = _collection
         return resCustomer.hasCollection(resCollection.id)
       })
       .then(hasCollection => {
@@ -694,7 +693,7 @@ export class CustomerService extends Service {
         }
         return resCustomer
       })
-      .then(collection => {
+      .then(_collection => {
         return resCollection
       })
   }
@@ -717,11 +716,11 @@ export class CustomerService extends Service {
       transaction: options.transaction || null,
       create: false
     })
-      .then(customer => {
-        if (!customer) {
+      .then(_customer => {
+        if (!_customer) {
           throw new Error('Unable to resolve Customer')
         }
-        resCustomer = customer
+        resCustomer = _customer
 
         if (type === 'shipping') {// || !resCustomer.shipping_address_id) {
           return resCustomer.updateShippingAddress(address, {transaction: options.transaction || null})
@@ -895,11 +894,11 @@ export class CustomerService extends Service {
 
     let resCustomer
     return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
-      .then(customer => {
-        if (!customer) {
+      .then(_customer => {
+        if (!_customer) {
           throw new Error('Unable to resolve Customer')
         }
-        resCustomer = customer
+        resCustomer = _customer
 
         return Address.resolve(address, {transaction: options.transaction || null})
       })
@@ -1001,8 +1000,8 @@ export class CustomerService extends Service {
     const Customer = this.app.models['Customer']
     let resCustomer
     return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
-      .then(customer => {
-        resCustomer = customer
+      .then(_customer => {
+        resCustomer = _customer
         if (resCustomer.shipping_address_id && resCustomer.changed('shipping_address_id')) {
           return resCustomer.hasAddress(resCustomer.shipping_address_id, {
             // through: {
@@ -1098,7 +1097,7 @@ export class CustomerService extends Service {
     this.app.services.EngineService.publish('customer.updated', customer)
     let updateAccounts = false
     let updateAddresses = false
-    const accountUpdates = {}
+    const accountUpdates: {[key: string]: any} = {}
 
     if (customer.changed('email')) {
       updateAccounts = true
@@ -1144,7 +1143,7 @@ export class CustomerService extends Service {
    * @param source
    * @returns {*|Promise.<TResult>}
    */
-  createCustomerSource(customer, source) {
+  createCustomerSource(customer, source, options = {}) {
     const Account = this.app.models['Account']
     return Account.findOne({
       where: {
@@ -1157,7 +1156,7 @@ export class CustomerService extends Service {
           throw new Error('Account not found')
         }
         // source.account_id = account.id
-        return this.app.services.AccountService.addSource(account, source.gateway_token)
+        return this.app.services.AccountService.addSource(account, source.gateway_token, options)
       })
   }
 
@@ -1167,7 +1166,7 @@ export class CustomerService extends Service {
    * @param source
    * @returns {Promise.<TResult>}
    */
-  findCustomerSource(customer, source) {
+  findCustomerSource(customer, source, options = {}) {
     const Account = this.app.models['Account']
     return Account.findOne({
       where: {
@@ -1177,7 +1176,7 @@ export class CustomerService extends Service {
     })
       .then(account => {
         source.account_id = account.id
-        return this.app.services.AccountService.findSource(account, source)
+        return this.app.services.AccountService.findSource(account, source, options)
       })
   }
 
@@ -1187,7 +1186,7 @@ export class CustomerService extends Service {
    * @param account
    * @returns {Promise.<TResult>}
    */
-  syncCustomerSources(customer, account) {
+  syncCustomerSources(customer, account, options = {}) {
     const Account = this.app.models['Account']
     return Account.findOne({
       where: {
@@ -1195,8 +1194,8 @@ export class CustomerService extends Service {
         gateway: account.gateway
       }
     })
-      .then(account => {
-        return this.app.services.AccountService.syncSources(account)
+      .then(_account => {
+        return this.app.services.AccountService.syncSources(_account, options)
       })
   }
   /**
@@ -1234,12 +1233,12 @@ export class CustomerService extends Service {
     return Customer.resolve(customer, options)
       .then(_customer => {
         if (!_customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
         resCustomer = _customer
         return resCustomer.update({state: CUSTOMER_STATE.ENABLED})
       })
-      .then(customer => {
+      .then(() => {
         // return resCustomer.reload()
         const event = {
           object_id: resCustomer.id,
@@ -1275,12 +1274,12 @@ export class CustomerService extends Service {
     return Customer.resolve(customer, options)
       .then(_customer => {
         if (!_customer) {
-          throw new Errors.FoundError(Error('Customer not found'))
+          throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
         resCustomer = _customer
         return resCustomer.update({state: CUSTOMER_STATE.DISABLED})
       })
-      .then(customer => {
+      .then(_customer => {
         // return resCustomer.reload()
         const event = {
           object_id: resCustomer.id,
@@ -1308,11 +1307,11 @@ export class CustomerService extends Service {
    * @param source
    * @returns {*|Promise.<TResult>}
    */
-  removeCustomerSource(customer, source) {
+  removeCustomerSource(customer, source, options = {}) {
     const Source = this.app.models['Source']
     return Source.resolve(source)
-      .then(source => {
-        return this.app.services.AccountService.removeSource(source)
+      .then(_source => {
+        return this.app.services.AccountService.removeSource(_source, options)
       })
   }
 }

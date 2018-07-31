@@ -1,12 +1,10 @@
-
-
-
+// tslint:disable:no-console
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const csvParser = require('papaparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const VENDOR_UPLOAD = require('../../lib').Enums.VENDOR_UPLOAD
+import { VENDOR_UPLOAD } from '../../enums'
 
 /**
  * @module VendorCsvService
@@ -25,7 +23,7 @@ export class VendorCsvService extends Service {
     const EngineService = this.app.services.EngineService
     const errors = []
     let errorsCount = 0, lineNumber = 1
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
       const options = {
         header: true,
         dynamicTyping: true,
@@ -40,11 +38,11 @@ export class VendorCsvService extends Service {
             .catch(err => {
               errorsCount++
               errors.push(`Line ${lineNumber}: ${err.message}`)
-              this.app.log.error('ROW ERROR',err)
+              this.app.log.error('ROW ERROR', err)
               parser.resume()
             })
         },
-        complete: (results, file) => {
+        complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
           EngineService.count('VendorUpload', { where: { upload_id: uploadID }})
@@ -64,7 +62,7 @@ export class VendorCsvService extends Service {
               return resolve(results)
             })
         },
-        error: (err, file) => {
+        error: (err, _file) => {
           return reject(err)
         }
       }

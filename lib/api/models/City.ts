@@ -56,7 +56,7 @@ export class City extends Model {
       },
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
     return schema
@@ -76,5 +76,5 @@ export class City extends Model {
     models.City.belongsTo(models.Country, {
       // as: 'country_id'
     })
-  },
+  }
 }

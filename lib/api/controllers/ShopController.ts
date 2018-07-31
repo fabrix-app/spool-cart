@@ -2,7 +2,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 const lib = require('../../lib')
-// const Errors = require('engine-errors')
+// import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
 /**
  * @module ShopController

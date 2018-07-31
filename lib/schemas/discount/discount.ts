@@ -1,5 +1,6 @@
 
-import * as joi from 'joi'import { DISCOUNT_TYPES } from '../../enums'
+import * as joi from 'joi'
+import { DISCOUNT_TYPES } from '../../enums'
 import { DISCOUNT_SCOPE } from '../../enums'
 
 export const discount = joi.object().keys({

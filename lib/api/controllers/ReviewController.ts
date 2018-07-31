@@ -1,7 +1,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const lib = require('../../lib')
 
 /**
@@ -50,7 +50,7 @@ export class ReviewController extends Controller {
     Review.findById(id, {})
       .then(review => {
         if (!review) {
-          throw new Errors.FoundError(Error(`Review id ${id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Review id ${id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, review)
       })

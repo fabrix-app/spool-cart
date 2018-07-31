@@ -3,7 +3,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 const lib = require('../../lib')
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 
 /**
@@ -45,7 +45,7 @@ export class OrderController extends Controller {
     Order.findByIdDefault(req.params.id, {})
       .then(order => {
         if (!order) {
-          throw new Errors.FoundError(Error(`Order id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Order id ${ req.params.id } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, order)
       })
@@ -68,7 +68,7 @@ export class OrderController extends Controller {
     Order.findByTokenDefault(req.params.token, {})
       .then(order => {
         if (!order) {
-          throw new Errors.FoundError(Error(`Order token ${ req.params.token } not found`))
+          throw new ModelError('E_NOT_FOUND', `Order token ${ req.params.token } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, order)
       })
@@ -91,7 +91,7 @@ export class OrderController extends Controller {
     Order.resolve(req.params.id, {})
       .then(order => {
         if (!order) {
-          throw new Errors.FoundError(Error(`Order ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Order ${ req.params.id } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, order)
       })
@@ -201,16 +201,16 @@ export class OrderController extends Controller {
     })
       .then(order => {
         if (!order) {
-          throw new Errors.FoundError(Error(`Order id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Order id ${ req.params.id } not found`)
         }
         if (!order.customer_id) {
-          throw new Errors.FoundError(Error(`Order id ${ req.params.id } customer not found`))
+          throw new ModelError('E_NOT_FOUND', `Order id ${ req.params.id } customer not found`)
         }
         return Customer.findById(order.customer_id)
       })
       .then(customer => {
         if (!customer) {
-          throw new Errors.FoundError(Error(`Order id ${ req.params.id } customer not found`))
+          throw new ModelError('E_NOT_FOUND', `Order id ${ req.params.id } customer not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })

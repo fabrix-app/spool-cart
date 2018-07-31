@@ -1,7 +1,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const lib = require('../../lib')
 const _ = require('lodash')
 
@@ -52,7 +52,7 @@ export class SubscriptionController extends Controller {
     Subscription.findByIdDefault(id, {})
       .then(subscription => {
         if (!subscription) {
-          throw new Errors.FoundError(Error(`Subscription id ${id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Subscription id ${id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, subscription)
       })
@@ -77,7 +77,7 @@ export class SubscriptionController extends Controller {
     Subscription.findByTokenDefault(token, {})
       .then(subscription => {
         if (!subscription) {
-          throw new Errors.FoundError(Error(`Subscription token ${token} not found`))
+          throw new ModelError('E_NOT_FOUND', `Subscription token ${token} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, subscription)
       })
@@ -104,7 +104,7 @@ export class SubscriptionController extends Controller {
     Subscription.resolve(id, {})
       .then(subscription => {
         if (!subscription) {
-          throw new Errors.FoundError(Error(`Subscription id ${id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Subscription id ${id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, subscription)
       })
@@ -375,16 +375,16 @@ export class SubscriptionController extends Controller {
     })
       .then(subscription => {
         if (!subscription) {
-          throw new Errors.FoundError(Error(`Subscription id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Subscription id ${ req.params.id } not found`)
         }
         if (!subscription.customer_id) {
-          throw new Errors.FoundError(Error(`Subscription id ${ req.params.id } customer not found`))
+          throw new ModelError('E_NOT_FOUND', `Subscription id ${ req.params.id } customer not found`)
         }
         return Customer.findById(subscription.customer_id)
       })
       .then(customer => {
         if (!customer) {
-          throw new Errors.FoundError(Error(`Subscription id ${ req.params.id } customer not found`))
+          throw new ModelError('E_NOT_FOUND', `Subscription id ${ req.params.id } customer not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })

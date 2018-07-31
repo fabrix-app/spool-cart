@@ -1,12 +1,10 @@
-
-
-
+// tslint:disable:no-console
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const csvParser = require('papaparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const SUBSCRIPTION_UPLOAD = require('../../lib').Enums.SUBSCRIPTION_UPLOAD
+import { SUBSCRIPTION_UPLOAD } from '../../enums'
 
 /**
  * @module SubscriptionCsvService
@@ -24,7 +22,7 @@ export class SubscriptionCsvService extends Service {
     const EngineService = this.app.services.EngineService
     const errors = []
     let errorsCount = 0, lineNumber = 1
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
       const options = {
         header: true,
         dynamicTyping: true,
@@ -43,7 +41,7 @@ export class SubscriptionCsvService extends Service {
               parser.resume()
             })
         },
-        complete: (results, file) => {
+        complete: (results, _file) => {
           console.timeEnd('csv')
           // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
@@ -64,7 +62,7 @@ export class SubscriptionCsvService extends Service {
               return resolve(results)
             })
         },
-        error: (err, file) => {
+        error: (err, _file) => {
           return reject(err)
         }
       }
@@ -86,7 +84,7 @@ export class SubscriptionCsvService extends Service {
         const SubscriptionUpload = this.app.models.SubscriptionUpload
         const values = _.values(SUBSCRIPTION_UPLOAD)
         const keys = _.keys(SUBSCRIPTION_UPLOAD)
-        const upload = {
+        const upload: {[key: string]: any} = {
           upload_id: uploadID,
           options: {}
         }
@@ -178,7 +176,7 @@ export class SubscriptionCsvService extends Service {
       })
     })
       .then(results => {
-        return SubscriptionUpload.destroy({where: {upload_id: uploadId }})
+        return SubscriptionUpload.destroy({where: { upload_id: uploadId }})
           .catch(err => {
             errorsCount++
             errors.push(err.message)
@@ -203,8 +201,7 @@ export class SubscriptionCsvService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  transformFromRow(obj, options) {
-    options = options || {}
+  transformFromRow(obj, options: {[key: string]: any} = {}) {
     let resCustomer, resProducts
     const Customer = this.app.models['Customer']
     const Subscription = this.app.models['Subscription']

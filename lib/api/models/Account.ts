@@ -1,7 +1,6 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-const helpers = require('engine-helpers')
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 const shortId = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
@@ -22,7 +21,7 @@ export class Account extends Model {
         underscored: true,
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.engine.live_mode
+        //     live_mode: app.config.get('engine.live_mode')
         //   }
         // },
         scopes: {
@@ -49,23 +48,21 @@ export class Account extends Model {
             )
             return this.findById(id, options)
           },
-          resolve: function(account, options) {
-            options = options || {}
-            const Account = this
-            if (account instanceof Account.instance) {
+          resolve: function(account, options = {}) {
+            if (account instanceof this.instance) {
               return Promise.resolve(account)
             }
             else if (account && _.isObject(account) && account.id) {
-              return Account.findById(account.id, options)
+              return this.findById(account.id, options)
                 .then(resAccount => {
                   if (!resAccount) {
-                    throw new Errors.FoundError(Error(`Account ${account.id} not found`))
+                    throw new ModelError('E_NOT_FOUND', `Account ${account.id} not found`)
                   }
                   return resAccount
                 })
             }
             else if (account && _.isObject(account) && account.gateway && account.customer_id) {
-              return Account.findOne(_.defaultsDeep({
+              return this.findOne(_.defaultsDeep({
                 where: {
                   gateway: account.gateway,
                   customer_id: account.customer_id
@@ -73,42 +70,42 @@ export class Account extends Model {
               }, options))
                 .then(resAccount => {
                   if (!resAccount) {
-                    throw new Errors.FoundError(Error(`Account with customer id ${account.customer_id} not found`))
+                    throw new ModelError('E_NOT_FOUND', `Account with customer id ${account.customer_id} not found`)
                   }
                   return resAccount
                 })
             }
             else if (account && _.isObject(account) && account.token) {
-              return Account.findOne(_.defaultsDeep({
+              return this.findOne(_.defaultsDeep({
                 where: {
                   token: account.token
                 }
               }, options))
                 .then(resAccount => {
                   if (!resAccount) {
-                    throw new Errors.FoundError(Error(`Account token ${account.token} not found`))
+                    throw new ModelError('E_NOT_FOUND', `Account token ${account.token} not found`)
                   }
                   return resAccount
                 })
             }
             else if (account && _.isNumber(account)) {
-              return Account.findById(account, options)
+              return this.findById(account, options)
                 .then(resAccount => {
                   if (!resAccount) {
-                    throw new Errors.FoundError(Error(`Account ${account.token} not found`))
+                    throw new ModelError('E_NOT_FOUND', `Account ${account.token} not found`)
                   }
                   return resAccount
                 })
             }
             else if (account && _.isString(account)) {
-              return Account.findOne(_.defaultsDeep({
+              return this.findOne(_.defaultsDeep({
                 where: {
                   token: account
                 }
               }, options))
                 .then(resAccount => {
                   if (!resAccount) {
-                    throw new Errors.FoundError(Error(`Account ${account} not found`))
+                    throw new ModelError('E_NOT_FOUND', `Account ${account} not found`)
                   }
                   return resAccount
                 })
@@ -162,13 +159,17 @@ export class Account extends Model {
         defaultValue: false
       },
       // The data from the 3rd party response
-      data: helpers.JSONB('Account', app, Sequelize, 'data', {
+      data: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      // helpers.JSONB('Account', app, Sequelize, 'data', {
+      //  defaultValue: {}
+      // }),
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -196,5 +197,5 @@ export class Account extends Model {
       as: 'account_events',
       foreignKey: 'account_id'
     })
-  },
+  }
 }

@@ -1,7 +1,7 @@
 
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
 /**
  * @module CountryService
@@ -64,19 +64,19 @@ export class CountryService extends Service {
    */
   addProvince(country, province) {
     let resCountry, resProvince
-    return this.resolveCountry(country)
-      .then(country => {
-        if (!country) {
-          throw new Errors.FoundError(Error('Country not found'))
+    return this.app.models.Country.resolveCountry(country)
+      .then(_country => {
+        if (!_country) {
+          throw new ModelError('E_NOT_FOUND', 'Country not found')
         }
-        resCountry = country
-        return this.resolveProvince(province)
+        resCountry = _country
+        return this.app.models.Province.resolveProvince(province)
       })
-      .then(province => {
-        if (!province) {
-          throw new Errors.FoundError(Error('Country not found'))
+      .then(_province => {
+        if (!_province) {
+          throw new ModelError('E_NOT_FOUND', 'Country not found')
         }
-        resProvince = province
+        resProvince = _province
         return resCountry.hasProvince(resProvince.id)
       })
       .then(hasProvince => {
@@ -85,7 +85,7 @@ export class CountryService extends Service {
         }
         return resCountry
       })
-      .then(province => {
+      .then(_province => {
         return this.app.models['Country'].findById(resCountry.id)
       })
   }
@@ -98,19 +98,19 @@ export class CountryService extends Service {
    */
   removeProvince(country, province) {
     let resCountry, resProvince
-    return this.resolveCountry(country)
-      .then(country => {
-        if (!country) {
-          throw new Errors.FoundError(Error('Country not found'))
+    return this.app.models.Country.resolveCountry(country)
+      .then(_country => {
+        if (!_country) {
+          throw new ModelError('E_NOT_FOUND', 'Country not found')
         }
-        resCountry = country
-        return this.resolveProvince(province)
+        resCountry = _country
+        return this.app.models.Province.resolveProvince(province)
       })
-      .then(province => {
-        if (!province) {
-          throw new Errors.FoundError(Error('Country not found'))
+      .then(_province => {
+        if (!_province) {
+          throw new ModelError('E_NOT_FOUND', 'Country not found')
         }
-        resProvince = province
+        resProvince = _province
         return resCountry.hasProvince(resProvince.id)
       })
       .then(hasProvince => {
@@ -119,7 +119,7 @@ export class CountryService extends Service {
         }
         return resCountry
       })
-      .then(province => {
+      .then(_province => {
         return this.app.models['Country'].findById(resCountry.id)
       })
   }

@@ -1,7 +1,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 // const lib = require('../../lib')
 /**
  * @module TagController
@@ -37,7 +37,7 @@ export class TagController extends Controller {
     Tag.findByIdDefault(req.params.id, {})
       .then(tag => {
         if (!tag) {
-          throw new Errors.FoundError(Error(`Tag id ${ req.params.id } not found`))
+          throw new ModelError('E_NOT_FOUND', `Tag id ${ req.params.id } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, tag)
       })
@@ -57,7 +57,7 @@ export class TagController extends Controller {
     })
       .then(tag => {
         if (!tag) {
-          throw new Errors.FoundError(Error(`Tag name ${ req.params.name } not found`))
+          throw new ModelError('E_NOT_FOUND', `Tag name ${ req.params.name } not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, tag)
       })

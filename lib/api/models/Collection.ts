@@ -1,16 +1,334 @@
+import { FabrixApp } from '@fabrix/fabrix'
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { isObject, isString, isNumber, defaultsDeep, pick, extend, values } from 'lodash'
 
-const Errors = require('engine-errors')
-const helpers = require('engine-helpers')
-const _ = require('lodash')
 const queryDefaults = require('../utils/queryDefaults')
-const COLLECTION_SORT_ORDER = require('../../lib').Enums.COLLECTION_SORT_ORDER
-const COLLECTION_PURPOSE = require('../../lib').Enums.COLLECTION_PURPOSE
-const COLLECTION_DISCOUNT_SCOPE = require('../../lib').Enums.COLLECTION_DISCOUNT_SCOPE
-const COLLECTION_DISCOUNT_TYPE = require('../../lib').Enums.COLLECTION_DISCOUNT_TYPE
-const COLLECTION_TAX_TYPE = require('../../lib').Enums.COLLECTION_TAX_TYPE
-const COLLECTION_SHIPPING_TYPE = require('../../lib').Enums.COLLECTION_SHIPPING_TYPE
+import { COLLECTION_SORT_ORDER } from '../../enums'
+import { COLLECTION_PURPOSE } from '../../enums'
+import { COLLECTION_DISCOUNT_SCOPE } from '../../enums'
+import { COLLECTION_DISCOUNT_TYPE } from '../../enums'
+import { COLLECTION_TAX_TYPE } from '../../enums'
+import { COLLECTION_SHIPPING_TYPE } from '../../enums'
+
+export class CollectionResolver extends SequelizeResolver {
+  findByIdDefault(id, options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Collection.default(this.app),
+      options
+    )
+    return this.findById(id, options)
+  }
+  findByHandleDefault(handle, options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Collection.default(this.app),
+      {
+        where: {
+          handle: handle
+        }
+      },
+      options
+    )
+    return this.findOne(options)
+  }
+  findOneDefault(options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Collection.default(this.app),
+      options
+    )
+    return this.findOne(options)
+  }
+
+  findAllDefault(options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Collection.default(this.app),
+      options
+    )
+    return this.findAll(options)
+  }
+
+  findAndCountDefault(options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Collection.findAndCountDefault(this.app),
+      options
+    )
+    return this.findAndCountAll(options)
+  }
+
+  /**
+   * Resolve by instance Function
+   * @param collection
+   * @param options
+   */
+  resolveByInstance (collection, options: {[key: string]: any} = {}) {
+    return Promise.resolve(collection)
+  }
+  /**
+   * Resolve by id Function
+   * @param collection
+   * @param options
+   */
+  resolveById (collection, options: {[key: string]: any} = {}) {
+    return this.findById(collection.id, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Collection ${collection.id} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by handle Function
+   * @param collection
+   * @param options
+   */
+  resolveByHandle (collection, options: {[key: string]: any} = {}) {
+    return this.findOne(defaultsDeep({
+      where: {
+        handle: collection.handle
+      }
+    }, options))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Collection handle ${collection.handle} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by number Function
+   * @param collection
+   * @param options
+   */
+  resolveByNumber (collection, options: {[key: string]: any} = {}) {
+    return this.findById(collection, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Collection ${collection.token} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by string Function
+   * @param collection
+   * @param options
+   */
+  resolveByString (collection, options: {[key: string]: any} = {}) {
+    return this.findOne(defaultsDeep({
+      where: {
+        token: collection
+      }
+    }, options))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Collection ${collection} not found`)
+        }
+        return resUser
+      })
+  }
+  // TODO, enable
+  // /**
+  //  * Primary Resolve Function
+  //  * @param collection
+  //  * @param options
+  //  */
+  // resolve(collection, options: {[key: string]: any} = {}) {
+  //   const resolvers = {
+  //     'instance': collection instanceof this.instance,
+  //     'id': !!(collection && isObject(collection) && collection.id),
+  //     'handle': !!(collection && isObject(collection) && collection.handle),
+  //     'number': !!(collection && isNumber(collection)),
+  //     'string': !!(collection && isString(collection))
+  //   }
+  //   const type = Object.keys(resolvers).find((key) => resolvers[key])
+  //
+  //   switch (type) {
+  //     case 'instance': {
+  //       return this.resolveByInstance(collection, options)
+  //     }
+  //     case 'id': {
+  //       return this.resolveById(collection, options)
+  //     }
+  //     case 'handle': {
+  //       return this.resolveByHandle(collection, options)
+  //     }
+  //     case 'number': {
+  //       return this.resolveByNumber(collection, options)
+  //     }
+  //     case 'string': {
+  //       return this.resolveByString(collection, options)
+  //
+  //     }
+  //     default: {
+  //       // TODO create proper error
+  //       const err = new Error(`Unable to resolve Collection ${collection}`)
+  //       return Promise.reject(err)
+  //     }
+  //   }
+  // }
+  /**
+   *
+   * @param collection
+   * @param options
+   * @returns {*}
+   */
+  resolve(collection, options: {[key: string]: any} = {}) {
+    const CollectionModel =  this
+    if (collection instanceof CollectionModel.instance) {
+      return Promise.resolve(collection)
+    }
+    else if (collection && isObject(collection) && collection.id) {
+      return CollectionModel.findById(collection.id, options)
+        .then(foundCollection => {
+          if (!foundCollection) {
+            throw new ModelError('E_NOT_FOUND', `Collection ${collection.id} not found`)
+          }
+          return foundCollection
+        })
+    }
+    else if (collection && isObject(collection) && collection.handle) {
+      return CollectionModel.findOne(this.app.services.SequelizeService.mergeOptionDefaults(
+        options,
+        {
+          where: {
+            handle: collection.handle
+          }
+        }
+        )
+      )
+        .then(resCollection => {
+          if (resCollection) {
+            return resCollection
+          }
+          collection.title = collection.title || collection.handle
+          return this.app.services.CollectionService.create(collection, {transaction: options.transaction})
+        })
+    }
+    else if (collection && isObject(collection) && collection.title) {
+      return CollectionModel.findOne(options = this.app.services.SequelizeService.mergeOptionDefaults(
+        options,
+        {
+          where: {
+            handle: this.app.services.ProxyCartService.handle(collection.title)
+          }
+        }
+        )
+      )
+        .then(resCollection => {
+          if (resCollection) {
+            return resCollection
+          }
+          collection.handle = collection.handle || this.app.ProxyCartService.handle(collection.title)
+          return this.app.services.CollectionService.create(collection, {transaction: options.transaction})
+        })
+    }
+    else if (collection && isNumber(collection)) {
+      return CollectionModel.findById(collection, options)
+        .then(foundCollection => {
+          if (!foundCollection) {
+            throw new ModelError('E_NOT_FOUND', `Collection ${collection} not found`)
+          }
+          return foundCollection
+        })
+    }
+    else if (collection && isString(collection)) {
+      return CollectionModel.findOne(options = this.app.services.SequelizeService.mergeOptionDefaults(
+        options,
+        {
+          where: {
+            handle: this.app.services.ProxyCartService.handle(collection)
+          }
+        }
+        )
+      )
+        .then(resCollection => {
+          if (resCollection) {
+            return resCollection
+          }
+          return this.app.services.CollectionService.create({
+            handle: this.app.services.ProxyCartService.handle(collection),
+            title: collection
+          }, {
+            transaction: options.transaction || null
+          })
+        })
+    }
+    else {
+      // TODO make Proper Error
+      const err = new Error(`Not able to resolve collection ${collection}`)
+      return Promise.reject(err)
+    }
+  }
+  /**
+   *
+   * @param collections
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  transformCollectionModels(collections = [], options: {[key: string]: any} = {}) {
+      const CollectionModel = this.app.models['Collection']
+      const Sequelize = CollectionModel.sequelize
+
+      // Transform if necessary to objects
+      collections = collections.map(collection => {
+        if (collection && isNumber(collection)) {
+          return { id: collection }
+        }
+        else if (collection && isString(collection)) {
+          return {
+            handle: this.app.services.ProxyCartService.handle(collection),
+            title: collection
+          }
+        }
+        else if (collection && isObject(collection) && (collection.title || collection.handle)) {
+          collection.handle = this.app.services.ProxyCartService.handle(collection.handle)
+            || this.app.services.ProxyCartService.handle(collection.title)
+          return collection
+        }
+      })
+      // Filter out undefined
+      collections = collections.filter(collection => collection)
+
+      return Sequelize.Promise.mapSeries(collections, collection => {
+      return CollectionModel.findOne({
+                                  where: pick(collection, ['id', 'handle']),
+      attributes: ['id', 'handle', 'title'],
+      transaction: options.transaction || null
+    })
+    .then(foundCollectionModel => {
+      if (foundCollectionModel) {
+        return extend(foundCollectionModel, collection)
+      }
+      else {
+        return this.app.services.CollectionModelService.create(collection, {
+          transaction: options.transaction || null
+        })
+          .then(createdCollectionModel => {
+            return extend(createdCollectionModel, collection)
+          })
+      }
+    })
+  })
+  }
+  /**
+   *
+   * @param collections
+   */
+  reverseTransformCollections (collections) {
+    collections = collections || []
+    collections.map(collection => {
+      if (collection && isString(collection)) {
+        return collection
+      }
+      else if (collection && collection.title) {
+        return collection.title
+      }
+    })
+    return collections
+  }
+}
 /**
  * @module ProductCollection
  * @description Product Collection Model
@@ -18,7 +336,7 @@ const COLLECTION_SHIPPING_TYPE = require('../../lib').Enums.COLLECTION_SHIPPING_
 export class Collection extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return CollectionResolver
   }
 
   static config (app, Sequelize) {
@@ -40,313 +358,29 @@ export class Collection extends Model {
           }
         },
         hooks: {
-          beforeValidate(values, options) {
-            if (!values.handle && values.title) {
-              values.handle = values.title
+          beforeValidate(collection, options) {
+            if (!collection.handle && collection.title) {
+              collection.handle = collection.title
             }
           },
-          beforeCreate(values, options) {
-            if (values.body) {
-              const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
-              values.body_html = bodyDoc.document
+          beforeCreate(collection, options) {
+            if (collection.body) {
+              const bodyDoc = app.services.RenderGenericService.renderSync(collection.body)
+              collection.body_html = bodyDoc.document
             }
-            if (values.excerpt) {
-              const excerptDoc = app.services.RenderGenericService.renderSync(values.excerpt)
-              values.excerpt_html = excerptDoc.document
-            }
-          },
-          beforeUpdate(values, options) {
-            if (values.body) {
-              const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
-              values.body_html = bodyDoc.document
-            }
-            if (values.excerpt) {
-              const excerptDoc = app.services.RenderGenericService.renderSync(values.excerpt)
-              values.excerpt_html = excerptDoc.document
-            }
-          }
-        },
-        classMethods: {
-          findByIdDefault: function(id, options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Collection.default(app),
-              options || {}
-            )
-            return this.findById(id, options)
-          },
-          findByHandleDefault: function(handle, options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Collection.default(app),
-              {
-                where: {
-                  handle: handle
-                }
-              },
-              options || {}
-            )
-            return this.findOne(options)
-          },
-          findOneDefault: function(options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Collection.default(app),
-              options || {}
-            )
-            return this.findOne(options)
-          },
-          findAllDefault: function(options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Collection.default(app),
-              options || {}
-            )
-            return this.findAll(options)
-          },
-          findAndCountDefault: function(options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Collection.findAndCountDefault(app),
-              options || {}
-            )
-            return this.findAndCountAll(options)
-          },
-          /**
-           *
-           * @param collection
-           * @param options
-           * @returns {*}
-           */
-          resolve: function(collection, options) {
-            options = options || {}
-            const Collection =  this
-            if (collection instanceof Collection.instance) {
-              return Promise.resolve(collection)
-            }
-            else if (collection && _.isObject(collection) && collection.id) {
-              return Collection.findById(collection.id, options)
-                .then(foundCollection => {
-                  if (!foundCollection) {
-                    throw new Errors.FoundError(Error(`Collection ${collection.id} not found`))
-                  }
-                  return foundCollection
-                })
-            }
-            else if (collection && _.isObject(collection) && collection.handle) {
-              return Collection.findOne(app.services.SequelizeService.mergeOptionDefaults(
-                  options,
-                {
-                  where: {
-                    handle: collection.handle
-                  }
-                }
-                )
-              )
-                .then(resCollection => {
-                  if (resCollection) {
-                    return resCollection
-                  }
-                  collection.title = collection.title || collection.handle
-                  return app.services.CollectionService.create(collection, {transaction: options.transaction})
-                })
-            }
-            else if (collection && _.isObject(collection) && collection.title) {
-              return Collection.findOne(options = app.services.SequelizeService.mergeOptionDefaults(
-                  options,
-                {
-                  where: {
-                    handle: app.services.ProxyCartService.handle(collection.title)
-                  }
-                }
-                )
-              )
-                .then(resCollection => {
-                  if (resCollection) {
-                    return resCollection
-                  }
-                  collection.handle = collection.handle || app.ProxyCartService.handle(collection.title)
-                  return app.services.CollectionService.create(collection, {transaction: options.transaction})
-                })
-            }
-            else if (collection && _.isNumber(collection)) {
-              return Collection.findById(collection, options)
-                .then(foundCollection => {
-                  if (!foundCollection) {
-                    throw new Errors.FoundError(Error(`Collection ${collection.id} not found`))
-                  }
-                  return foundCollection
-                })
-            }
-            else if (collection && _.isString(collection)) {
-              return Collection.findOne(options = app.services.SequelizeService.mergeOptionDefaults(
-                  options,
-                {
-                  where: {
-                    handle: app.services.ProxyCartService.handle(collection)
-                  }
-                }
-                )
-              )
-                .then(resCollection => {
-                  if (resCollection) {
-                    return resCollection
-                  }
-                  return app.services.CollectionService.create({
-                    handle: app.services.ProxyCartService.handle(collection),
-                    title: collection
-                  }, {
-                    transaction: options.transaction || null
-                  })
-                })
-            }
-            else {
-              // TODO make Proper Error
-              const err = new Error(`Not able to resolve collection ${collection}`)
-              return Promise.reject(err)
+            if (collection.excerpt) {
+              const excerptDoc = app.services.RenderGenericService.renderSync(collection.excerpt)
+              collection.excerpt_html = excerptDoc.document
             }
           },
-          /**
-           *
-           * @param collections
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          transformCollections: (collections, options) => {
-            options = options || {}
-            collections = collections || []
-
-            const Collection = app.models['Collection']
-            const Sequelize = Collection.sequelize
-
-            // Transform if necessary to objects
-            collections = collections.map(collection => {
-              if (collection && _.isNumber(collection)) {
-                return { id: collection }
-              }
-              else if (collection && _.isString(collection)) {
-                return {
-                  handle: app.services.ProxyCartService.handle(collection),
-                  title: collection
-                }
-              }
-              else if (collection && _.isObject(collection) && (collection.title || collection.handle)) {
-                collection.handle = app.services.ProxyCartService.handle(collection.handle) || app.services.ProxyCartService.handle(collection.title)
-                return collection
-              }
-            })
-            // Filter out undefined
-            collections = collections.filter(collection => collection)
-
-            return Sequelize.Promise.mapSeries(collections, collection => {
-              return Collection.findOne({
-                where: _.pick(collection, ['id', 'handle']),
-                attributes: ['id', 'handle', 'title'],
-                transaction: options.transaction || null
-              })
-                .then(foundCollection => {
-                  if (foundCollection) {
-                    return _.extend(foundCollection, collection)
-                  }
-                  else {
-                    return app.services.CollectionService.create(collection, {
-                      transaction: options.transaction || null
-                    })
-                      .then(createdCollection => {
-                        return _.extend(createdCollection, collection)
-                      })
-                  }
-                })
-            })
-          },
-          /**
-           *
-           * @param collections
-           */
-          reverseTransformCollections: (collections) => {
-            collections = collections || []
-            collections.map(collection => {
-              if (collection && _.isString(collection)) {
-                return collection
-              }
-              else if (collection && collection.title) {
-                return collection.title
-              }
-            })
-            return collections
-          }
-        },
-        instanceMethods: {
-          /**
-           * TODO, this should likely be done with a view
-           * Format return data
-           * Converts tags to array of strings
-           * Returns only metadata data
-           */
-          toJSON: function() {
-            // Make JSON
-            const resp = this instanceof app.models['Collection'].instance ? this.get({ plain: true }) : this
-            // Set Defaults
-            // resp.calculated_price = resp.price
-
-            // Transform Tags to array on toJSON
-            if (resp.tags) {
-              // console.log(resp.tags)
-              resp.tags = resp.tags.map(tag => {
-                if (tag && _.isString(tag)) {
-                  return tag
-                }
-                else if (tag && tag.name && tag.name !== '') {
-                  return tag.name
-                }
-              })
+          beforeUpdate(collection, options) {
+            if (collection.body) {
+              const bodyDoc = app.services.RenderGenericService.renderSync(collection.body)
+              collection.body_html = bodyDoc.document
             }
-            // Transform Metadata to plain on toJSON
-            if (resp.metadata) {
-              if (typeof resp.metadata.data !== 'undefined') {
-                resp.metadata = resp.metadata.data
-              }
-            }
-            return resp
-          },
-          /**
-           *
-           * @param options
-           * @returns {*}
-           */
-          resolveMetadata: function(options) {
-            options = options || {}
-            if (
-              this.metadata
-              && this.metadata instanceof app.models['Metadata'].instance
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getMetadata({transaction: options.transaction || null})
-                .then(_metadata => {
-                  _metadata = _metadata || {collection_id: this.id}
-                  this.metadata = _metadata
-                  this.setDataValue('metadata', _metadata)
-                  this.set('metadata', _metadata)
-                  return this
-                })
-            }
-          },
-          resolveDiscounts: function(options) {
-            options = options || {}
-            if (
-              this.discounts
-              && this.discount.every(d => d instanceof app.models['Discount'].instance)
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getDiscounts({transaction: options.transaction || null})
-                .then(_discounts => {
-                  _discounts = _discounts || []
-                  this.discounts = _discounts
-                  this.setDataValue('discounts', _discounts)
-                  this.set('discounts', _discounts)
-                  return this
-                })
+            if (collection.excerpt) {
+              const excerptDoc = app.services.RenderGenericService.renderSync(collection.excerpt)
+              collection.excerpt_html = excerptDoc.document
             }
           }
         }
@@ -391,7 +425,7 @@ export class Collection extends Model {
       // The purpose of the collection
       primary_purpose: {
         type: Sequelize.ENUM,
-        values: _.values(COLLECTION_PURPOSE),
+        values: values(COLLECTION_PURPOSE),
         defaultValue: COLLECTION_PURPOSE.GROUP
       },
 
@@ -446,7 +480,7 @@ export class Collection extends Model {
       // The way Items are displayed in this collection
       sort_order: {
         type: Sequelize.ENUM,
-        values: _.values(COLLECTION_SORT_ORDER),
+        values: values(COLLECTION_SORT_ORDER),
         defaultValue: COLLECTION_SORT_ORDER.ALPHA_DESC
       },
 
@@ -454,7 +488,7 @@ export class Collection extends Model {
       // The type of a tax modifier
       tax_type: {
         type: Sequelize.ENUM,
-        values: _.values(COLLECTION_TAX_TYPE),
+        values: values(COLLECTION_TAX_TYPE),
         defaultValue: COLLECTION_TAX_TYPE.PERCENTAGE
       },
       // The rate of added tax if tax_type is a rate
@@ -476,7 +510,7 @@ export class Collection extends Model {
       // The type of the shipping modifier (rate, percentage)
       shipping_type: {
         type: Sequelize.ENUM,
-        values: _.values(COLLECTION_SHIPPING_TYPE),
+        values: values(COLLECTION_SHIPPING_TYPE),
         defaultValue: COLLECTION_SHIPPING_TYPE.PERCENTAGE
       },
       // The shipping rate to be applied if shipping_type is rate
@@ -496,13 +530,13 @@ export class Collection extends Model {
       // // The scope of the discount price modifier for the collection (individual, global)
       // discount_scope: {
       //   type: Sequelize.ENUM,
-      //   values: _.values(COLLECTION_DISCOUNT_SCOPE),
+      //   values: values(COLLECTION_DISCOUNT_SCOPE),
       //   defaultValue: COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL
       // },
       // // The type of the discount modifier (rate, percentage)
       // discount_type: {
       //   type: Sequelize.ENUM,
-      //   values: _.values(COLLECTION_DISCOUNT_TYPE),
+      //   values: values(COLLECTION_DISCOUNT_TYPE),
       //   defaultValue: COLLECTION_DISCOUNT_TYPE.PERCENTAGE
       // },
       // // The discount rate if the discount_type is rate
@@ -525,17 +559,25 @@ export class Collection extends Model {
       //   defaultValue: []
       // }),
       // List of product_type [<string>] to forcefully excluded from shipping modifiers
-      shipping_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'shipping_product_exclude', {
+      shipping_product_exclude: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('Collection', app, Sequelize, 'shipping_product_exclude', {
+      //   defaultValue: []
+      // }),
       // List of product_type [<string>] to forcefully excluded from tax modifiers
-      tax_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'tax_product_exclude', {
+      tax_product_exclude: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('Collection', app, Sequelize, 'tax_product_exclude', {
+      //   defaultValue: []
+      // }),
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -637,5 +679,87 @@ export class Collection extends Model {
       otherKey: 'tag_id',
       constraints: false
     })
+  }
+}
+
+export interface Collection {
+  toJSON(app: FabrixApp): any
+  resolveMetadata(app: FabrixApp, options): any
+  resolveDiscounts(app: FabrixApp, options): any
+}
+
+/**
+ * TODO, this should likely be done with a view
+ * Format return data
+ * Converts tags to array of strings
+ * Returns only metadata data
+ */
+Collection.prototype.toJSON = function(app: FabrixApp) {
+  // Make JSON
+  const resp = this instanceof app.models['Collection'].instance ? this.get({ plain: true }) : this
+  // Set Defaults
+  // resp.calculated_price = resp.price
+
+  // Transform Tags to array on toJSON
+  if (resp.tags) {
+    // console.log(resp.tags)
+    resp.tags = resp.tags.map(tag => {
+      if (tag && isString(tag)) {
+        return tag
+      }
+      else if (tag && tag.name && tag.name !== '') {
+        return tag.name
+      }
+    })
+  }
+  // Transform Metadata to plain on toJSON
+  if (resp.metadata) {
+    if (typeof resp.metadata.data !== 'undefined') {
+      resp.metadata = resp.metadata.data
+    }
+  }
+  return resp
+}
+
+/**
+*
+*/
+Collection.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  if (
+    this.metadata
+    && this.metadata instanceof app.models['Metadata'].instance
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getMetadata({transaction: options.transaction || null})
+      .then(_metadata => {
+        _metadata = _metadata || {collection_id: this.id}
+        this.metadata = _metadata
+        this.setDataValue('metadata', _metadata)
+        this.set('metadata', _metadata)
+        return this
+      })
+  }
+}
+
+Collection.prototype.resolveDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  if (
+    this.discounts
+    && this.discount.every(d => d instanceof app.models['Discount'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getDiscounts({transaction: options.transaction || null})
+      .then(_discounts => {
+        _discounts = _discounts || []
+        this.discounts = _discounts
+        this.setDataValue('discounts', _discounts)
+        this.set('discounts', _discounts)
+        return this
+      })
   }
 }

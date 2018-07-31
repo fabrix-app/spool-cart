@@ -1,9 +1,37 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 
-const helpers = require('engine-helpers')
-const CUSTOMER_STATE = require('../../lib').Enums.CUSTOMER_STATE
-const _ = require('lodash')
+import { CUSTOMER_STATE } from '../../enums'
+import { values } from 'lodash'
+
+export class CustomerUploadResolver extends SequelizeResolver {
+  batch(options, batch) {
+    const self = this
+
+    options.limit = options.limit || 100
+    options.offset = options.offset || 0
+
+    const recursiveQuery = function(opts) {
+      let count = 0
+      return self.findAndCountAll(opts)
+        .then(results => {
+          count = results.count
+          return batch(results.rows)
+        })
+        .then(batched => {
+          if (count > opts.offset + opts.limit) {
+            opts.offset = opts.offset + opts.limit
+            return recursiveQuery(opts)
+          }
+          else {
+            return batched
+          }
+        })
+    }
+    return recursiveQuery(options)
+  }
+}
+
 /**
  * @module CustomerUpload
  * @description Customer Upload Model
@@ -11,7 +39,7 @@ const _ = require('lodash')
 export class CustomerUpload extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return CustomerUploadResolver
   }
 
   static config (app, Sequelize) {
@@ -19,41 +47,7 @@ export class CustomerUpload extends Model {
       // migrate: 'drop', //override default models configurations if needed
       // store: 'uploads',
       options: {
-        underscored: true,
-        classMethods: {
-          /**
-           *
-           * @param options
-           * @param batch
-           * @returns Promise.<T>
-           */
-          batch: function (options, batch) {
-            const self = this
-            options = options || {}
-            options.limit = options.limit || 10
-            options.offset = options.offset || 0
-            options.regressive = options.regressive || false
-
-            const recursiveQuery = function(options) {
-              let count = 0
-              return self.findAndCountAll(options)
-                .then(results => {
-                  count = results.count
-                  return batch(results.rows)
-                })
-                .then(batched => {
-                  if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
-                    options.offset = options.regressive ? 0 : options.offset + options.limit
-                    return recursiveQuery(options)
-                  }
-                  else {
-                    return batched
-                  }
-                })
-            }
-            return recursiveQuery(options)
-          }
-        }
+        underscored: true
       }
     }
   }
@@ -156,7 +150,7 @@ export class CustomerUpload extends Model {
 
       state: {
         type: Sequelize.ENUM,
-        values: _.values(CUSTOMER_STATE),
+        values: values(CUSTOMER_STATE),
         defaultValue: CUSTOMER_STATE.ENABLED
       },
 
@@ -166,25 +160,45 @@ export class CustomerUpload extends Model {
       },
 
       // 'Collections'
-      collections: helpers.JSONB('CustomerUpload', app, Sequelize, 'collections', {
+      collections: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('CustomerUpload', app, Sequelize, 'collections', {
+      //   defaultValue: []
+      // }),
       // 'Tags'
-      tags: helpers.JSONB('CustomerUpload', app, Sequelize, 'tags', {
+      tags: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('CustomerUpload', app, Sequelize, 'tags', {
+      //   defaultValue: []
+      // }),
       // 'Accounts'
-      accounts: helpers.JSONB('CustomerUpload', app, Sequelize, 'accounts', {
+      accounts: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('CustomerUpload', app, Sequelize, 'accounts', {
+      //   defaultValue: []
+      // }),
       // 'Users'
-      users: helpers.JSONB('CustomerUpload', app, Sequelize, 'users', {
+      users: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('CustomerUpload', app, Sequelize, 'users', {
+      //   defaultValue: []
+      // }),
       // 'Discounts'
-      discounts: helpers.JSONB('CustomerUpload', app, Sequelize, 'discounts', {
+      discounts: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('CustomerUpload', app, Sequelize, 'discounts', {
+      //   defaultValue: []
+      // }),
       // 'Image'
       image: {
         type: Sequelize.STRING

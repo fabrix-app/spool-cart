@@ -4,10 +4,10 @@
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
 const shortid = require('shortid')
-const Errors = require('engine-errors')
-const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
-const CART_STATUS = require('../../lib').Enums.CART_STATUS
-const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { PAYMENT_PROCESSING_METHOD } from '../../enums'
+import { CART_STATUS } from '../../enums'
+import { ORDER_FINANCIAL } from '../../enums'
 
 /**
  * @module CartService
@@ -198,7 +198,7 @@ export class CartService extends Service {
     // const Cart = this.app.models['Cart']
 
     if (!req.body.cart) {
-      const err = new Errors.FoundError(Error('Cart is missing in request'))
+      const err = new ModelError('E_NOT_FOUND', 'Cart is missing in request')
       return Promise.reject(err)
     }
 
@@ -259,7 +259,7 @@ export class CartService extends Service {
         })
         .then(newCart => {
 
-          const results = {
+          const results: {[key: string]: any} = {
             cart: newCart,
             order: resOrder,
           }
@@ -292,7 +292,7 @@ export class CartService extends Service {
     return Cart.resolve(req.body.cart, { transaction: options.transaction || null })
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart Not Found')
         }
 
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
@@ -302,7 +302,7 @@ export class CartService extends Service {
 
         // if (_cart.status !== CART_STATUS.OPEN) {
         //   // TODO CREATE PROPER ERROR
-        //   throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        //   throw new ModelError('E_NOT_FOUND', `Cart is not ${CART_STATUS.OPEN}`)
         // }
 
         resCart = _cart
@@ -470,7 +470,7 @@ export class CartService extends Service {
       // Add the admin id to the override
       override.admin_id = override.admin_id ? override.admin_id : admin.id
       // Make sure price is a number
-      override.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(override.price))
+      override.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(override.price, 10))
       return override
     })
     let resCart
@@ -494,27 +494,27 @@ export class CartService extends Service {
    * @param cart
    * @returns {Cart} // An instance of the Cart
    */
-  //TODO
+  // TODO
   addDiscountToCart(cart, options) {
     return Promise.resolve(cart)
   }
-  //TODO
+  // TODO
   removeDiscountFromCart(cart, options) {
     return Promise.resolve(cart)
   }
-  //TODO
+  // TODO
   addCouponToCart(cart, options) {
     return Promise.resolve(cart)
   }
-  //TODO
+  // TODO
   removeCouponFromCart(cart, options) {
     return Promise.resolve(cart)
   }
-  //TODO
+  // TODO
   addGiftCardToCart(cart, options) {
     return Promise.resolve(cart)
   }
-  //TODO
+  // TODO
   removeGiftCardFromCart(cart, options) {
     return Promise.resolve(cart)
   }
@@ -536,7 +536,7 @@ export class CartService extends Service {
     return Cart.resolve(cart, { transaction: options.transaction || null })
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart Not Found')
         }
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           throw new Error(`Cart is already ${_cart.status}`)
@@ -580,7 +580,7 @@ export class CartService extends Service {
     return Cart.resolve(cart, {transaction: options.transaction || null})
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart Not Found')
         }
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           throw new Error(`Cart is already ${_cart.status}`)
@@ -618,7 +618,7 @@ export class CartService extends Service {
     return Cart.resolve(cart, {transaction: options.transaction || null})
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart Not Found')
         }
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           throw new Error(`Cart is already ${_cart.status}`)
@@ -637,7 +637,7 @@ export class CartService extends Service {
   createAndSwitch(req, options) {
     options = options || {}
     const User = this.app.models['User']
-    const cart = {}
+    const cart: {[key: string]: any} = {}
     const owners = []
     let customerId
 
@@ -694,14 +694,14 @@ export class CartService extends Service {
   addShipping(cart, shipping, options) {
     options = options || {}
     if (!shipping) {
-      throw new Errors.FoundError(Error('Shipping is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
     }
     let resCart
     const Cart = this.app.models['Cart']
     return Cart.resolve(cart, options)
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart not found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart not found')
         }
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           throw new Error(`Cart is already ${_cart.status}`)
@@ -721,14 +721,14 @@ export class CartService extends Service {
   removeShipping(cart, shipping, options) {
     options = options || {}
     if (!shipping) {
-      throw new Errors.FoundError(Error('Shipping is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
     }
     let resCart
     const Cart = this.app.models['Cart']
     return Cart.resolve(cart, options)
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart not found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart not found')
         }
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           throw new Error(`Cart is already ${_cart.status}`)
@@ -748,14 +748,14 @@ export class CartService extends Service {
   addTaxes(cart, taxes, options) {
     options = options || {}
     if (!taxes) {
-      throw new Errors.FoundError(Error('Taxes is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
     }
     let resCart
     const Cart = this.app.models['Cart']
     return Cart.resolve(cart, options)
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart not found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart not found')
         }
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           throw new Error(`Cart is already ${_cart.status}`)
@@ -775,14 +775,14 @@ export class CartService extends Service {
   removeTaxes(cart, taxes, options) {
     options = options || {}
     if (!taxes) {
-      throw new Errors.FoundError(Error('Taxes is not defined'))
+      throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
     }
     let resCart
     const Cart = this.app.models['Cart']
     return Cart.resolve(cart, options)
       .then(_cart => {
         if (!_cart) {
-          throw new Errors.FoundError(Error('Cart not found'))
+          throw new ModelError('E_NOT_FOUND', 'Cart not found')
         }
         if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           throw new Error(`Cart is already ${_cart.status}`)

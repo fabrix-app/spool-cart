@@ -1,11 +1,249 @@
+import { FabrixApp } from '@fabrix/fabrix'
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { isObject, isString, isNumber, defaultsDeep, pick, extend, values } from 'lodash'
+import * as shortId from 'shortid'
 
-// const helpers = require('engine-helpers')
-const _ = require('lodash')
-const shortId = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
-const CUSTOMER_STATE = require('../../lib').Enums.CUSTOMER_STATE
+import { CUSTOMER_STATE } from '../../enums'
+
+export class CustomerResolver extends SequelizeResolver {
+  /**
+   *
+   */
+  findByIdDefault (id, options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Customer.default(this.app),
+      options
+    )
+    return this.findById(id, options)
+  }
+  /**
+   *
+   * @param token
+   * @param options
+   * @returns {*|Promise.<Instance>}
+   */
+  findByTokenDefault (token, options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Customer.default(this.app),
+      options,
+      {
+        where: {
+          token: token
+        }
+      }
+    )
+    return this.findOne(options)
+  }
+  /**
+   *
+   */
+  findAndCountDefault (options = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.Customer.default(this.app),
+      options || {},
+      {distinct: true}
+    )
+    return this.findAndCountAll(options)
+  }
+  /**
+   * Resolve by instance Function
+   * @param cart
+   * @param options
+   */
+  resolveByInstance (cart, options: {[key: string]: any} = {}) {
+    return Promise.resolve(cart)
+  }
+  /**
+   * Resolve by id Function
+   * @param cart
+   * @param options
+   */
+  resolveById (cart, options: {[key: string]: any} = {}) {
+    return this.findById(cart.id, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Cart ${cart.id} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by token Function
+   * @param cart
+   * @param options
+   */
+  resolveByToken (cart, options: {[key: string]: any} = {}) {
+    return this.findOne(defaultsDeep({
+      where: {
+        token: cart.token
+      }
+    }, options))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Cart token ${cart.token} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by email Function
+   * @param cart
+   * @param options
+   */
+  resolveByEmail (cart, options: {[key: string]: any} = {}) {
+    return this.findOne(defaultsDeep({
+      where: {
+        email: cart.email
+      }
+    }, options))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Cart email ${cart.email} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by number Function
+   * @param cart
+   * @param options
+   */
+  resolveByNumber (cart, options: {[key: string]: any} = {}) {
+    return this.findById(cart, options)
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Cart ${cart.token} not found`)
+        }
+        return resUser
+      })
+  }
+  /**
+   * Resolve by string Function
+   * @param cart
+   * @param options
+   */
+  resolveByString (cart, options: {[key: string]: any} = {}) {
+    return this.findOne(defaultsDeep({
+      where: {
+        token: cart
+      }
+    }, options))
+      .then(resUser => {
+        if (!resUser && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Cart ${cart} not found`)
+        }
+        return resUser
+      })
+  }
+  // /**
+  //  * Primary Resolve Function
+  //  * @param cart
+  //  * @param options
+  //  */
+  // resolve(cart, options: {[key: string]: any} = {}) {
+  //   options.create = options.create || true
+  //   const resolvers = {
+  //     'instance': cart instanceof this.instance,
+  //     'id': !!(cart && isObject(cart) && cart.id),
+  //     'token': !!(cart && isObject(cart) && cart.token),
+  //     'number': !!(cart && isNumber(cart)),
+  //     'string': !!(cart && isString(cart))
+  //   }
+  //   const type = Object.keys(resolvers).find((key) => resolvers[key])
+  //
+  //   switch (type) {
+  //     case 'instance': {
+  //       return this.resolveByInstance(cart, options)
+  //     }
+  //     case 'id': {
+  //       return this.resolveById(cart, options)
+  //     }
+  //     case 'token': {
+  //       return this.resolveByToken(cart, options)
+  //     }
+  //     case 'email': {
+  //       return this.resolveByEmail(cart, options)
+  //     }
+  //     case 'number': {
+  //       return this.resolveByNumber(cart, options)
+  //     }
+  //     case 'string': {
+  //       return this.resolveByString(cart, options)
+  //     }
+  //     default: {
+  //       // TODO create proper error
+  //       const err = new Error(`Unable to resolve Cart ${cart}`)
+  //       return Promise.reject(err)
+  //     }
+  //   }
+  // }
+  /**
+   * Resolves a Customer by instance or by identifier
+   * @param customer
+   * @param options
+   * @returns {*}
+   */
+  resolve (customer, options: {[key: string]: any} = {}) {
+    options.create = options.create || true
+
+    const CustomerModel =  this
+    if (customer instanceof CustomerModel.instance) {
+      return Promise.resolve(customer)
+    }
+    else if (customer && isObject(customer) && customer.id) {
+      return CustomerModel.findById(customer.id, options)
+        .then(resCustomer => {
+          if (!resCustomer && options.create !== false) {
+            return this.app.services.CustomerService.create(customer, options)
+          }
+          return resCustomer
+        })
+    }
+    else if (customer && isObject(customer) && customer.email) {
+      return CustomerModel.findOne(
+        this.app.services.SequelizeService.mergeOptionDefaults(
+          options,
+          {
+            where: {
+              email: customer.email
+            }
+          }
+        )
+      )
+        .then(resCustomer => {
+          if (!resCustomer && options.create !== false) {
+            return this.app.services.CustomerService.create(customer, {transaction: options.transaction || null})
+          }
+          return resCustomer
+        })
+    }
+    else if (customer && isNumber(customer)) {
+      return CustomerModel.findById(customer, options)
+    }
+    else if (customer && isString(customer)) {
+      return CustomerModel.findOne(
+        this.app.services.SequelizeService.mergeOptionDefaults(
+          options,
+          {
+            where: {
+              email: customer
+            }
+          }
+        )
+      )
+    }
+    else if (options.create === false) {
+      const err = new Error('Customer could not be resolved or created')
+      return Promise.reject(err)
+    }
+    else {
+      return this.app.services.CustomerService.create(customer, options)
+    }
+  }
+}
 
 /**
  * @module Customer
@@ -14,7 +252,7 @@ const CUSTOMER_STATE = require('../../lib').Enums.CUSTOMER_STATE
 export class Customer extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return CustomerResolver
   }
 
   static config (app, Sequelize) {
@@ -27,7 +265,7 @@ export class Customer extends Model {
         },
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.engine.live_mode
+        //     live_mode: app.config.get('engine.live_mode')
         //   }
         // },
         scopes: {
@@ -38,28 +276,28 @@ export class Customer extends Model {
           }
         },
         hooks: {
-          beforeCreate: (values, options) => {
-            if (values.ip) {
-              values.create_ip = values.ip
+          beforeCreate: (customer, options) => {
+            if (customer.ip) {
+              customer.create_ip = customer.ip
             }
             // If not token was already created, create it
-            if (!values.token) {
-              values.token = `customer_${shortId.generate()}`
+            if (!customer.token) {
+              customer.token = `customer_${shortId.generate()}`
             }
           },
-          beforeUpdate: (values, options) => {
-            if (values.ip) {
-              values.update_ip = values.ip
+          beforeUpdate: (customer, options) => {
+            if (customer.ip) {
+              customer.update_ip = customer.ip
             }
           },
-          afterCreate: (values, options) => {
-            return app.services.CustomerService.afterCreate(values, options)
+          afterCreate: (customer, options) => {
+            return app.services.CustomerService.afterCreate(customer, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          afterUpdate: (values, options) => {
-            return app.services.CustomerService.afterUpdate(values, options)
+          afterUpdate: (customer, options) => {
+            return app.services.CustomerService.afterUpdate(customer, options)
               .catch(err => {
                 return Promise.reject(err)
               })
@@ -78,711 +316,8 @@ export class Customer extends Model {
             }
           }
         },
-        classMethods: {
-          /**
-           *
-           * @param id
-           * @param options
-           * @returns {*|Promise.<Instance>}
-           */
-          findByIdDefault: function(id, options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Customer.default(app),
-              options || {}
-            )
-            return this.findById(id, options)
-          },
-          /**
-           *
-           * @param token
-           * @param options
-           * @returns {*|Promise.<Instance>}
-           */
-          findByTokenDefault: function(token, options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Customer.default(app),
-              options || {},
-              {
-                where: {
-                  token: token
-                }
-              }
-            )
-            return this.findOne(options)
-          },
-          /**
-           *
-           * @param options
-           * @returns {Promise.<Object>}
-           */
-          findAndCountDefault: function(options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.Customer.default(app),
-              options || {},
-              {distinct: true}
-            )
-            return this.findAndCountAll(options)
-          },
-          /**
-           * Resolves a Customer by instance or by identifier
-           * @param customer
-           * @param options
-           * @returns {*}
-           */
-          resolve: function(customer, options) {
-            options = options || {}
-            options.create = options.create || true
-
-            const Customer =  this
-            if (customer instanceof Customer.instance) {
-              return Promise.resolve(customer)
-            }
-            else if (customer && _.isObject(customer) && customer.id) {
-              return Customer.findById(customer.id, options)
-                .then(resCustomer => {
-                  if (!resCustomer && options.create !== false) {
-                    return app.services.CustomerService.create(customer, options)
-                  }
-                  return resCustomer
-                })
-            }
-            else if (customer && _.isObject(customer) && customer.email) {
-              return Customer.findOne(
-                app.services.SequelizeService.mergeOptionDefaults(
-                  options,
-                  {
-                    where: {
-                      email: customer.email
-                    }
-                  }
-                )
-              )
-                .then(resCustomer => {
-                  if (!resCustomer && options.create !== false) {
-                    return app.services.CustomerService.create(customer, {transaction: options.transaction || null})
-                  }
-                  return resCustomer
-                })
-            }
-            else if (customer && _.isNumber(customer)) {
-              return Customer.findById(customer, options)
-            }
-            else if (customer && _.isString(customer)) {
-              return Customer.findOne(
-                app.services.SequelizeService.mergeOptionDefaults(
-                  options,
-                  {
-                    where: {
-                      email: customer
-                    }
-                  }
-                )
-              )
-            }
-            else if (options.create === false) {
-              const err = new Error('Customer could not be resolved or created')
-              return Promise.reject(err)
-            }
-            else {
-              return app.services.CustomerService.create(customer, options)
-            }
-          }
-        },
         instanceMethods: {
-          /**
-           *
-           * @param product
-           * @param options
-           * @returns {Promise.<TResult>}
-           */
-          getProductHistory(product, options) {
-            options = options || {}
-            let hasPurchaseHistory = false, isSubscribed = false
-            return this.hasPurchaseHistory(product.id, options)
-              .then(pHistory => {
-                hasPurchaseHistory = pHistory
-                return this.isSubscribed(product.id, options)
-              })
-              .then(pHistory => {
-                isSubscribed = pHistory
-                return {
-                  has_purchase_history: hasPurchaseHistory,
-                  is_subscribed: isSubscribed
-                }
-              })
-              .catch(err => {
-                return {
-                  has_purchase_history: hasPurchaseHistory,
-                  is_subscribed: isSubscribed
-                }
-              })
-          },
-          /**
-           *
-           * @param productId
-           * @param options
-           * @returns {Promise.<boolean>}
-           */
-          hasPurchaseHistory: function(productId, options) {
-            options = options || {}
-            return app.models['OrderItem'].findOne({
-              where: {
-                customer_id: this.id,
-                product_id: productId,
-                fulfillment_status: {
-                  $not: ['cancelled', 'pending', 'none']
-                }
-              },
-              attributes: ['id'],
-              transaction: options.transaction || null
-            })
-              .then(pHistory => {
-                if (pHistory) {
-                  return true
-                }
-                else {
-                  return false
-                }
-              })
-              .catch(err => {
-                return false
-              })
-          },
-          isSubscribed: function(productId, options) {
-            options = options || {}
-            return app.models['Subscription'].findOne({
-              where: {
-                customer_id: this.id,
-                active: true,
-                line_items: {
-                  $contains: [{
-                    product_id: productId
-                  }]
-                }
-              },
-              attributes: ['id'],
-              transaction: options.transaction || null
-            })
-              .then(pHistory => {
-                if (pHistory) {
-                  return true
-                }
-                else {
-                  return false
-                }
-              })
-              .catch(err => {
-                return false
-              })
-          },
-          /**
-           *
-           * @param options
-           * @returns {string}
-           */
-          getSalutation: function(options) {
-            options = options || {}
 
-            let salutation = 'Customer'
-
-            if (this.full_name) {
-              salutation = this.full_name
-            }
-            else if (this.email) {
-              salutation = this.email
-            }
-            return salutation
-          },
-          /**
-           *
-           * @param options
-           * @returns {Promise.<TResult>}
-           */
-          getDefaultSource: function (options) {
-            options = options || {}
-            const Source = app.models['Source']
-            return Source.findOne({
-              where: {
-                customer_id: this.id,
-                is_default: true
-              },
-              transaction: options.transaction || null
-            })
-              .then(source => {
-                // If there is no default, find one for the customer
-                if (!source) {
-                  return Source.findOne({
-                    where: {
-                      customer_id: this.id
-                    },
-                    transaction: options.transaction || null
-                  })
-                }
-                else {
-                  return source
-                }
-              })
-              .then(source => {
-                return source
-              })
-          },
-          /**
-           *
-           * @param order
-           */
-          setLastOrder: function(order) {
-            this.last_order_name = order.name
-            this.last_order_id = order.id
-            return this
-          },
-          /**
-           *
-           * @param orderTotalDue
-           */
-          setTotalSpent: function(orderTotalDue) {
-            this.total_spent = this.total_spent + orderTotalDue
-            return this
-          },
-
-          setTotalOrders: function() {
-            this.total_orders = this.total_orders + 1
-            return this
-          },
-
-          setAvgSpent: function() {
-            this.avg_spent = this.total_spent / this.total_orders
-            return this
-          },
-          /**
-           *
-           * @param newBalance
-           */
-          // TODO Discussion: should this be pulled with each query or set after order?
-          setAccountBalance: function(newBalance) {
-            this.account_balance = newBalance
-            return this
-          },
-
-          logAccountBalance: function(type, price, currency, accountId, orderId, options) {
-            options = options || {}
-            type = type || 'debit'
-            price = price || 0
-            currency = currency || 'USD'
-
-            return this.createAccount_event({
-              type: type,
-              price: price,
-              account_id: accountId,
-              order_id: orderId
-            }, {
-              transaction: options.transaction || null
-            })
-              .then(_event => {
-                const event = {
-                  object_id: this.id,
-                  object: 'customer',
-                  objects: [{
-                    customer: this.id
-                  }],
-                  type: `customer.account_balance.${type}`,
-                  message: `Customer ${ this.email || 'ID ' + this.id } account balance was ${type}ed by ${ app.services.ProxyCartService.formatCurrency(price, currency) } ${currency}`,
-                  data: this
-                }
-                return app.services.EngineService.publish(event.type, event, {
-                  save: true,
-                  transaction: options.transaction || null
-                })
-              })
-              .then(_event => {
-                const newBalance = type === 'debit' ? Math.max(0, this.account_balance - price) : this.account_balance + price
-                return this.setAccountBalance(newBalance)
-              })
-
-          },
-          /**
-           *
-           * @param preNotification
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          notifyUsers: function(preNotification, options) {
-            options = options || {}
-            return this.resolveUsers({
-              attributes: ['id', 'email', 'username'],
-              transaction: options.transaction || null,
-              reload: options.reload || null,
-            })
-              .then(() => {
-                if (this.users && this.users.length > 0) {
-                  return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
-                    .then(notes => {
-                      app.log.debug('NOTIFY', this.id, this.email, this.users.map(u => u.id), preNotification.send_email, notes.users.map(u => u.id))
-                      return notes
-                    })
-                }
-                else {
-                  return []
-                }
-              })
-          },
-          /**
-           *
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          resolveCollections(options) {
-            options = options || {}
-            if (
-              this.collections
-              && this.collections.length > 0
-              && this.collections.every(d => d instanceof app.models['Collection'].instance)
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getCollections({transaction: options.transaction || null})
-                .then(_collections => {
-                  _collections = _collections || []
-                  this.collections = _collections
-                  this.setDataValue('collections', _collections)
-                  this.set('collections', _collections)
-                  return this
-                })
-            }
-          },
-          /**
-           *
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          resolveDiscounts(options) {
-            options = options || {}
-            if (
-              this.discounts
-              && this.discounts.length > 0
-              && this.discounts.every(d => d instanceof app.models['Discount'].instance)
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getDiscounts({transaction: options.transaction || null})
-                .then(_discounts => {
-                  _discounts = _discounts || []
-                  this.discounts = _discounts
-                  this.setDataValue('discounts', _discounts)
-                  this.set('discounts', _discounts)
-                  return this
-                })
-            }
-          },
-          /**
-           *
-           * @param options
-           * @returns {*}
-           */
-          resolveMetadata: function(options) {
-            options = options || {}
-            if (
-              this.metadata
-              && this.metadata instanceof app.models['Metadata'].instance
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getMetadata({transaction: options.transaction || null})
-                .then(_metadata => {
-                  _metadata = _metadata || {customer_id: this.id}
-                  this.metadata = _metadata
-                  this.setDataValue('metadata', _metadata)
-                  this.set('metadata', _metadata)
-                  return this
-                })
-            }
-          },
-          /**
-           *
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          resolveUsers(options) {
-            options = options || {}
-            if (
-              this.users
-              && this.users.length > 0
-              && this.users.every(u => u instanceof app.models['User'].instance)
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getUsers({transaction: options.transaction || null})
-                .then(_users => {
-                  _users = _users || []
-                  this.users = _users
-                  this.setDataValue('users', _users)
-                  this.set('users', _users)
-                  return this
-                })
-            }
-          },
-          /**
-           *
-           * @param options
-           * @returns {*}
-           */
-          resolveDefaultAddress: function(options) {
-            options = options || {}
-            if (
-              this.default_address
-              && this.default_address instanceof app.models['Address'].instance
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            // Some carts may not have a default address Id
-            else if (!this.default_address_id) {
-              this.default_address = app.models['Address'].build({})
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getDefault_address({transaction: options.transaction || null})
-                .then(address => {
-                  address = address || null
-                  this.default_address = address
-                  this.setDataValue('default_address', address)
-                  this.set('default_address', address)
-                  return this
-                })
-            }
-          },
-          /**
-           *
-           * @param options
-           * @returns {*}
-           */
-          resolveShippingAddress: function(options) {
-            options = options || {}
-            if (
-              this.shipping_address
-              && this.shipping_address instanceof app.models['Address'].instance
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            // Some carts may not have a shipping address Id
-            else if (!this.shipping_address_id) {
-              this.shipping_address = app.models['Address'].build({})
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getShipping_address({transaction: options.transaction || null})
-                .then(address => {
-                  address = address || null
-                  this.shipping_address = address
-                  this.setDataValue('shipping_address', address)
-                  this.set('shipping_address', address)
-                  return this
-                })
-            }
-          },
-          /**
-           *
-           * @param options
-           * @returns {*}
-           */
-          resolveBillingAddress: function(options) {
-            options = options || {}
-            if (
-              this.billing_address
-              && this.billing_address instanceof app.models['Address'].instance
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            // Some carts may not have a billing address Id
-            else if (!this.billing_address_id) {
-              this.billing_address = app.models['Address'].build({})
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getBilling_address({transaction: options.transaction || null})
-                .then(address => {
-                  address = address || null
-                  this.billing_address = address
-                  this.setDataValue('billing_address', address)
-                  this.set('billing_address', address)
-                  return this
-                })
-            }
-          },
-          // TODO
-          resolvePaymentDetailsToSources: function(options) {
-            options = options || {}
-          },
-
-          /**
-           * Email to notify user's that there are pending items in cart
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          sendRetargetEmail(options) {
-            options = options || {}
-            return app.emails.Customer.retarget(this, {
-              send_email: app.config.proxyCart.emails.customerRetarget
-            }, {
-              transaction: options.transaction || null
-            })
-              .then(email => {
-                return this.notifyUsers(email, {transaction: options.transaction || null})
-              })
-              .catch(err => {
-                app.log.error(err)
-                return
-              })
-          },
-
-          /**
-           *
-           * @param address
-           * @param options
-           * @returns {Promise.<TResult>|*}
-           */
-          updateDefaultAddress(address, options) {
-            options = options || {}
-            const Address = app.models['Address']
-            const defaultUpdate = Address.cleanAddress(address)
-
-            return this.resolveDefaultAddress({transaction: options.transaction || null})
-              .then(() => {
-                // If this address has an ID, thenw e should try and update it
-                if (address.id || address.token) {
-                  return Address.resolve(address, {transaction: options.transaction || null})
-                    .then(address => {
-                      return address.update(defaultUpdate, {transaction: options.transaction || null})
-                    })
-                }
-                else {
-                  return this.default_address
-                    .merge(defaultUpdate)
-                    .save({transaction: options.transaction || null})
-                }
-              })
-              .then(defaultAddress => {
-                this.default_address = defaultAddress
-                this.setDataValue('default_address', defaultAddress)
-                this.set('default_address', defaultAddress)
-
-                if (this.default_address_id !== defaultAddress.id) {
-                  return this.setDefault_address(defaultAddress.id, {transaction: options.transaction || null})
-                }
-                return this
-              })
-          },
-          /**
-           *
-           * @param address
-           * @param options
-           * @returns {Promise.<TResult>|*}
-           */
-          updateShippingAddress(address, options) {
-            options = options || {}
-            const Address = app.models['Address']
-            const shippingUpdate = Address.cleanAddress(address)
-
-            return this.resolveShippingAddress({transaction: options.transaction || null})
-              .then(() => {
-                // If this address has an ID, thenw e should try and update it
-                if (address.id || address.token) {
-                  return Address.resolve(address, {transaction: options.transaction || null})
-                    .then(address => {
-                      return address.update(shippingUpdate, {transaction: options.transaction || null})
-                    })
-                }
-                else {
-                  return this.shipping_address
-                    .merge(shippingUpdate)
-                    .save({transaction: options.transaction || null})
-                }
-              })
-              .then(shippingAddress => {
-                this.shipping_address = shippingAddress
-                this.setDataValue('shipping_address', shippingAddress)
-                this.set('shipping_address', shippingAddress)
-
-                if (this.shipping_address_id !== shippingAddress.id) {
-                  return this.setShipping_address(shippingAddress.id, {transaction: options.transaction || null})
-                }
-                return this
-              })
-          },
-          /**
-           *
-           * @param address
-           * @param options
-           * @returns {Promise.<TResult>|*}
-           */
-          updateBillingAddress(address, options) {
-            options = options || {}
-            const Address = app.models['Address']
-            const billingUpdate = Address.cleanAddress(address)
-
-            return this.resolveBillingAddress({transaction: options.transaction || null})
-              .then(() => {
-                // If this address has an ID, thenw e should try and update it
-                if (address.id || address.token) {
-                  return Address.resolve(address, {transaction: options.transaction || null})
-                    .then(address => {
-                      return address.update(billingUpdate, {transaction: options.transaction || null})
-                    })
-                }
-                else {
-                  return this.billing_address
-                    .merge(billingUpdate)
-                    .save({transaction: options.transaction || null})
-                }
-              })
-              .then(billingAddress => {
-                this.billing_address = billingAddress
-                this.setDataValue('billing_address', billingAddress)
-                this.set('billing_address', billingAddress)
-
-                if (this.billing_address_id !== billingAddress.id) {
-                  return this.setBilling_address(billingAddress.id, {transaction: options.transaction || null})
-                }
-                return this
-              })
-          },
-          /**
-           *
-           */
-          toJSON: function() {
-            const resp = this instanceof app.models['Customer'].instance ? this.get({ plain: true }) : this
-            // Transform Tags to array on toJSON
-            if (resp.tags) {
-              resp.tags = resp.tags.map(tag => {
-                if (_.isString(tag)) {
-                  return tag
-                }
-                return tag.name
-              })
-            }
-            else {
-              resp.tags = []
-            }
-            // Transform Metadata to plain on toJSON
-            if (resp.metadata) {
-              if (typeof resp.metadata.data !== 'undefined') {
-                resp.metadata = resp.metadata.data
-              }
-            }
-            else {
-              resp.metadata = {}
-            }
-            return resp
-          }
         }
       }
     }
@@ -849,7 +384,7 @@ export class Customer extends Model {
       // The standing state of the customer: enabled, disabled, invited, declined
       state: {
         type: Sequelize.ENUM,
-        values: _.values(CUSTOMER_STATE),
+        values: values(CUSTOMER_STATE),
         defaultValue: CUSTOMER_STATE.ENABLED
       },
 
@@ -914,7 +449,7 @@ export class Customer extends Model {
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -1115,4 +650,593 @@ export class Customer extends Model {
     //   foreignKey: 'customer_id'
     // })
   }
+}
+
+
+export interface Customer {
+  getProductHistory(app: FabrixApp, product, options): any
+  hasPurchaseHistory(app: FabrixApp, productId, options): any
+  isSubscribed(app: FabrixApp, productId, options): any
+  getSalutation(app: FabrixApp, options): any
+  getDefaultSource(app: FabrixApp, options): any
+  setLastOrder(app: FabrixApp, order): any
+  setTotalSpent(app: FabrixApp, orderTotalDue): any
+  setTotalOrders(app: FabrixApp): any
+  setAvgSpent(app: FabrixApp): any
+  setAccountBalance(app: FabrixApp, newBalance): any
+  logAccountBalance(app: FabrixApp, type, price, currency, accountId, orderId, options): any
+  notifyUsers(app: FabrixApp, preNotification, options): any
+  resolveCollections(app: FabrixApp, options): any
+  resolveDiscounts(app: FabrixApp, options): any
+  resolveMetadata(app: FabrixApp, options): any
+  resolveUsers(app: FabrixApp, options): any
+  resolveDefaultAddress(app: FabrixApp, options): any
+  resolveShippingAddress(app: FabrixApp, options): any
+  resolveBillingAddress(app: FabrixApp, options): any
+  resolvePaymentDetailsToSources(app: FabrixApp, options): any
+  sendRetargetEmail(app: FabrixApp, options): any
+  updateDefaultAddress(app: FabrixApp, address, options): any
+  updateShippingAddress(app: FabrixApp, address, options): any
+  updateBillingAddress(app: FabrixApp, address, options): any
+  toJSON(app: FabrixApp): any
+}
+
+/**
+ *
+ */
+Customer.prototype.getProductHistory = (app: FabrixApp, product, options = {}) => {
+  let hasPurchaseHistory = false, isSubscribed = false
+  return this.hasPurchaseHistory(app, product.id, options)
+    .then(pHistory => {
+      hasPurchaseHistory = pHistory
+      return this.isSubscribed(app, product.id, options)
+    })
+    .then(pHistory => {
+      isSubscribed = pHistory
+      return {
+        has_purchase_history: hasPurchaseHistory,
+        is_subscribed: isSubscribed
+      }
+    })
+    .catch(err => {
+      return {
+        has_purchase_history: hasPurchaseHistory,
+        is_subscribed: isSubscribed
+      }
+    })
+}
+/**
+ *
+ */
+Customer.prototype.hasPurchaseHistory = (app: FabrixApp, productId, options = {}) => {
+  return app.models['OrderItem'].findOne({
+    where: {
+      customer_id: this.id,
+      product_id: productId,
+      fulfillment_status: {
+        $not: ['cancelled', 'pending', 'none']
+      }
+    },
+    attributes: ['id'],
+    transaction: options.transaction || null
+  })
+    .then(pHistory => {
+      if (pHistory) {
+        return true
+      }
+      else {
+        return false
+      }
+    })
+    .catch(err => {
+      return false
+    })
+}
+
+Customer.prototype.isSubscribed = (app: FabrixApp, productId, options = {}) => {
+
+  return app.models['Subscription'].findOne({
+    where: {
+      customer_id: this.id,
+      active: true,
+      line_items: {
+        $contains: [{
+          product_id: productId
+        }]
+      }
+    },
+    attributes: ['id'],
+    transaction: options.transaction || null
+  })
+    .then(pHistory => {
+      if (pHistory) {
+        return true
+      }
+      else {
+        return false
+      }
+    })
+    .catch(err => {
+      return false
+    })
+}
+
+/**
+ *
+ * @param options
+ * @returns {string}
+ */
+Customer.prototype.getSalutation = (app: FabrixApp, options = {}) => {
+  let salutation = 'Customer'
+
+  if (this.full_name) {
+    salutation = this.full_name
+  }
+  else if (this.email) {
+    salutation = this.email
+  }
+  return salutation
+}
+/**
+ *
+ */
+Customer.prototype.getDefaultSource = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  const Source = app.models['Source']
+  return Source.findOne({
+    where: {
+      customer_id: this.id,
+      is_default: true
+    },
+    transaction: options.transaction || null
+  })
+    .then(source => {
+      // If there is no default, find one for the customer
+      if (!source) {
+        return Source.findOne({
+          where: {
+            customer_id: this.id
+          },
+          transaction: options.transaction || null
+        })
+      }
+      else {
+        return source
+      }
+    })
+    .then(source => {
+      return source
+    })
+}
+
+/**
+ *
+ */
+Customer.prototype.setLastOrder = (app: FabrixApp, order) => {
+  this.last_order_name = order.name
+  this.last_order_id = order.id
+  return this
+}
+
+/**
+ *
+ */
+Customer.prototype.setTotalSpent = (app: FabrixApp, orderTotalDue) => {
+  this.total_spent = this.total_spent + orderTotalDue
+  return this
+}
+/**
+ *
+ */
+Customer.prototype.setTotalOrders = (app: FabrixApp) => {
+  this.total_orders = this.total_orders + 1
+  return this
+}
+/**
+ *
+ */
+Customer.prototype.setAvgSpent = (app: FabrixApp) => {
+  this.avg_spent = this.total_spent / this.total_orders
+  return this
+}
+/**
+ *
+ */
+// TODO Discussion: should this be pulled with each query or set after order?
+Customer.prototype.setAccountBalance = (app: FabrixApp, newBalance) => {
+  this.account_balance = newBalance
+  return this
+}
+
+/**
+ *
+ */
+Customer.prototype.logAccountBalance = (
+  app: FabrixApp,
+  type = 'debit',
+  price = 0,
+  currency = 'USD',
+  accountId,
+  orderId,
+  options: {[key: string]: any} = {}
+) => {
+
+  return this.createAccount_event({
+    type: type,
+    price: price,
+    account_id: accountId,
+    order_id: orderId
+  }, {
+    transaction: options.transaction || null
+  })
+    .then(_event => {
+      const currencySymbol = app.services.ProxyCartService.formatCurrency(price, currency)
+      const event = {
+        object_id: this.id,
+        object: 'customer',
+        objects: [{
+          customer: this.id
+        }],
+        type: `customer.account_balance.${type}`,
+        message: `Customer ${ this.email || 'ID ' + this.id } account balance was ${type}ed by ${ currencySymbol } ${currency}`,
+        data: this
+      }
+      return app.services.EngineService.publish(event.type, event, {
+        save: true,
+        transaction: options.transaction || null
+      })
+    })
+    .then(_event => {
+      const newBalance = type === 'debit' ? Math.max(0, this.account_balance - price) : this.account_balance + price
+      return this.setAccountBalance(newBalance)
+    })
+
+}
+/**
+ *
+ */
+Customer.prototype.notifyUsers = (app: FabrixApp, preNotification, options: {[key: string]: any} = {}) => {
+
+  return this.resolveUsers(app, {
+    attributes: ['id', 'email', 'username'],
+    transaction: options.transaction || null,
+    reload: options.reload || null,
+  })
+    .then(() => {
+      if (this.users && this.users.length > 0) {
+        return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
+          .then(notes => {
+            app.log.debug('NOTIFY', this.id, this.email, this.users.map(u => u.id), preNotification.send_email, notes.users.map(u => u.id))
+            return notes
+          })
+      }
+      else {
+        return []
+      }
+    })
+}
+/**
+ *
+ */
+Customer.prototype.resolveCollections = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  if (
+    this.collections
+    && this.collections.length > 0
+    && this.collections.every(d => d instanceof app.models['Collection'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getCollections({transaction: options.transaction || null})
+      .then(_collections => {
+        _collections = _collections || []
+        this.collections = _collections
+        this.setDataValue('collections', _collections)
+        this.set('collections', _collections)
+        return this
+      })
+  }
+}
+/**
+ *
+ */
+Customer.prototype.resolveDiscounts = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  if (
+    this.discounts
+    && this.discounts.length > 0
+    && this.discounts.every(d => d instanceof app.models['Discount'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getDiscounts({transaction: options.transaction || null})
+      .then(_discounts => {
+        _discounts = _discounts || []
+        this.discounts = _discounts
+        this.setDataValue('discounts', _discounts)
+        this.set('discounts', _discounts)
+        return this
+      })
+  }
+}
+/**
+ *
+ */
+Customer.prototype.resolveMetadata = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  if (
+    this.metadata
+    && this.metadata instanceof app.models['Metadata'].instance
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getMetadata({transaction: options.transaction || null})
+      .then(_metadata => {
+        _metadata = _metadata || {customer_id: this.id}
+        this.metadata = _metadata
+        this.setDataValue('metadata', _metadata)
+        this.set('metadata', _metadata)
+        return this
+      })
+  }
+}
+/**
+ *
+ */
+Customer.prototype.resolveUsers = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  options = options || {}
+  if (
+    this.users
+    && this.users.length > 0
+    && this.users.every(u => u instanceof app.models['User'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getUsers({transaction: options.transaction || null})
+      .then(_users => {
+        _users = _users || []
+        this.users = _users
+        this.setDataValue('users', _users)
+        this.set('users', _users)
+        return this
+      })
+  }
+}
+/**
+ *
+ */
+Customer.prototype.resolveDefaultAddress = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  if (
+    this.default_address
+    && this.default_address instanceof app.models['Address'].instance
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  // Some carts may not have a default address Id
+  else if (!this.default_address_id) {
+    this.default_address = app.models['Address'].build({})
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getDefault_address({transaction: options.transaction || null})
+      .then(address => {
+        address = address || null
+        this.default_address = address
+        this.setDataValue('default_address', address)
+        this.set('default_address', address)
+        return this
+      })
+  }
+}
+/**
+ *
+ */
+Customer.prototype.resolveShippingAddress = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  if (
+    this.shipping_address
+    && this.shipping_address instanceof app.models['Address'].instance
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  // Some carts may not have a shipping address Id
+  else if (!this.shipping_address_id) {
+    this.shipping_address = app.models['Address'].build({})
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getShipping_address({transaction: options.transaction || null})
+      .then(address => {
+        address = address || null
+        this.shipping_address = address
+        this.setDataValue('shipping_address', address)
+        this.set('shipping_address', address)
+        return this
+      })
+  }
+}
+/**
+ *
+ */
+Customer.prototype.resolveBillingAddress = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+  if (
+    this.billing_address
+    && this.billing_address instanceof app.models['Address'].instance
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  // Some carts may not have a billing address Id
+  else if (!this.billing_address_id) {
+    this.billing_address = app.models['Address'].build({})
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getBilling_address({transaction: options.transaction || null})
+      .then(address => {
+        address = address || null
+        this.billing_address = address
+        this.setDataValue('billing_address', address)
+        this.set('billing_address', address)
+        return this
+      })
+  }
+}
+
+// TODO
+Customer.prototype.resolvePaymentDetailsToSources = (app: FabrixApp, options = {}) => {
+  return this
+}
+
+/**
+ * Email to notify user's that there are pending items in cart
+ */
+Customer.prototype.sendRetargetEmail = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+
+  return app.emails.Customer.retarget(this, {
+    send_email: app.config.get('cart.emails.customerRetarget')
+  }, {
+    transaction: options.transaction || null
+  })
+    .then(email => {
+      return this.notifyUsers(email, {transaction: options.transaction || null})
+    })
+    .catch(err => {
+      app.log.error(err)
+      return
+    })
+}
+
+/**
+ *
+ */
+Customer.prototype.updateDefaultAddress = (app: FabrixApp, address, options: {[key: string]: any } = {}) => {
+  const Address = app.models['Address']
+  const defaultUpdate = Address.cleanAddress(address)
+
+  return this.resolveDefaultAddress({transaction: options.transaction || null})
+    .then(() => {
+      // If this address has an ID, thenw e should try and update it
+      if (address.id || address.token) {
+        return Address.resolve(address, {transaction: options.transaction || null})
+          .then(_address => {
+            return _address.update(defaultUpdate, {transaction: options.transaction || null})
+          })
+      }
+      else {
+        return this.default_address
+          .merge(defaultUpdate)
+          .save({transaction: options.transaction || null})
+      }
+    })
+    .then(defaultAddress => {
+      this.default_address = defaultAddress
+      this.setDataValue('default_address', defaultAddress)
+      this.set('default_address', defaultAddress)
+
+      if (this.default_address_id !== defaultAddress.id) {
+        return this.setDefault_address(defaultAddress.id, {transaction: options.transaction || null})
+      }
+      return this
+    })
+}
+/**
+ *
+ */
+Customer.prototype.updateShippingAddress = (app: FabrixApp, address, options: {[key: string]: any} = {}) => {
+  const Address = app.models['Address']
+  const shippingUpdate = Address.cleanAddress(address)
+
+  return this.resolveShippingAddress({transaction: options.transaction || null})
+    .then(() => {
+      // If this address has an ID, thenw e should try and update it
+      if (address.id || address.token) {
+        return Address.resolve(address, {transaction: options.transaction || null})
+          .then(_address => {
+            return _address.update(shippingUpdate, {transaction: options.transaction || null})
+          })
+      }
+      else {
+        return this.shipping_address
+          .merge(shippingUpdate)
+          .save({transaction: options.transaction || null})
+      }
+    })
+    .then(shippingAddress => {
+      this.shipping_address = shippingAddress
+      this.setDataValue('shipping_address', shippingAddress)
+      this.set('shipping_address', shippingAddress)
+
+      if (this.shipping_address_id !== shippingAddress.id) {
+        return this.setShipping_address(shippingAddress.id, {transaction: options.transaction || null})
+      }
+      return this
+    })
+}
+/**
+ *
+ */
+Customer.prototype.updateBillingAddress = (app: FabrixApp, address, options: {[key: string]: any} = {}) => {
+  const Address = app.models['Address']
+  const billingUpdate = Address.cleanAddress(address)
+
+  return this.resolveBillingAddress({transaction: options.transaction || null})
+    .then(() => {
+      // If this address has an ID, thenw e should try and update it
+      if (address.id || address.token) {
+        return Address.resolve(address, {transaction: options.transaction || null})
+          .then(_address => {
+            return _address.update(billingUpdate, {transaction: options.transaction || null})
+          })
+      }
+      else {
+        return this.billing_address
+          .merge(billingUpdate)
+          .save({transaction: options.transaction || null})
+      }
+    })
+    .then(billingAddress => {
+      this.billing_address = billingAddress
+      this.setDataValue('billing_address', billingAddress)
+      this.set('billing_address', billingAddress)
+
+      if (this.billing_address_id !== billingAddress.id) {
+        return this.setBilling_address(billingAddress.id, {transaction: options.transaction || null})
+      }
+      return this
+    })
+}
+
+/**
+ *
+ */
+Customer.prototype.toJSON = function(app: FabrixApp) {
+  const resp = this instanceof app.models['Customer'].instance ? this.get({ plain: true }) : this
+  // Transform Tags to array on toJSON
+  if (resp.tags) {
+    resp.tags = resp.tags.map(tag => {
+      if (isString(tag)) {
+        return tag
+      }
+      return tag.name
+    })
+  }
+  else {
+    resp.tags = []
+  }
+  // Transform Metadata to plain on toJSON
+  if (resp.metadata) {
+    if (typeof resp.metadata.data !== 'undefined') {
+      resp.metadata = resp.metadata.data
+    }
+  }
+  else {
+    resp.metadata = {}
+  }
+  return resp
 }

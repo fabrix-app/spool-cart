@@ -18,7 +18,7 @@ export class User extends Model {
         underscored: true,
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.engine.live_mode
+        //     live_mode: app.config.get('engine.live_mode')
         //   }
         // },
         scopes: {
@@ -151,7 +151,7 @@ export class User extends Model {
       // TODO: Discussion: should this be moved to proxy permissions?
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
     return _.defaults(PassportSpoolSchema, PermissionsSpoolSchema, schema)

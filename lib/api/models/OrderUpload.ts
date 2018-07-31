@@ -1,8 +1,33 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 
-const helpers = require('engine-helpers')
-// const _ = require('lodash')
+export class OrderUploadResolver extends SequelizeResolver {
+  batch(options, batch) {
+    const self = this
+
+    options.limit = options.limit || 100
+    options.offset = options.offset || 0
+
+    const recursiveQuery = function(opts) {
+      let count = 0
+      return self.findAndCountAll(opts)
+        .then(results => {
+          count = results.count
+          return batch(results.rows)
+        })
+        .then(batched => {
+          if (count > opts.offset + opts.limit) {
+            opts.offset = opts.offset + opts.limit
+            return recursiveQuery(opts)
+          }
+          else {
+            return batched
+          }
+        })
+    }
+    return recursiveQuery(options)
+  }
+}
 
 /**
  * @module OrderUpload
@@ -11,7 +36,7 @@ const helpers = require('engine-helpers')
 export class OrderUpload extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return OrderUploadResolver
   }
 
   static config (app, Sequelize) {
@@ -19,39 +44,7 @@ export class OrderUpload extends Model {
       // migrate: 'drop', //override default models configurations if needed
       // store: 'uploads',
       options: {
-        underscored: true,
-        classMethods: {
-          /**
-           *
-           * @param options
-           * @param batch
-           * @returns Promise.<T>
-           */
-          batch: function (options, batch) {
-            const self = this
-            options.limit = options.limit || 10
-            options.offset = options.offset || 0
-
-            const recursiveQuery = function(options) {
-              let count = 0
-              return self.findAndCountAll(options)
-                .then(results => {
-                  count = results.count
-                  return batch(results.rows)
-                })
-                .then(batched => {
-                  if (count > options.offset + options.limit) {
-                    options.offset = options.offset + options.limit
-                    return recursiveQuery(options)
-                  }
-                  else {
-                    return batched
-                  }
-                })
-            }
-            return recursiveQuery(options)
-          }
-        }
+        underscored: true
       }
     }
   }
@@ -75,9 +68,13 @@ export class OrderUpload extends Model {
         type: Sequelize.STRING
       },
       // Order Items
-      order_items: helpers.JSONB('OrderUpload', app, Sequelize, 'order_items', {
+      order_items: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderUpload', app, Sequelize, 'order_items', {
+      //   defaultValue: []
+      // }),
       // Shipping Line 1
       shipping_address_1: {
         type: Sequelize.STRING
@@ -144,9 +141,13 @@ export class OrderUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Tags'
-      tags: helpers.JSONB('OrderUpload', app, Sequelize, 'tags', {
+      tags: {
+        type: Sequelize.JSON,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderUpload', app, Sequelize, 'tags', {
+      //   defaultValue: []
+      // }),
       // Note
       note: {
         type: Sequelize.TEXT

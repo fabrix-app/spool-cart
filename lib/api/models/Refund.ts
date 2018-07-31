@@ -24,14 +24,6 @@ export class Refund extends Model {
           }
         },
         hooks: {
-        },
-        classMethods: {
-          // TODO
-          resolve: function(refund, options) {
-            return Promise.resolve(refund)
-            // options = options || {}
-          }
-
         }
       }
     }
@@ -59,11 +51,11 @@ export class Refund extends Model {
       // }),
       restock: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.proxyCart.refund_restock
+        defaultValue: app.config.get('cart.refund_restock')
       },
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }

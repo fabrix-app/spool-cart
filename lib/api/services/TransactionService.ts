@@ -1,11 +1,8 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
-const Errors = require('engine-errors')
-const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
-const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { TRANSACTION_STATUS } from '../../enums'
+import { TRANSACTION_KIND } from '../../enums'
 const moment = require('moment')
 
 /**
@@ -20,8 +17,7 @@ export class TransactionService extends Service {
    * @param options
    * @returns {transaction}
    */
-  create(transaction, options) {
-    options = options || {}
+  create(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models.Transaction
     return Transaction.create(transaction, options)
   }
@@ -32,13 +28,12 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  authorize(transaction, options) {
-    options = options || {}
+  authorize(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         return this.app.services.PaymentService.authorize(_transaction, {transaction: options.transaction || null})
       })
@@ -50,16 +45,15 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  capture(transaction, options) {
-    options = options || {}
+  capture(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         if (_transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
-          throw new Errors.FoundError(Error(`Transaction must be first be ${TRANSACTION_KIND.AUTHORIZE} to ${TRANSACTION_KIND.CAPTURE}`))
+          throw new ModelError('E_NOT_FOUND', `Transaction must be first be ${TRANSACTION_KIND.AUTHORIZE} to ${TRANSACTION_KIND.CAPTURE}`)
         }
         return this.app.services.PaymentService.capture(_transaction, {transaction: options.transaction || null})
       })
@@ -71,15 +65,14 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  sale(transaction, options) {
-    options = options || {}
+  sale(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(transaction => {
-        if (!transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
-        return this.app.services.PaymentService.sale(transaction, {transaction: options.transaction || null})
+        return this.app.services.PaymentService.sale(_transaction, {transaction: options.transaction || null})
       })
   }
 
@@ -89,13 +82,12 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  void(transaction, options) {
-    options = options || {}
+  void(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have successful to be refunded')
@@ -111,14 +103,13 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  partiallyVoid(transaction, amount, options) {
-    options = options || {}
+  partiallyVoid(transaction, amount, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
         if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have successful to be voided')
@@ -138,14 +129,13 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  refund(transaction, options) {
-    options = options || {}
+  refund(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction not found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction not found')
         }
         if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have been successful to be refunded')
@@ -166,14 +156,13 @@ export class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   // TODO, double check if partial or full refund
-  partiallyRefund(transaction, amount, options) {
-    options = options || {}
+  partiallyRefund(transaction, amount, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
         if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Transaction did not resolve an instance')
@@ -189,7 +178,7 @@ export class TransactionService extends Service {
         return resTransaction.save({transaction: options.transaction || null})
       })
       .then(() => {
-        const newTransaction = _.omit(resTransaction.get({plain: true}), ['id','token'])
+        const newTransaction = _.omit(resTransaction.get({plain: true}), ['id', 'token'])
         newTransaction.amount = amount
         return this.create(newTransaction, {transaction: options.transaction || null})
       })
@@ -204,14 +193,13 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  cancel(transaction, options) {
-    options = options || {}
+  cancel(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
         if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Transaction did not resolve an instance')
@@ -230,14 +218,13 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  retry(transaction, options) {
-    options = options || {}
+  retry(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
         if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Transaction did not resolve an instance')
@@ -250,8 +237,7 @@ export class TransactionService extends Service {
       })
   }
 
-  reconcileCreate(order, amount, options) {
-    options = options || {}
+  reconcileCreate(order, amount, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Transaction = this.app.models['Transaction']
     const Customer = this.app.models['Customer']
@@ -259,7 +245,7 @@ export class TransactionService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Order Not Found')
         }
         if (!(_order instanceof Order.instance)) {
           throw new Error('Order did not resolve an instance')
@@ -354,8 +340,7 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  reconcileUpdate(order, amount, options) {
-    options = options || {}
+  reconcileUpdate(order, amount, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     let resOrder,
       totalNew = 0,
@@ -367,7 +352,7 @@ export class TransactionService extends Service {
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
-          throw new Errors.FoundError(Error('Order Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Order Not Found')
         }
         if (!(_order instanceof Order.instance)) {
           throw new Error('Order did not resolve an instance')
@@ -463,7 +448,7 @@ export class TransactionService extends Service {
         },
         total_retry_attempts: {
           $gte: 0,
-          $lte: this.app.config.get('proxyCart.transactions.retry_attempts') || 1
+          $lte: this.app.config.get('cart.transactions.retry_attempts') || 1
         },
         status: TRANSACTION_STATUS.FAILURE
       },
@@ -508,7 +493,7 @@ export class TransactionService extends Service {
     const Transaction = this.app.models['Transaction']
     const errors = []
     const start = moment().startOf('hour')
-      .subtract(this.app.config.get('proxyCart.transactions.authorization_exp_days') || 0, 'days')
+      .subtract(this.app.config.get('cart.transactions.authorization_exp_days') || 0, 'days')
 
     // let errorsTotal = 0
     let transactionsTotal = 0
@@ -521,7 +506,7 @@ export class TransactionService extends Service {
           $gte: start.format('YYYY-MM-DD HH:mm:ss')
         },
         total_retry_attempts: {
-          $gte: this.app.config.get('proxyCart.transactions.retry_attempts') || 1
+          $gte: this.app.config.get('cart.transactions.retry_attempts') || 1
         },
         status: TRANSACTION_STATUS.FAILURE
       },
@@ -565,9 +550,8 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  afterCreate(transaction, options) {
-    options = options || {}
-    return transaction.reconcileOrderFinancialStatus(options)
+  afterCreate(transaction, options: {[key: string]: any} = {}) {
+    return transaction.reconcileOrderFinancialStatus(this.app, options)
       .catch(err => {
         this.app.log.error(err)
         return transaction
@@ -579,9 +563,8 @@ export class TransactionService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  afterUpdate(transaction, options) {
-    options = options || {}
-    return transaction.reconcileOrderFinancialStatus(options)
+  afterUpdate(transaction, options: {[key: string]: any} = {}) {
+    return transaction.reconcileOrderFinancialStatus(this.app, options)
       .catch(err => {
         this.app.log.error(err)
         return transaction

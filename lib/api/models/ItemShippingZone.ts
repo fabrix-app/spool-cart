@@ -1,8 +1,9 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { values } from 'lodash'
 
-const SHIPPING_MODELS = require('../../lib').Enums.SHIPPING_MODELS
-const _ = require('lodash')
+import { SHIPPING_MODELS } from '../../enums'
+
 /**
  * @module ItemShippingZone
  * @description Country and Province Shipping Zone
@@ -13,7 +14,7 @@ export class ItemShippingZone extends Model {
     return SequelizeResolver
   }
 
-  static config (app,Sequelize) {
+  static config (app, Sequelize) {
     return {
       options: {
         underscored: true
@@ -24,7 +25,7 @@ export class ItemShippingZone extends Model {
     }
   }
 
-  static schema (app,Sequelize) {
+  static schema (app, Sequelize) {
     return {
       id: {
         type: Sequelize.INTEGER,
@@ -39,7 +40,7 @@ export class ItemShippingZone extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'shipping_zone_model',
-        values: _.values(SHIPPING_MODELS)
+        values: values(SHIPPING_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

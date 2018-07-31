@@ -1,8 +1,71 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { isObject, isString, isNumber } from 'lodash'
 
-const Errors = require('engine-errors')
-const _ = require('lodash')
+export class ProductImageResolver extends SequelizeResolver {
+  resolve(image, options: {[key: string]: any} = {}) {
+    const Image =  this
+
+    if (image instanceof Image.instance) {
+      return Promise.resolve(image)
+    }
+    else if (image && isObject(image) && image.id) {
+      return Image.findById(image.id, options)
+        .then(resImage => {
+          if (!resImage && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Image id ${image.id} not found`)
+          }
+          return resImage || image
+        })
+    }
+    else if (image && isObject(image) && image.src) {
+      return Image.findOne(this.app.services.SequelizeService.mergeOptionDefaults({
+        where: {
+          src: image.src
+        }
+      }, options))
+        .then(resImage => {
+          if (!resImage && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Image src ${image.src} not found`)
+          }
+          return resImage || image
+        })
+    }
+    else if (image && isNumber(image)) {
+      return Image.findById(image, options)
+        .then(resImage => {
+          if (!resImage && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Image id ${image} not found`)
+          }
+          return resImage || image
+        })
+    }
+    else if (image && isString(image)) {
+      return Image.findOne(this.app.services.SequelizeService.mergeOptionDefaults({
+        options,
+        where: { src: image }
+      }))
+        .then(resImage => {
+          if (!resImage && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Image src ${image} not found`)
+          }
+          return resImage || image
+        })
+    }
+    else {
+      if (options.reject !== false) {
+        // TODO create proper error
+        const err = new Error(`Unable to resolve Image ${image}`)
+        return Promise.reject(err)
+      }
+      else {
+        return Promise.resolve(image)
+      }
+    }
+  }
+}
+
 /**
  * @module ProductImage
  * @description Product Image Model
@@ -10,7 +73,7 @@ const _ = require('lodash')
 export class ProductImage extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return ProductImageResolver
   }
 
   // TODO, after create download and parse
@@ -35,69 +98,6 @@ export class ProductImage extends Model {
                 return values
               })
 
-          }
-        },
-        classMethods: {
-          resolve: function(image, options) {
-            options = options || {}
-            const Image =  this
-
-            if (image instanceof Image.instance) {
-              return Promise.resolve(image)
-            }
-            else if (image && _.isObject(image) && image.id) {
-              return Image.findById(image.id, options)
-                .then(resImage => {
-                  if (!resImage && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Image id ${image.id} not found`))
-                  }
-                  return resImage || image
-                })
-            }
-            else if (image && _.isObject(image) && image.src) {
-              return Image.findOne(app.services.SequelizeService.mergeOptionDefaults({
-                where: {
-                  src: image.src
-                }
-              }, options))
-                .then(resImage => {
-                  if (!resImage && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Image src ${image.src} not found`))
-                  }
-                  return resImage || image
-                })
-            }
-            else if (image && _.isNumber(image)) {
-              return Image.findById(image, options)
-                .then(resImage => {
-                  if (!resImage && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Image id ${image} not found`))
-                  }
-                  return resImage || image
-                })
-            }
-            else if (image && _.isString(image)) {
-              return Image.findOne(app.services.SequelizeService.mergeOptionDefaults({
-                options,
-                where: { src: image }
-              }))
-                .then(resImage => {
-                  if (!resImage && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Image src ${image} not found`))
-                  }
-                  return resImage || image
-                })
-            }
-            else {
-              if (options.reject !== false) {
-                // TODO create proper error
-                const err = new Error(`Unable to resolve Image ${image}`)
-                return Promise.reject(err)
-              }
-              else {
-                return Promise.resovle(image)
-              }
-            }
           }
         }
       }
@@ -146,7 +146,7 @@ export class ProductImage extends Model {
 
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }

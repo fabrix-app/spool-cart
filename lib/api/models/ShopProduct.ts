@@ -1,8 +1,8 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { values } from 'lodash'
 
-const _ = require('lodash')
-const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
+import { INVENTORY_POLICY } from '../../enums'
 
 /**
  * @module ShopProduct
@@ -53,7 +53,7 @@ export class ShopProduct extends Model {
       // Specifies whether or not customers are allowed to place an order for a product variant when it's out of stock.
       inventory_policy: {
         type: Sequelize.ENUM,
-        values: _.values(INVENTORY_POLICY),
+        values: values(INVENTORY_POLICY),
         defaultValue: INVENTORY_POLICY.DENY
       },
       // Amount of variant in inventory

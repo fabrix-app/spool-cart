@@ -3,9 +3,9 @@
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
-const Errors = require('engine-errors')
-const PRODUCT_DEFAULTS = require('../../lib').Enums.PRODUCT_DEFAULTS
-const VARIANT_DEFAULTS = require('../../lib').Enums.VARIANT_DEFAULTS
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { PRODUCT_DEFAULTS } from '../../enums'
+import { VARIANT_DEFAULTS } from '../../enums'
 const fs = require('fs')
 
 /**
@@ -75,7 +75,7 @@ export class ProductService extends Service {
       })
     }
     else {
-      const err = new Errors.FoundError(Error(`${item} not found`))
+      const err = new ModelError('E_NOT_FOUND', `${item} not found`)
       return Promise.reject(err)
     }
   }
@@ -183,7 +183,7 @@ export class ProductService extends Service {
 
     product = this.productDefaults(product)
     // The Default Product
-    const create = {
+    const create: {[key: string]: any} = {
       host: product.host,
       handle: product.handle,
       title: product.title,
@@ -245,7 +245,7 @@ export class ProductService extends Service {
 
     // Variants
     // Set a default variant based of off product
-    let variants = [{
+    let variants: {[key: string]: any}[] = [{
       title: product.title,
       sku: product.sku,
       vendors: product.vendors,
@@ -460,10 +460,10 @@ export class ProductService extends Service {
     const productOptions = []
 
     // if (!product.id) {
-    //   throw new Errors.FoundError(Error('Product is missing id'))
+    //   throw new ModelError('E_NOT_FOUND', 'Product is missing id')
     // }
 
-    let resProduct, update = {}
+    let resProduct, update: {[key: string]: any} = {}
     return Product.resolve(product, {
       transaction: options.transaction || null
     })
@@ -576,11 +576,11 @@ export class ProductService extends Service {
         }
         // Update seo_title if provided, else update it if a new product title
         if (product.seo_title) {
-          update.seo_title = product.seo_title //.substring(0,255)
+          update.seo_title = product.seo_title // .substring(0,255)
         }
         // Update product_seo title
         if (product.title && !product.seo_title) {
-          update.seo_title = product.title //.substring(0,255)
+          update.seo_title = product.title // .substring(0,255)
         }
         // Update seo_description if provided, else update it if a new product body
         if (product.seo_description) {
@@ -838,10 +838,9 @@ export class ProductService extends Service {
    * @param product
    * @param options
    */
-  removeProduct(product, options) {
-    options = options || {}
+  removeProduct(product, options: {[key: string]: any} = {}) {
     if (!product.id) {
-      const err = new Errors.FoundError(Error('Product is missing id'))
+      const err = new ModelError('E_NOT_FOUND', 'Product is missing id')
       return Promise.reject(err)
     }
     const Product = this.app.models.Product
@@ -874,8 +873,7 @@ export class ProductService extends Service {
    * @param options
    */
   // TODO upload images
-  createVariant(product, variant, options) {
-    options = options || {}
+  createVariant(product, variant, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     const Variant = this.app.models['ProductVariant']
     let resProduct, resVariant, productOptions = []
@@ -883,7 +881,7 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Could not find Product'))
+          throw new ModelError('E_NOT_FOUND', 'Could not find Product')
         }
         resProduct = _product
 
@@ -893,8 +891,8 @@ export class ProductService extends Service {
         return resProduct.createVariant(variant, {transaction: options.transaction || null})
         // return this.resolveVariant(variant, options)
       })
-      .then(variant => {
-        resVariant = variant
+      .then(_variant => {
+        resVariant = _variant
 
         return Variant.findAll({
           where: {
@@ -905,15 +903,15 @@ export class ProductService extends Service {
       })
       .then(variants => {
         const updates = _.sortBy(variants, 'position')
-        _.map(updates, (variant, index) => {
-          variant.position = index + 1
+        _.map(updates, (_variant, index) => {
+          _variant.position = index + 1
         })
-        _.map(updates, variant => {
-          const keys = Object.keys(variant.option)
+        _.map(updates, _variant => {
+          const keys = Object.keys(_variant.option)
           productOptions = _.union(productOptions, keys)
         })
-        return Product.datastore.Promise.mapSeries(updates, variant => {
-          return variant.save({
+        return Product.datastore.Promise.mapSeries(updates, _variant => {
+          return _variant.save({
             transaction: options.transaction || null
           })
         })
@@ -968,7 +966,7 @@ export class ProductService extends Service {
         resVariant = this.variantDefaults(resVariant, resProduct)
         return resVariant.save({transaction: options.transaction || null})
       })
-      .then(variant => {
+      .then(_variant => {
         return Variant.findAll({
           where: {
             product_id: resProduct.id
@@ -978,15 +976,15 @@ export class ProductService extends Service {
       })
       .then(variants => {
         const updates = _.sortBy(variants, 'position')
-        _.map(updates, (variant, index) => {
-          variant.position = index + 1
+        _.map(updates, (_variant, index) => {
+          _variant.position = index + 1
         })
-        _.map(updates, variant => {
-          const keys = Object.keys(variant.option)
+        _.map(updates, _variant => {
+          const keys = Object.keys(_variant.option)
           productOptions = _.union(productOptions, keys)
         })
-        return Product.datastore.Promise.mapSeries(updates, variant => {
-          return variant.save({transaction: options.transaction || null})
+        return Product.datastore.Promise.mapSeries(updates, _variant => {
+          return _variant.save({transaction: options.transaction || null})
         })
       })
       .then(updatedVariants => {
@@ -998,6 +996,10 @@ export class ProductService extends Service {
       })
 
   }
+
+  /**
+   *
+   */
   updateVariants(product, variants, options) {
     const Product = this.app.models['Product']
     return Product.datastore.Promise.mapSeries(variants, variant => {
@@ -1009,8 +1011,7 @@ export class ProductService extends Service {
    * @param id
    * @param options
    */
-  removeVariant(id, options) {
-    options = options || {}
+  removeVariant(id, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     const Variant = this.app.models.ProductVariant
     let resVariant, resProduct
@@ -1080,21 +1081,20 @@ export class ProductService extends Service {
    * @param id
    * @param options
    */
-  removeImage(id, options) {
-    options = options || {}
+  removeImage(id, options: {[key: string]: any} = {}) {
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
 
     let resDestroy
-    return Image.findById(id,{
+    return Image.findById(id, {
       transaction: options.transaction || null
     })
-      .then(foundImage => {
-        if (!foundImage) {
+      .then(_image => {
+        if (!_image) {
           // TODO proper error
           throw new Error('Image not found')
         }
-        resDestroy = foundImage
+        resDestroy = _image
 
         return Image.findAll({
           where: {
@@ -1122,7 +1122,7 @@ export class ProductService extends Service {
         })
       })
       .then(() => {
-        return Product.findByIdDefault(resDestroy.product_id ,{transaction: options.transaction || null})
+        return Product.findByIdDefault(resDestroy.product_id, {transaction: options.transaction || null})
       })
   }
 
@@ -1133,8 +1133,7 @@ export class ProductService extends Service {
    * @param options
    */
   // TODO
-  addImage(product, variant, image, options) {
-    options = options || {}
+  addImage(product, variant, image, options: {[key: string]: any} = {}) {
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
     const Variant = this.app.models['Variant']
@@ -1178,12 +1177,12 @@ export class ProductService extends Service {
         })
       })
       .then(foundImages => {
-        foundImages = foundImages.map((image, index) => {
-          image.position = index + 1
-          return image
+        foundImages = foundImages.map((_image, index) => {
+          _image.position = index + 1
+          return _image
         })
-        return Image.datastore.Promise.mapSeries(foundImages, image => {
-          return image.save({
+        return Image.datastore.Promise.mapSeries(foundImages, _image => {
+          return _image.save({
             transaction: options.transaction || null
           })
         })
@@ -1193,8 +1192,7 @@ export class ProductService extends Service {
       })
   }
 
-  createImage(product, variant, filePath, options) {
-    options = options || {}
+  createImage(product, variant, filePath, options: {[key: string]: any} = {}) {
     const image = fs.readFileSync(filePath)
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
@@ -1241,12 +1239,12 @@ export class ProductService extends Service {
         })
       })
       .then(foundImages => {
-        foundImages = foundImages.map((image, index) => {
-          image.position = index + 1
-          return image
+        foundImages = foundImages.map((_image, index) => {
+          _image.position = index + 1
+          return _image
         })
-        return Image.datastore.Promise.mapSeries(foundImages, image => {
-          return image.save({
+        return Image.datastore.Promise.mapSeries(foundImages, _image => {
+          return _image.save({
             transaction: options.transaction || null
           })
         })
@@ -1270,14 +1268,14 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         return Tag.resolve(tag, {transaction: options.transaction || null})
       })
       .then(_tag => {
         if (!_tag) {
-          throw new Errors.FoundError(Error('Tag not found'))
+          throw new ModelError('E_NOT_FOUND', 'Tag not found')
         }
         resTag = _tag
         return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})
@@ -1288,7 +1286,7 @@ export class ProductService extends Service {
         }
         return resProduct
       })
-      .then(tag => {
+      .then(_tag => {
         return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
@@ -1308,14 +1306,14 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         return Tag.resolve(tag, {transaction: options.transaction || null})
       })
       .then(_tag => {
         if (!_tag) {
-          throw new Errors.FoundError(Error('Tag not found'))
+          throw new ModelError('E_NOT_FOUND', 'Tag not found')
         }
         resTag = _tag
         return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})
@@ -1345,7 +1343,7 @@ export class ProductService extends Service {
     let resProduct, resVariant, resAssociationProduct, resAssociationVariant, through
 
     if (!product || !association) {
-      throw new Errors.FoundError(Error('Product or Association was not provided'))
+      throw new ModelError('E_NOT_FOUND', 'Product or Association was not provided')
     }
 
     // console.log('BROKE ASSOCIATION', product, association)
@@ -1353,7 +1351,7 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         // If this product object also provided a sku
@@ -1373,7 +1371,7 @@ export class ProductService extends Service {
       })
       .then(_association => {
         if (!_association) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resAssociationProduct = _association
         // If this product object also provided a sku
@@ -1434,13 +1432,13 @@ export class ProductService extends Service {
     let resProduct, resVariant, resAssociationProduct, resAssociationVariant, through
 
     if (!product || !association) {
-      throw new Errors.FoundError(Error('Product or Association was not provided'))
+      throw new ModelError('E_NOT_FOUND', 'Product or Association was not provided')
     }
 
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         // If this product object also provided a sku
@@ -1457,7 +1455,7 @@ export class ProductService extends Service {
       })
       .then(_association => {
         if (!_association) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resAssociationProduct = _association
         // If this association is an object and also provided a sku
@@ -1511,20 +1509,20 @@ export class ProductService extends Service {
     let resProductVariant, resAssociation
 
     if (!productVariant || !association) {
-      throw new Errors.FoundError(Error('Variant or Association was not provided'))
+      throw new ModelError('E_NOT_FOUND', 'Variant or Association was not provided')
     }
 
     return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
       .then(_productVariant => {
         if (!_productVariant) {
-          throw new Errors.FoundError(Error('ProductVariant not found'))
+          throw new ModelError('E_NOT_FOUND', 'ProductVariant not found')
         }
         resProductVariant = _productVariant
         return ProductVariant.resolve(association, {transaction: options.transaction || null})
       })
       .then(_association => {
         if (!_association) {
-          throw new Errors.FoundError(Error('ProductVariant not found'))
+          throw new ModelError('E_NOT_FOUND', 'ProductVariant not found')
         }
         resAssociation = _association
         return resProductVariant.hasAssociation(resAssociation.id, {
@@ -1565,20 +1563,20 @@ export class ProductService extends Service {
     let resProductVariant, resAssociation
 
     if (!productVariant || !association) {
-      throw new Errors.FoundError(Error('Variant or Association was not provided'))
+      throw new ModelError('E_NOT_FOUND', 'Variant or Association was not provided')
     }
 
     return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
       .then(_productVariant => {
         if (!_productVariant) {
-          throw new Errors.FoundError(Error('ProductVariant not found'))
+          throw new ModelError('E_NOT_FOUND', 'ProductVariant not found')
         }
         resProductVariant = _productVariant
         return ProductVariant.resolve(association, {transaction: options.transaction || null})
       })
       .then(_association => {
         if (!_association) {
-          throw new Errors.FoundError(Error('ProductVariant not found'))
+          throw new ModelError('E_NOT_FOUND', 'ProductVariant not found')
         }
         resAssociation = _association
         return resProductVariant.hasAssociation(resAssociation.id, {
@@ -1645,14 +1643,14 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         return Collection.resolve(collection, {transaction: options.transaction || null})
       })
       .then(_collection => {
         if (!_collection) {
-          throw new Errors.FoundError(Error('Collection not found'))
+          throw new ModelError('E_NOT_FOUND', 'Collection not found')
         }
         resCollection = _collection
       //   return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
@@ -1671,7 +1669,7 @@ export class ProductService extends Service {
         // }
         // return
       })
-      .then(collection => {
+      .then(_collection => {
         return resCollection
         // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
@@ -1692,14 +1690,14 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         return Collection.resolve(collection, {transaction: options.transaction || null})
       })
       .then(_collection => {
         if (!_collection) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resCollection = _collection
         return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
@@ -1710,7 +1708,7 @@ export class ProductService extends Service {
         }
         return resProduct
       })
-      .then(collection => {
+      .then(_collection => {
         return resCollection
         // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
@@ -1730,14 +1728,14 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         return this.app.models['Shop'].resolve(shop, {transaction: options.transaction || null})
       })
       .then(_shop => {
         if (!_shop) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resShop = _shop
         return resProduct.hasShop(resShop.id, {transaction: options.transaction || null})
@@ -1748,7 +1746,7 @@ export class ProductService extends Service {
         }
         return resProduct
       })
-      .then(shop => {
+      .then(_shop => {
         return resShop
         // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
@@ -1768,14 +1766,14 @@ export class ProductService extends Service {
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
         return this.app.models['Shop'].resolve(shop, {transaction: options.transaction || null})
       })
       .then(_shop => {
         if (!_shop) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resShop = _shop
         return resProduct.hasShop(resShop.id, {transaction: options.transaction || null})
@@ -1786,7 +1784,7 @@ export class ProductService extends Service {
         }
         return resProduct
       })
-      .then(shop => {
+      .then(_shop => {
         return resShop
         // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
@@ -1805,18 +1803,18 @@ export class ProductService extends Service {
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
-          throw new Errors.FoundError(Error('Product not found'))
+      .then(_product => {
+        if (!_product) {
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
-        resProduct = product
+        resProduct = _product
         return Vendor.resolve(vendor, {transaction: options.transaction || null})
       })
-      .then(vendor => {
-        if (!vendor) {
-          throw new Errors.FoundError(Error('Product not found'))
+      .then(_vendor => {
+        if (!_vendor) {
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
-        resVendor = vendor
+        resVendor = _vendor
         return resProduct.hasVendor(resVendor.id, {transaction: options.transaction || null})
       })
       .then(hasVendor => {
@@ -1825,7 +1823,7 @@ export class ProductService extends Service {
         }
         return resProduct
       })
-      .then(vendor => {
+      .then(_vendor => {
         return resVendor
         // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
@@ -1844,18 +1842,18 @@ export class ProductService extends Service {
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
-          throw new Errors.FoundError(Error('Product not found'))
+      .then(_product => {
+        if (!_product) {
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
-        resProduct = product
+        resProduct = _product
         return Vendor.resolve(vendor, {transaction: options.transaction || null})
       })
-      .then(vendor => {
-        if (!vendor) {
-          throw new Errors.FoundError(Error('Product not found'))
+      .then(_vendor => {
+        if (!_vendor) {
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
-        resVendor = vendor
+        resVendor = _vendor
         return resProduct.hasVendor(resVendor.id, {transaction: options.transaction || null})
       })
       .then(hasVendor => {
@@ -1864,7 +1862,7 @@ export class ProductService extends Service {
         }
         return resProduct
       })
-      .then(vendor => {
+      .then(_vendor => {
         return resVendor
         // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })

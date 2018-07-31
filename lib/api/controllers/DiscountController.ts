@@ -3,7 +3,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 const lib = require('../../lib')
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 
 /**
@@ -33,7 +33,7 @@ export class DiscountController extends Controller {
     Discount.findById(id, {})
       .then(discount => {
         if (!discount) {
-          throw new Errors.FoundError(Error(`Discount id ${id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Discount id ${id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, discount)
       })
@@ -62,7 +62,7 @@ export class DiscountController extends Controller {
     })
       .then(discount => {
         if (!discount) {
-          throw new Errors.FoundError(Error(`Discount handle ${handle} not found`))
+          throw new ModelError('E_NOT_FOUND', `Discount handle ${handle} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, discount)
       })

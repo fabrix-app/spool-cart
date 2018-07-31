@@ -1,12 +1,44 @@
+import { FabrixApp } from '@fabrix/fabrix'
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { values, isNumber, isString, isObject } from 'lodash'
 
-const Errors = require('engine-errors')
-const helpers = require('engine-helpers')
-const _ = require('lodash')
-const INTERVALS = require('../../lib').Enums.INTERVALS
-const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
-const FULFILLMENT_SERVICE = require('../../lib').Enums.FULFILLMENT_SERVICE
+import { INTERVALS } from '../../enums'
+import { FULFILLMENT_STATUS } from '../../enums'
+import { FULFILLMENT_SERVICE } from '../../enums'
+
+export class OrderItemResolver extends SequelizeResolver {
+  resolve(item, options: {[key: string]: any} = {}) {
+    const OrderItemModel =  this
+    if (item instanceof OrderItemModel.instance) {
+      return Promise.resolve(item)
+    }
+    else if (item && isObject(item) && item.id) {
+      return OrderItemModel.findById(item.id, options)
+        .then(resOrderItem => {
+          if (!resOrderItem) {
+            throw new ModelError('E_NOT_FOUND', `Order ${item.id} not found`)
+          }
+          return resOrderItem
+        })
+    }
+    else if (item && (isString(item) || isNumber(item))) {
+      return OrderItemModel.findById(item, options)
+        .then(resOrderItem => {
+          if (!resOrderItem) {
+            throw new ModelError('E_NOT_FOUND', `Order ${item} not found`)
+          }
+          return resOrderItem
+        })
+    }
+    else {
+      // TODO throw proper error
+      const err = new Error('Unable to resolve Order Item')
+      return Promise.reject(err)
+    }
+  }
+}
 
 /**
  * @module OrderItem
@@ -15,13 +47,18 @@ const FULFILLMENT_SERVICE = require('../../lib').Enums.FULFILLMENT_SERVICE
 export class OrderItem extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return OrderItemResolver
   }
 
   static config (app, Sequelize) {
     return {
       options: {
         underscored: true,
+        enums: {
+          INTERVALS: INTERVALS,
+          FULFILLMENT_STATUS: FULFILLMENT_STATUS,
+          FULFILLMENT_SERVICE: FULFILLMENT_SERVICE
+        },
         scopes: {
           live: {
             where: {
@@ -30,356 +67,41 @@ export class OrderItem extends Model {
           }
         },
         hooks: {
-          beforeCreate(values, options) {
-            return app.services.OrderService.itemBeforeCreate(values, options)
+          beforeCreate(orderItem, options) {
+            return app.services.OrderService.itemBeforeCreate(orderItem, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          beforeSave(values, options) {
-            return app.services.OrderService.itemBeforeSave(values, options)
+          beforeSave(orderItem, options) {
+            return app.services.OrderService.itemBeforeSave(orderItem, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          beforeUpdate(values, options) {
-            return app.services.OrderService.itemBeforeUpdate(values, options)
+          beforeUpdate(orderItem, options) {
+            return app.services.OrderService.itemBeforeUpdate(orderItem, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          afterCreate(values, options) {
-            return app.services.OrderService.itemAfterCreate(values, options)
+          afterCreate(orderItem, options) {
+            return app.services.OrderService.itemAfterCreate(orderItem, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          afterUpdate(values, options) {
-            return app.services.OrderService.itemAfterUpdate(values, options)
+          afterUpdate(orderItem, options) {
+            return app.services.OrderService.itemAfterUpdate(orderItem, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          afterDestroy(values, options) {
-            return app.services.OrderService.itemAfterDestroy(values, options)
+          afterDestroy(orderItem, options) {
+            return app.services.OrderService.itemAfterDestroy(orderItem, options)
               .catch(err => {
                 return Promise.reject(err)
               })
-          }
-        },
-        classMethods: {
-          INTERVALS: INTERVALS,
-          FULFILLMENT_STATUS: FULFILLMENT_STATUS,
-          FULFILLMENT_SERVICE: FULFILLMENT_SERVICE,
-          resolve: function(item, options) {
-            options = options || {}
-            const OrderItem =  this
-            if (item instanceof OrderItem.instance) {
-              return Promise.resolve(item)
-            }
-            else if (item && _.isObject(item) && item.id) {
-              return OrderItem.findById(item.id, options)
-                .then(resOrderItem => {
-                  if (!resOrderItem) {
-                    throw new Errors.FoundError(Error(`Order ${item.id} not found`))
-                  }
-                  return resOrderItem
-                })
-            }
-            else if (item && (_.isString(item) || _.isNumber(item))) {
-              return OrderItem.findById(item, options)
-                .then(resOrderItem => {
-                  if (!resOrderItem) {
-                    throw new Errors.FoundError(Error(`Order ${item} not found`))
-                  }
-                  return resOrderItem
-                })
-            }
-            else {
-              // TODO throw proper error
-              const err = new Error('Unable to resolve Order Item')
-              return Promise.reject(err)
-            }
-          }
-        },
-        instanceMethods: {
-          /**
-           * Resets the defaults so they can be recalculated
-           * @returns {*}
-           */
-          resetDefaults: function() {
-            this.calculated_price = 0
-            this.total_discounts = 0
-            this.total_shipping = 0
-            this.total_coupons = 0
-            this.total_taxes = 0
-
-            return this
-          },
-          addShipping: function(shipping, options) {
-            options = options || {}
-          },
-          removeShipping: function(shipping, options) {
-            options = options || {}
-          },
-
-          setItemsShippingLines: function (shippingedLine) {
-            // console.log('INCOMING ITEM', shippingedLine)
-            // this.shipping_lines = []
-            let shippingesLines = []
-            let totalShippinges = 0
-            // Make this an array if null
-            if (shippingedLine) {
-              // console.log('FOUND SHIPPING LINE', shippingedLine.shipping_lines)
-
-              shippingedLine.shipping_lines = shippingedLine.shipping_lines || []
-              shippingedLine.shipping_lines.map(line => {
-                line.id = this.id
-                return line
-              })
-
-              totalShippinges = shippingedLine.shipping_lines.forEach(line => {
-                totalShippinges = totalShippinges + line.price
-              })
-
-              // console.log('SHIPPINGED LINE', shippingedLine)
-              shippingesLines = [...shippingesLines, ...shippingedLine.shipping_lines]
-            }
-            this.shipping_lines = shippingesLines
-            // console.log('FINAL SHIPPING LINES', this.shipping_lines)
-
-            return this.setShippingLines(shippingesLines)
-          },
-
-          /**
-           *
-           * @param lines
-           */
-          setShippingLines: function(lines) {
-            this.total_shipping = 0
-            this.shipping_lines = lines || []
-            this.shipping_lines.forEach(line => {
-              this.total_shipping = this.total_shipping + line.price
-            })
-            return this
-            // return this.setTotals()
-          },
-
-          setItemsTaxLines: function (taxedLine) {
-            // console.log('INCOMING ITEM', taxedLine)
-            // this.tax_lines = []
-            let taxesLines = []
-            let totalTaxes = 0
-            // Make this an array if null
-            if (taxedLine) {
-              // console.log('FOUND TAX LINE', taxedLine.tax_lines)
-
-              taxedLine.tax_lines = taxedLine.tax_lines || []
-              taxedLine.tax_lines.map(line => {
-                line.id = this.id
-                return line
-              })
-
-              totalTaxes = taxedLine.tax_lines.forEach(line => {
-                totalTaxes = totalTaxes + line.price
-              })
-
-              // console.log('TAXED LINE', taxedLine)
-              taxesLines = [...taxesLines, ...taxedLine.tax_lines]
-            }
-            this.tax_lines = taxesLines
-            // console.log('FINAL TAX LINES', this.tax_lines)
-
-            return this.setTaxLines(taxesLines)
-          },
-
-          /**
-           *
-           * @param lines
-           */
-          setTaxLines: function(lines) {
-            this.total_tax = 0
-            this.tax_lines = lines || []
-            this.tax_lines.forEach(line => {
-              this.total_tax = this.total_tax + line.price
-            })
-            return this
-            // return this.setTotals()
-          },
-
-          setProperties: (prev) => {
-            if (this.properties) {
-              // Remove any old property pricing
-              for (const l in prev.properties) {
-                if (prev.properties.hasOwnProperty(l)) {
-                  this.price = this.price - prev.properties[l].price
-                  this.price_per_unit = this.price_per_unit - prev.properties[l].price
-                }
-              }
-              // and then add the new properties in
-              for (const l in this.properties) {
-                if (this.properties.hasOwnProperty(l)) {
-                  this.price = this.price + this.properties[l].price
-                  this.price_per_unit = this.price_per_unit + this.properties[l].price
-                }
-              }
-            }
-            return this
-          },
-
-          /**
-           *
-           */
-          setTotals: function() {
-            // Set Cart values
-            // this.total_price = Math.max(0,
-            //   this.total_tax
-            //   + this.total_shipping
-            //   + this.subtotal_price
-            // )
-
-            return this
-          },
-
-          /**
-           *
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          recalculate: function(options) {
-            options = options || {}
-            if (
-              this.changed('price')
-              || this.changed('quantity')
-              || this.changed('properties')
-              || this.changed('discounted_lines')
-              || this.changed('coupon_lines')
-              || this.changed('tax_lines')
-              || this.changed('coupon_lines')
-            ) {
-              app.log.debug('ORDER ITEM CHANGED')
-
-              let totalDiscounts = 0 // this.total_discounts
-              let totalShipping = 0
-              let totalTaxes = 0
-              let totalCoupons = 0
-
-              if (this.changed('properties')) {
-                this.setProperties(this.previous('properties'))
-              }
-
-              this.discounted_lines = this.discounted_lines || []
-              this.discounted_lines.map(line => {
-                totalDiscounts = totalDiscounts + (line.price || 0)
-                return line
-              })
-
-              this.coupon_lines = this.coupon_lines || []
-              this.coupon_lines.map(line => {
-                totalCoupons = totalCoupons + (line.price || 0)
-                if (line.line) {
-                  line.line = this.id
-                }
-                return line
-              })
-
-              this.shipping_lines = this.shipping_lines || []
-              this.shipping_lines.map(line => {
-                totalShipping = totalShipping + (line.price || 0)
-                if (line.line) {
-                  delete line.line
-                  line.id = this.id
-                }
-                return line
-              })
-
-              this.tax_lines = this.tax_lines || []
-              this.tax_lines.map(line => {
-                totalTaxes = totalTaxes + (line.price || 0)
-                if (line.line) {
-                  delete line.line
-                  line.id = this.id
-                }
-                return line
-              })
-
-              const calculatedPrice = Math.max(0, (this.price_per_unit * this.quantity) - totalDiscounts - totalCoupons)
-
-              this.calculated_price = calculatedPrice
-              this.total_discounts = totalDiscounts
-              this.total_shipping = totalShipping
-              this.total_coupons = totalCoupons
-              this.total_taxes = totalTaxes
-
-              return Promise.resolve(this)
-            }
-            else {
-              return Promise.resolve(this)
-            }
-          },
-          /**
-           *
-           * @returns {Promise.<config>}
-           */
-          reconcileFulfillment: function(options) {
-            options = options || {}
-            if (this.isNewRecord && !this.fulfillment_id) {
-              // console.log('reconcileFulfillment: RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
-              return this.save({transaction: options.transaction || null})
-                .then(() => {
-                  return app.services.FulfillmentService.addOrCreateFulfillmentItem(
-                    this,
-                    { transaction: options.transaction || null }
-                  )
-                })
-                .then(() => {
-                  return this
-                })
-            }
-            else if (!this.isNewRecord && this.quantity === 0) {
-              // console.log('reconcileFulfillment: RECONCILE WILL REMOVE', this)
-              return this.save({transaction: options.transaction || null})
-                .then(() => {
-                  return app.services.FulfillmentService.removeFulfillmentItem(
-                    this,
-                    { transaction: options.transaction || null }
-                  )
-                })
-                .then(() => {
-                  return this
-                })
-            }
-            else if (!this.isNewRecord && this.changed('quantity') && (this.quantity > this.previous('quantity'))) {
-              // console.log('reconcileFulfillment: RECONCILE WILL UPDATE UP QUANTITY', this)
-              return this.save({transaction: options.transaction || null})
-                .then(() => {
-                  return app.services.FulfillmentService.updateFulfillmentItem(
-                    this,
-                    {transaction: options.transaction || null}
-                  )
-                })
-                .then(() => {
-                  return this
-                })
-            }
-            else if (!this.isNewRecord && this.changed('quantity') && (this.quantity < this.previous('quantity'))) {
-              // console.log('reconcileFulfillment: RECONCILE WILL UPDATE DOWN QUANTITY', this)
-              return this.save({transaction: options.transaction || null})
-                .then(() => {
-                  return app.services.FulfillmentService.removeFulfillmentItem(
-                    this,
-                    { transaction: options.transaction || null }
-                  )
-                })
-                .then(() => {
-                  return this
-                })
-            }
-            else {
-              // console.log('reconcileFulfillment: UNHANDLED')
-              // Unhandled Case
-              return this.save({transaction: options.transaction || null})
-            }
           }
         }
       }
@@ -458,11 +180,19 @@ export class OrderItem extends Model {
         // }
       },
       // The option that this Variant is
-      option: helpers.JSONB('OrderItem', app, Sequelize, 'option', {
-        // name: string, value:string
+      option: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
-      // The amount available to fulfill. This is the quantity - max(refunded_quantity, fulfilled_quantity) - pending_fulfilled_quantity - open_fulfilled_quantity.
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'option', {
+      //   // name: string, value:string
+      //   defaultValue: {}
+      // }),
+      // The amount available to fulfill.
+      // This is the quantity
+      // - max(refunded_quantity, fulfilled_quantity)
+      // - pending_fulfilled_quantity
+      // - open_fulfilled_quantity.
       fulfillable_quantity: {
         type: Sequelize.INTEGER,
         defaultValue: 0
@@ -472,16 +202,18 @@ export class OrderItem extends Model {
         type: Sequelize.INTEGER,
         defaultValue: -1
       },
-      // Service provider who is doing the fulfillment. Valid values are either "manual" or the name of the provider. eg: "amazon", "shipwire", etc.
+      // Service provider who is doing the fulfillment.
+      // Valid values are either "manual" or the name of the provider. eg: "amazon", "shipwire", etc.
       fulfillment_service: {
         type: Sequelize.STRING,
         defaultValue: FULFILLMENT_SERVICE.MANUAL
         // allowNull: false
       },
-      // How far along an order is in terms line items fulfilled. Valid values are: pending, none, sent, fulfilled, or partial.
+      // How far along an order is in terms line items fulfilled.
+      // Valid values are: pending, none, sent, fulfilled, or partial.
       fulfillment_status: {
         type: Sequelize.ENUM,
-        values: _.values(FULFILLMENT_STATUS),
+        values: values(FULFILLMENT_STATUS),
         defaultValue: FULFILLMENT_STATUS.PENDING
         // allowNull: false
       },
@@ -510,7 +242,8 @@ export class OrderItem extends Model {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
-      // The unique numeric identifier for the product in the fulfillment. Can be null if the original product associated with the order is deleted at a later date
+      // The unique numeric identifier for the product in the fulfillment.
+      // Can be null if the original product associated with the order is deleted at a later date
       // The number of products that were purchased.
       quantity: {
         type: Sequelize.INTEGER
@@ -538,7 +271,7 @@ export class OrderItem extends Model {
       // If product has subscription, the unit of the interval
       subscription_unit: {
         type: Sequelize.ENUM,
-        values: _.values(INTERVALS),
+        values: values(INTERVALS),
         defaultValue: INTERVALS.NONE
       },
       // A unique identifier of the item in the fulfillment.
@@ -569,13 +302,23 @@ export class OrderItem extends Model {
       gift_card: {
         type: Sequelize.BOOLEAN
       },
-      // An array of custom information for an item that has been added to the cart. Often used to provide product customization options. For more information, see the documentation on collecting customization information on the product page.
-      properties: helpers.JSONB('OrderItem', app, Sequelize, 'properties', {
+      // An array of custom information for an item that has been added to the cart.
+      // Often used to provide product customization options.
+      // For more information, see the documentation on collecting customization information on the product page.
+      properties: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
-      property_pricing: helpers.JSONB('OrderItem', app, Sequelize, 'property_pricing', {
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'properties', {
+      //   defaultValue: {}
+      // }),
+      property_pricing: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'property_pricing', {
+      //   defaultValue: {}
+      // }),
       // States whether or not the product was taxable. Values are: true or false.
       taxable: {
         type: Sequelize.BOOLEAN
@@ -585,22 +328,38 @@ export class OrderItem extends Model {
         defaultValue: 'P000000' // Physical Good
       },
       // The line_items that have discounts
-      discounted_lines: helpers.JSONB('OrderItem', app, Sequelize, 'discounted_lines', {
+      discounted_lines: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'discounted_lines', {
+      //   defaultValue: []
+      // }),
       // The line_items that have discounts
-      coupon_lines: helpers.JSONB('OrderItem', app, Sequelize, 'coupon_lines', {
+      coupon_lines: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'coupon_lines', {
+      //   defaultValue: []
+      // }),
       // The line_items that have shipping
-      shipping_lines: helpers.JSONB('OrderItem', app, Sequelize, 'shipping_lines', {
+      shipping_lines: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'shipping_lines', {
+      //   defaultValue: []
+      // }),
 
       // A list of tax_line objects, each of which details the taxes applicable to this line_item.
-      tax_lines: helpers.JSONB('OrderItem', app, Sequelize, 'tax_lines', {
+      tax_lines: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'tax_lines', {
+      //   defaultValue: []
+      // }),
       // The total discounts amount applied to this line item. This value is not subtracted in the line item price.
       total_discounts: {
         type: Sequelize.INTEGER,
@@ -627,18 +386,26 @@ export class OrderItem extends Model {
         defaultValue: 0
       },
       // Payment types that can not be used to purchase this product
-      exclude_payment_types: helpers.JSONB('OrderItem', app, Sequelize, 'exclude_payment_types', {
+      exclude_payment_types: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'exclude_payment_types', {
+      //   defaultValue: []
+      // }),
 
       // Product Images
-      images: helpers.JSONB('OrderItem', app, Sequelize, 'images', {
+      images: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('OrderItem', app, Sequelize, 'images', {
+      //   defaultValue: []
+      // }),
 
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -690,5 +457,304 @@ export class OrderItem extends Model {
       as: 'metadata',
       foreignKey: 'order_item_id'
     })
+  }
+}
+
+export interface OrderItem {
+  resetDefaults(app: FabrixApp): any
+  addShipping(app: FabrixApp, shipping, options): any
+  removeShipping(app: FabrixApp, shipping, options): any
+  setItemsShippingLines(app: FabrixApp, shippingLine): any
+  setShippingLines(app: FabrixApp, lines): any
+  setItemsTaxLines(app: FabrixApp, taxedLine): any
+  setTaxLines(app: FabrixApp, lines): any
+  setProperties(app: FabrixApp, prev): any
+  setTotals(app: FabrixApp): any
+  recalculate(app: FabrixApp, options): any
+  reconcileFulfillment(app: FabrixApp, options): any
+}
+
+/**
+ * Resets the defaults so they can be recalculated
+ * @returns {*}
+ */
+OrderItem.prototype.resetDefaults = function(app: FabrixApp) {
+  this.calculated_price = 0
+  this.total_discounts = 0
+  this.total_shipping = 0
+  this.total_coupons = 0
+  this.total_taxes = 0
+
+  return this
+}
+/**
+ *
+ */
+OrderItem.prototype.addShipping = function(app: FabrixApp, shipping, options: {[key: string]: any} = {}) {
+ return this
+}
+/**
+ *
+ */
+OrderItem.prototype.removeShipping = function(app: FabrixApp, shipping, options: {[key: string]: any} = {}) {
+  return this
+}
+
+/**
+ *
+ */
+OrderItem.prototype.setItemsShippingLines = function (app: FabrixApp, shippingedLine) {
+  // console.log('INCOMING ITEM', shippingedLine)
+  // this.shipping_lines = []
+  let shippingesLines = []
+  let totalShippinges = 0
+  // Make this an array if null
+  if (shippingedLine) {
+    // console.log('FOUND SHIPPING LINE', shippingedLine.shipping_lines)
+
+    shippingedLine.shipping_lines = shippingedLine.shipping_lines || []
+    shippingedLine.shipping_lines.map(line => {
+      line.id = this.id
+      return line
+    })
+
+    totalShippinges = shippingedLine.shipping_lines.forEach(line => {
+      totalShippinges = totalShippinges + line.price
+    })
+
+    // console.log('SHIPPINGED LINE', shippingedLine)
+    shippingesLines = [...shippingesLines, ...shippingedLine.shipping_lines]
+  }
+  this.shipping_lines = shippingesLines
+  // console.log('FINAL SHIPPING LINES', this.shipping_lines)
+
+  return this.setShippingLines(app, shippingesLines)
+}
+
+/**
+ *
+ */
+OrderItem.prototype.setShippingLines = function(app: FabrixApp, lines) {
+  this.total_shipping = 0
+  this.shipping_lines = lines || []
+  this.shipping_lines.forEach(line => {
+    this.total_shipping = this.total_shipping + line.price
+  })
+  return this
+  // return this.setTotals()
+}
+
+/**
+ *
+ */
+OrderItem.prototype.setItemsTaxLines = function (app: FabrixApp, taxedLine) {
+  // console.log('INCOMING ITEM', taxedLine)
+  // this.tax_lines = []
+  let taxesLines = []
+  let totalTaxes = 0
+  // Make this an array if null
+  if (taxedLine) {
+    // console.log('FOUND TAX LINE', taxedLine.tax_lines)
+
+    taxedLine.tax_lines = taxedLine.tax_lines || []
+    taxedLine.tax_lines.map(line => {
+      line.id = this.id
+      return line
+    })
+
+    totalTaxes = taxedLine.tax_lines.forEach(line => {
+      totalTaxes = totalTaxes + line.price
+    })
+
+    // console.log('TAXED LINE', taxedLine)
+    taxesLines = [...taxesLines, ...taxedLine.tax_lines]
+  }
+  this.tax_lines = taxesLines
+  // console.log('FINAL TAX LINES', this.tax_lines)
+
+  return this.setTaxLines(app, taxesLines)
+}
+
+/**
+ *
+ * @param lines
+ */
+OrderItem.prototype.setTaxLines = function(app: FabrixApp, lines) {
+  this.total_tax = 0
+  this.tax_lines = lines || []
+  this.tax_lines.forEach(line => {
+    this.total_tax = this.total_tax + line.price
+  })
+  return this
+  // return this.setTotals()
+},
+
+OrderItem.prototype.setProperties = (app: FabrixApp, prev) => {
+  if (this.properties) {
+    // Remove any old property pricing
+    for (const l in prev.properties) {
+      if (prev.properties.hasOwnProperty(l)) {
+        this.price = this.price - prev.properties[l].price
+        this.price_per_unit = this.price_per_unit - prev.properties[l].price
+      }
+    }
+    // and then add the new properties in
+    for (const l in this.properties) {
+      if (this.properties.hasOwnProperty(l)) {
+        this.price = this.price + this.properties[l].price
+        this.price_per_unit = this.price_per_unit + this.properties[l].price
+      }
+    }
+  }
+  return this
+}
+
+/**
+ *
+ */
+OrderItem.prototype.setTotals = function(app: FabrixApp) {
+  // Set Cart values
+  // this.total_price = Math.max(0,
+  //   this.total_tax
+  //   + this.total_shipping
+  //   + this.subtotal_price
+  // )
+
+  return this
+}
+
+/**
+ *
+ */
+OrderItem.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  if (
+    this.changed('price')
+    || this.changed('quantity')
+    || this.changed('properties')
+    || this.changed('discounted_lines')
+    || this.changed('coupon_lines')
+    || this.changed('tax_lines')
+    || this.changed('coupon_lines')
+  ) {
+    app.log.debug('ORDER ITEM CHANGED')
+
+    let totalDiscounts = 0 // this.total_discounts
+    let totalShipping = 0
+    let totalTaxes = 0
+    let totalCoupons = 0
+
+    if (this.changed('properties')) {
+      this.setProperties(this.previous('properties'))
+    }
+
+    this.discounted_lines = this.discounted_lines || []
+    this.discounted_lines.map(line => {
+      totalDiscounts = totalDiscounts + (line.price || 0)
+      return line
+    })
+
+    this.coupon_lines = this.coupon_lines || []
+    this.coupon_lines.map(line => {
+      totalCoupons = totalCoupons + (line.price || 0)
+      if (line.line) {
+        line.line = this.id
+      }
+      return line
+    })
+
+    this.shipping_lines = this.shipping_lines || []
+    this.shipping_lines.map(line => {
+      totalShipping = totalShipping + (line.price || 0)
+      if (line.line) {
+        delete line.line
+        line.id = this.id
+      }
+      return line
+    })
+
+    this.tax_lines = this.tax_lines || []
+    this.tax_lines.map(line => {
+      totalTaxes = totalTaxes + (line.price || 0)
+      if (line.line) {
+        delete line.line
+        line.id = this.id
+      }
+      return line
+    })
+
+    const calculatedPrice = Math.max(0, (this.price_per_unit * this.quantity) - totalDiscounts - totalCoupons)
+
+    this.calculated_price = calculatedPrice
+    this.total_discounts = totalDiscounts
+    this.total_shipping = totalShipping
+    this.total_coupons = totalCoupons
+    this.total_taxes = totalTaxes
+
+    return Promise.resolve(this)
+  }
+  else {
+    return Promise.resolve(this)
+  }
+}
+/**
+ *
+ */
+OrderItem.prototype.reconcileFulfillment = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  if (this.isNewRecord && !this.fulfillment_id) {
+    // console.log('reconcileFulfillment: RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
+    return this.save({transaction: options.transaction || null})
+      .then(() => {
+        return app.services.FulfillmentService.addOrCreateFulfillmentItem(
+          this,
+          { transaction: options.transaction || null }
+        )
+      })
+      .then(() => {
+        return this
+      })
+  }
+  else if (!this.isNewRecord && this.quantity === 0) {
+    // console.log('reconcileFulfillment: RECONCILE WILL REMOVE', this)
+    return this.save({transaction: options.transaction || null})
+      .then(() => {
+        return app.services.FulfillmentService.removeFulfillmentItem(
+          this,
+          { transaction: options.transaction || null }
+        )
+      })
+      .then(() => {
+        return this
+      })
+  }
+  else if (!this.isNewRecord && this.changed('quantity') && (this.quantity > this.previous('quantity'))) {
+    // console.log('reconcileFulfillment: RECONCILE WILL UPDATE UP QUANTITY', this)
+    return this.save({transaction: options.transaction || null})
+      .then(() => {
+        return app.services.FulfillmentService.updateFulfillmentItem(
+          this,
+          {transaction: options.transaction || null}
+        )
+      })
+      .then(() => {
+        return this
+      })
+  }
+  else if (!this.isNewRecord && this.changed('quantity') && (this.quantity < this.previous('quantity'))) {
+    // console.log('reconcileFulfillment: RECONCILE WILL UPDATE DOWN QUANTITY', this)
+    return this.save({transaction: options.transaction || null})
+      .then(() => {
+        return app.services.FulfillmentService.removeFulfillmentItem(
+          this,
+          { transaction: options.transaction || null }
+        )
+      })
+      .then(() => {
+        return this
+      })
+  }
+  else {
+    // console.log('reconcileFulfillment: UNHANDLED')
+    // Unhandled Case
+    return this.save({transaction: options.transaction || null})
   }
 }

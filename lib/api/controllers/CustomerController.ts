@@ -3,7 +3,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 const lib = require('../../lib')
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 /**
  * @module CustomerController
@@ -120,7 +120,7 @@ export class CustomerController extends Controller {
     Customer.findByIdDefault(id, {})
       .then(customer => {
         if (!customer) {
-          throw new Errors.FoundError(Error(`Customer id ${id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Customer id ${id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })
@@ -147,7 +147,7 @@ export class CustomerController extends Controller {
     Customer.findByTokenDefault(token, {})
       .then(customer => {
         if (!customer) {
-          throw new Errors.FoundError(Error(`Customer token ${token} not found`))
+          throw new ModelError('E_NOT_FOUND', `Customer token ${token} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })

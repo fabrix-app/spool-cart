@@ -1,8 +1,27 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 
-const helpers = require('engine-helpers')
+export class MetadataResolver extends SequelizeResolver {
+  /**
+   *
+   */
+  transform (metadata) {
+    if (typeof metadata.data !== 'undefined') {
+      return metadata
+    }
+    return { data: metadata }
+  }
 
+  /**
+   *
+   */
+  reverseTransform (metadata) {
+    if (typeof metadata.data !== 'undefined') {
+      return metadata.data
+    }
+    return metadata
+  }
+}
 /**
  * @module Metadata
  * @description Metadata Model
@@ -10,7 +29,7 @@ const helpers = require('engine-helpers')
 export class Metadata extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return MetadataResolver
   }
 
   static config (app, Sequelize) {
@@ -31,22 +50,7 @@ export class Metadata extends Model {
             using: 'gin',
             operator: 'jsonb_path_ops'
           },
-        ],
-        classMethods: {
-
-          transform: function (metadata) {
-            if (typeof metadata.data !== 'undefined') {
-              return metadata
-            }
-            return { data: metadata }
-          },
-          reverseTransform: function (metadata) {
-            if (typeof metadata.data !== 'undefined') {
-              return metadata.data
-            }
-            return metadata
-          }
-        }
+        ]
       }
     }
   }
@@ -62,9 +66,13 @@ export class Metadata extends Model {
       //   // unique: 'metadata_model',
       //   // references: null
       // },
-      data: helpers.JSONB('Metadata', app, Sequelize, 'data', {
+      data: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('Metadata', app, Sequelize, 'data', {
+      //   defaultValue: {}
+      // }),
       customer_id: {
         type: Sequelize.INTEGER
       },
@@ -91,7 +99,7 @@ export class Metadata extends Model {
       },
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }

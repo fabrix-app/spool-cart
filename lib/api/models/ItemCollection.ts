@@ -1,7 +1,7 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 
-const COLLECTION_MODELS = require('../../lib').Enums.COLLECTION_MODELS
+import { COLLECTION_MODELS } from '../../enums'
 const _ = require('lodash')
 /**
  * @module ItemCollection
@@ -34,7 +34,7 @@ export class ItemCollection extends Model {
     }
   }
 
-  static schema (app,Sequelize) {
+  static schema (app, Sequelize) {
     return {
       id: {
         type: Sequelize.INTEGER,

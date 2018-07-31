@@ -1,8 +1,8 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { values } from 'lodash'
 
-const CUSTOMER_MODELS = require('../../lib').Enums.CUSTOMER_MODELS
-const _ = require('lodash')
+import { CUSTOMER_MODELS } from '../../enums'
 /**
  * @module ItemCustomer
  * @description Item Customer Model n:m
@@ -13,7 +13,7 @@ export class ItemCustomer extends Model {
     return SequelizeResolver
   }
 
-  static config (app,Sequelize) {
+  static config (app, Sequelize) {
     return {
       options: {
         underscored: true,
@@ -24,14 +24,12 @@ export class ItemCustomer extends Model {
           {
             fields: ['customer_id', 'model', 'model_id', 'position']
           }
-        ],
-        classMethods: {
-        }
+        ]
       }
     }
   }
 
-  static schema (app,Sequelize) {
+  static schema (app, Sequelize) {
     return {
       id: {
         type: Sequelize.INTEGER,
@@ -46,7 +44,7 @@ export class ItemCustomer extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'customer_model',
-        values: _.values(CUSTOMER_MODELS)
+        values: values(CUSTOMER_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

@@ -6,7 +6,7 @@
 // const http = require('http')
 // const IncomingMessageExt = require('../http/request')
 
-export const authenticate = function(proxyCart, options, callback) {
+export const authenticate = function(cart, options, callback) {
 
   if (typeof options === 'function') {
     callback = options
@@ -24,8 +24,8 @@ export const authenticate = function(proxyCart, options, callback) {
     require('../framework/connect').__monkeypatchNode()
     // }
 
-    if (!req._proxyCart) {
-      return this.error(new Error('proxyCart.initialize() middleware not in use'))
+    if (!req._cart) {
+      return this.error(new Error('cart.initialize() middleware not in use'))
     }
 
     next()

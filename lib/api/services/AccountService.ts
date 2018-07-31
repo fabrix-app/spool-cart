@@ -2,10 +2,10 @@
 
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 const moment = require('moment')
-const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
+import { TRANSACTION_STATUS } from '../../enums'
 
 /**
  * @module AccountService
@@ -73,19 +73,19 @@ export class AccountService extends Service {
   getDefaultSource(customer, options) {
     options = options || {}
     if (!customer) {
-      const err = new Errors.FoundError(Error('Customer Not Provided'))
+      const err = new ModelError('E_NOT_FOUND', 'Customer Not Provided')
       return Promise.reject(err)
     }
     const Customer = this.app.models['Customer']
     let resCustomer
     return Customer.resolve(customer, {transaction: options.transaction || null, create: false })
-      .then(customer => {
-        if (!customer) {
-          throw new Errors.FoundError(Error('Customer Not Found'))
+      .then(_customer => {
+        if (!_customer) {
+          throw new ModelError('E_NOT_FOUND', 'Customer Not Found')
         }
-        resCustomer = customer
+        resCustomer = _customer
 
-        return resCustomer.getDefaultSource({transaction: options.transaction || null})
+        return resCustomer.getDefaultSource(this.app, {transaction: options.transaction || null})
       })
   }
   // TODO
@@ -105,8 +105,8 @@ export class AccountService extends Service {
     const Account = this.app.models['Account']
     let resAccount
     return Account.resolve(account, options)
-      .then(account => {
-        resAccount = account
+      .then(_account => {
+        resAccount = _account
         let update = {
           foreign_id: resAccount.foreign_id,
           foreign_key: resAccount.foreign_key,
@@ -168,8 +168,8 @@ export class AccountService extends Service {
           data: serviceCustomer.data
         }
         return Account.create(create, options)
-          .then(account => {
-            resAccount = account
+          .then(_account => {
+            resAccount = _account
             return this.app.services.PaymentGenericService.getCustomerSources(resAccount)
           })
           .then(accountWithSources => {
@@ -178,11 +178,11 @@ export class AccountService extends Service {
               source.is_default = index === 0 ? true : false
 
               return Source.create(source, {transaction: options.transaction || null})
-                .then(source => {
-                  if (!source) {
+                .then(_source => {
+                  if (!_source) {
                     throw new Error('Source was not created')
                   }
-                  resSource = source
+                  resSource = _source
                   // Track Event
                   const event = {
                     object_id: resSource.customer_id,
@@ -246,11 +246,11 @@ export class AccountService extends Service {
 
     let resAccount, resSource
     return Account.resolve(account, {transaction: options.transaction || null})
-      .then(account => {
-        if (!account) {
+      .then(_account => {
+        if (!_account) {
           throw new Error('Account did not resolve')
         }
-        resAccount = account
+        resAccount = _account
         return this.app.services.PaymentGenericService.createCustomerSource({
           account_foreign_id: resAccount.foreign_id,
           gateway_token: gatewayToken
@@ -320,12 +320,12 @@ export class AccountService extends Service {
     const Source = this.app.models['Source']
     let resAccount, resSource
     return Account.resolve(account, {transaction: options.transaction || null})
-      .then(account => {
-        resAccount = account
+      .then(_account => {
+        resAccount = _account
         return Source.resolve(source, {transaction: options.transaction || null})
       })
-      .then(source => {
-        resSource = source
+      .then(_source => {
+        resSource = _source
         const find = {
           account_foreign_id: resAccount.foreign_id,
           foreign_id: resSource.foreign_id
@@ -373,12 +373,12 @@ export class AccountService extends Service {
 
     let resAccount, resSource
     return Account.resolve(account, {transaction: options.transaction || null})
-      .then(account => {
-        resAccount = account
+      .then(_account => {
+        resAccount = _account
         return Source.resolve(source, {transaction: options.transaction || null})
       })
-      .then(source => {
-        resSource = source
+      .then(_source => {
+        resSource = _source
         let update = {
           account_foreign_id: resAccount.foreign_id,
           foreign_id: resSource.foreign_id
@@ -442,8 +442,8 @@ export class AccountService extends Service {
     const Source = this.app.models['Source']
     let resSource
     return Source.resolve(source, options)
-      .then(source => {
-        resSource = source
+      .then(_source => {
+        resSource = _source
         return this.app.services.PaymentGenericService.removeCustomerSource(source)
       })
       .then(customerSource => {
@@ -511,9 +511,9 @@ export class AccountService extends Service {
     let resAccount
 
     return Account.resolve(account, {transaction: options.transaction || null})
-      .then(account => {
-        resAccount = account
-        return this.app.services.PaymentGenericService.findCustomerSources(account)
+      .then(_account => {
+        resAccount = _account
+        return this.app.services.PaymentGenericService.findCustomerSources(_account)
       })
       .then(serviceCustomerSources => {
         return Source.datastore.Promise.mapSeries(serviceCustomerSources, (source, index) => {
@@ -546,11 +546,11 @@ export class AccountService extends Service {
     // const Transaction = this.app.models['Transaction']
     let resSource
     return Source.resolve(source, options)
-      .then(source => {
-        if (!source) {
+      .then(_source => {
+        if (!_source) {
           throw new Error('Source could not be resolved')
         }
-        resSource = source
+        resSource = _source
         return resSource.getTransactions({
           where: {
             status: [TRANSACTION_STATUS.FAILURE, TRANSACTION_STATUS.ERROR]

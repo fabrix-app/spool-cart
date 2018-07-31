@@ -1,7 +1,35 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 
-const helpers = require('engine-helpers')
+// tslint:disable:no-shadowed-variable
+export class ProductMetaUploadResolver extends SequelizeResolver {
+  batch(options, batch) {
+    const self = this
+
+    options.limit = options.limit || 100
+    options.offset = options.offset || 0
+    options.regressive = options.regressive || false
+
+    const recursiveQuery = function(options) {
+      let count = 0
+      return self.findAndCountAll(options)
+        .then(results => {
+          count = results.count
+          return batch(results.rows)
+        })
+        .then(batched => {
+          if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+            options.offset = options.regressive ? 0 : options.offset + options.limit
+            return recursiveQuery(options)
+          }
+          else {
+            return Promise.resolve()
+          }
+        })
+    }
+    return recursiveQuery(options)
+  }
+}
 
 /**
  * @module ProductMetaUpload
@@ -9,8 +37,8 @@ const helpers = require('engine-helpers')
  */
 export class ProductMetaUpload extends Model {
 
-  static get resolver() {
-    return SequelizeResolver
+  public static get resolver() {
+    return ProductMetaUploadResolver
   }
 
   static config (app, Sequelize) {
@@ -18,51 +46,7 @@ export class ProductMetaUpload extends Model {
       // migrate: 'drop', //override default models configurations if needed
       // store: 'uploads',
       options: {
-        underscored: true,
-        classMethods: {
-          /**
-           *
-           * @param options
-           * @param batch
-           * @returns Promise.<T>
-           */
-          batch: function (options, batch) {
-            const self = this
-            options.limit = options.limit || 10
-            options.offset = options.offset || 0
-            options.regressive = options.regressive || false
-
-            const recursiveQuery = function(options) {
-              let count = 0
-              return self.findAndCountAll(options)
-                .then(results => {
-                  count = results.count
-                  return batch(results.rows)
-                })
-                .then(batched => {
-                  if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
-                    options.offset = options.regressive ? 0 : options.offset + options.limit
-                    return recursiveQuery(options)
-                  }
-                  else {
-                    return batched
-                  }
-                })
-            }
-            return recursiveQuery(options)
-          },
-          public static associate (models) {
-            // models.ProductMetaUpload.belongsTo(models.Product, {
-            //   as: 'handle',
-            //   // targetKey: 'handle',
-            //   foreignKey: 'handle',
-            //   onDelete: 'CASCADE'
-            //   // foreignKey: {
-            //   //   allowNull: true
-            //   // }
-            // })
-          }
-        }
+        underscored: true
       }
     }
   }
@@ -85,13 +69,30 @@ export class ProductMetaUpload extends Model {
         //   key: 'handle'
         // }
       },
-      data: helpers.JSONB('ProductMetaUpload', app, Sequelize, 'data', {
+      data: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('ProductMetaUpload', app, Sequelize, 'data', {
+      //   defaultValue: {}
+      // }),
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
+  }
+
+
+  public static associate (models) {
+    // models.ProductMetaUpload.belongsTo(models.Product, {
+    //   as: 'handle',
+    //   // targetKey: 'handle',
+    //   foreignKey: 'handle',
+    //   onDelete: 'CASCADE'
+    //   // foreignKey: {
+    //   //   allowNull: true
+    //   // }
+    // })
   }
 }

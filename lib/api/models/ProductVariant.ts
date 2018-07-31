@@ -1,14 +1,97 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { FabrixApp } from '@fabrix/fabrix'
+import { values, isObject, isString, isNumber, defaultsDeep } from 'lodash'
 
-const Errors = require('engine-errors')
-const helpers = require('engine-helpers')
 const queryDefaults = require('../utils/queryDefaults')
-const UNITS = require('../../lib').Enums.UNITS
-const INTERVALS = require('../../lib').Enums.INTERVALS
-const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
-const VARIANT_DEFAULTS = require('../../lib').Enums.VARIANT_DEFAULTS
-const _ = require('lodash')
+import { UNITS } from '../../enums'
+import { INTERVALS } from '../../enums'
+import { INVENTORY_POLICY } from '../../enums'
+import { VARIANT_DEFAULTS } from '../../enums'
+
+export class ProductVariantResolver extends SequelizeResolver {
+  /**
+   *
+   * @param id
+   * @param options
+   * @returns {*|Promise.<Instance>}
+   */
+  findByIdDefault (id, options = {}) {
+    options = defaultsDeep(options, queryDefaults.ProductVariant.default(this.app))
+    return this.findById(id, options)
+  }
+
+  findAllDefault (options: {[key: string]: any} = {}) {
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      queryDefaults.ProductVariant.default(this.app),
+      options
+    )
+    return this.findAll(options)
+  }
+
+  resolve (variant, options: {[key: string]: any} = {}) {
+    const Variant = this
+
+    if (variant instanceof Variant.instance) {
+      return Promise.resolve(variant)
+    }
+    else if (variant && isObject(variant) && variant.id) {
+      return Variant.findById(variant.id, options)
+        .then(resVariant => {
+          if (!resVariant && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Variant ${variant.id} not found`)
+          }
+          return resVariant || variant
+        })
+    }
+    else if (variant && isObject(variant) && variant.sku) {
+      return Variant.findOne(defaultsDeep({
+        where: {
+          sku: variant.sku
+        }
+      }, options))
+        .then(resVariant => {
+          if (!resVariant && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Variant ${variant.sku} not found`)
+          }
+          return resVariant || variant
+        })
+    }
+    else if (variant && isNumber(variant)) {
+      return Variant.findById(variant, options)
+        .then(resVariant => {
+          if (!resVariant && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Variant ${variant} not found`)
+          }
+          return resVariant || variant
+        })
+    }
+    else if (variant && isString(variant)) {
+      return Variant.findOne(defaultsDeep({
+        where: {
+          sku: variant
+        }
+      }, options))
+        .then(resVariant => {
+          if (!resVariant && options.reject !== false) {
+            throw new ModelError('E_NOT_FOUND', `Variant ${variant} not found`)
+          }
+          return resVariant || variant
+        })
+    }
+    else {
+      if (options.reject !== false) {
+        // TODO create proper error
+        const err = new Error(`Unable to resolve Variant ${variant}`)
+        return Promise.reject(err)
+      }
+      else {
+        return Promise.resolve(variant)
+      }
+    }
+  }
+}
 
 /**
  * @module ProductVariant
@@ -17,7 +100,7 @@ const _ = require('lodash')
 export class ProductVariant extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return ProductVariantResolver
   }
 
   static config (app, Sequelize) {
@@ -42,10 +125,10 @@ export class ProductVariant extends Model {
            */
           VARIANT_DEFAULTS: VARIANT_DEFAULTS,
         },
-        // paranoid: !app.config.proxyCart.allow.destroy_variant,
+        // paranoid: !app.config.cart.allow.destroy_variant,
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.engine.live_mode
+        //     live_mode: app.config.get('engine.live_mode')
         //   },
         //   // paranoid: false,
         //   order: [['position', 'ASC']]
@@ -58,181 +141,22 @@ export class ProductVariant extends Model {
           }
         },
         hooks: {
-          beforeValidate(values, options) {
-            if (!values.calculated_price && values.price) {
-              values.calculated_price = values.price
+          beforeValidate(productVariant, options) {
+            if (!productVariant.calculated_price && productVariant.price) {
+              productVariant.calculated_price = productVariant.price
             }
           },
-          beforeCreate(values, options) {
-            return app.services.ProductService.beforeVariantCreate(values, options)
+          beforeCreate(productVariant, options) {
+            return app.services.ProductService.beforeVariantCreate(productVariant, options)
               .catch(err => {
                 return Promise.reject(err)
               })
           },
-          beforeUpdate(values, options) {
-            return app.services.ProductService.beforeVariantUpdate(values, options)
+          beforeUpdate(productVariant, options) {
+            return app.services.ProductService.beforeVariantUpdate(productVariant, options)
               .catch(err => {
                 return Promise.reject(err)
               })
-          }
-        },
-        classMethods: {
-          /**
-           *
-           * @param id
-           * @param options
-           * @returns {*|Promise.<Instance>}
-           */
-          findByIdDefault: function(id, options) {
-            options = options || {}
-            options = _.defaultsDeep(options, queryDefaults.ProductVariant.default(app))
-            return this.findById(id, options)
-          },
-          findAllDefault: function(options) {
-            options = app.services.SequelizeService.mergeOptionDefaults(
-              queryDefaults.ProductVariant.default(app),
-              options || {}
-            )
-            return this.findAll(options)
-          },
-          resolve: function(variant, options) {
-            options = options || {}
-            const Variant = this
-
-            if (variant instanceof Variant.instance) {
-              return Promise.resolve(variant)
-            }
-            else if (variant && _.isObject(variant) && variant.id) {
-              return Variant.findById(variant.id, options)
-                .then(resVariant => {
-                  if (!resVariant && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Variant ${variant.id} not found`))
-                  }
-                  return resVariant || variant
-                })
-            }
-            else if (variant && _.isObject(variant) && variant.sku) {
-              return Variant.findOne(_.defaultsDeep({
-                where: {
-                  sku: variant.sku
-                }
-              }, options))
-                .then(resVariant => {
-                  if (!resVariant && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Variant ${variant.sku} not found`))
-                  }
-                  return resVariant || variant
-                })
-            }
-            else if (variant && _.isNumber(variant)) {
-              return Variant.findById(variant, options)
-                .then(resVariant => {
-                  if (!resVariant && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Variant ${variant} not found`))
-                  }
-                  return resVariant || variant
-                })
-            }
-            else if (variant && _.isString(variant)) {
-              return Variant.findOne(_.defaultsDeep({
-                where: {
-                  sku: variant
-                }
-              }, options))
-                .then(resVariant => {
-                  if (!resVariant && options.reject !== false) {
-                    throw new Errors.FoundError(Error(`Variant ${variant} not found`))
-                  }
-                  return resVariant || variant
-                })
-            }
-            else {
-              if (options.reject !== false) {
-                // TODO create proper error
-                const err = new Error(`Unable to resolve Variant ${variant}`)
-                return Promise.reject(err)
-              }
-              else {
-                return Promise.resolve(variant)
-              }
-            }
-          }
-        },
-        instanceMethods: {
-          // TODO Resolve customer address and see if product is allowed to be sent there
-          checkRestrictions: function(customer, shippingAddress) {
-            return Promise.resolve(false)
-          },
-          // TODO check fulfillment policies
-          checkAvailability: function(qty) {
-            let allowed = true
-            if (qty > this.inventory_quantity && this.inventory_policy === INVENTORY_POLICY.DENY) {
-              allowed = false
-              qty = Math.max(0, qty + ( this.inventory_quantity - qty))
-            }
-            if (this.inventory_policy === INVENTORY_POLICY.RESTRICT) {
-              qty = Math.max(0, qty + ( this.inventory_quantity - qty))
-            }
-            const res = {
-              title: this.title,
-              allowed: allowed,
-              quantity: qty
-            }
-            return Promise.resolve(res)
-          },
-          resolveImages: function(options) {
-            options = options || {}
-          },
-          /**
-           *
-           * @param options
-           * @returns {Promise.<T>}
-           */
-          resolveDiscounts(options) {
-            options = options || {}
-            if (
-              this.discounts
-              && this.discounts.length > 0
-              && this.discounts.every(d => d instanceof app.models['Discount'].instance)
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getDiscounts({transaction: options.transaction || null})
-                .then(_discounts => {
-                  _discounts = _discounts || []
-                  this.discounts = _discounts
-                  this.setDataValue('discounts', _discounts)
-                  this.set('discounts', _discounts)
-                  return this
-                })
-            }
-          },
-          /**
-           *
-           * @param options
-           * @returns {*}
-           */
-          resolveMetadata: function(options) {
-            options = options || {}
-            if (
-              this.metadata
-              && this.metadata instanceof app.models['Metadata'].instance
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getMetadata({transaction: options.transaction || null})
-                .then(_metadata => {
-                  _metadata = _metadata || {product_variant_id: this.id}
-                  this.metadata = _metadata
-                  this.setDataValue('metadata', _metadata)
-                  this.set('metadata', _metadata)
-                  return this
-                })
-            }
           }
         }
       }
@@ -267,14 +191,22 @@ export class ProductVariant extends Model {
         type: Sequelize.STRING
       },
       // The option that this Variant is
-      option: helpers.JSONB('ProductVariant', app, Sequelize, 'option', {
-        // name: string, value:string
+      option: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('ProductVariant', app, Sequelize, 'option', {
+      //   // name: string, value:string
+      //   defaultValue: {}
+      // }),
       // Property Based Pricing
-      property_pricing: helpers.JSONB('ProductVariant', app, Sequelize, 'property_pricing', {
+      property_pricing: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('ProductVariant', app, Sequelize, 'property_pricing', {
+      //   defaultValue: {}
+      // }),
       // The Barcode of the Variant
       barcode: {
         type: Sequelize.STRING
@@ -300,9 +232,13 @@ export class ProductVariant extends Model {
         defaultValue: VARIANT_DEFAULTS.CURRENCY
       },
       // The discounts applied to the product
-      discounted_lines: helpers.JSONB('ProductVariant', app, Sequelize, 'discounted_lines', {
+      discounted_lines: {
+        type: Sequelize.JSONB,
         defaultValue: []
-      }),
+      },
+      //   helpers.JSONB('ProductVariant', app, Sequelize, 'discounted_lines', {
+      //   defaultValue: []
+      // }),
       // The total Discounts applied to the product
       total_discounts: {
         type: Sequelize.INTEGER,
@@ -364,7 +300,7 @@ export class ProductVariant extends Model {
       // If product has subscription, the unit of the interval
       subscription_unit: {
         type: Sequelize.ENUM,
-        values: _.values(INTERVALS),
+        values: values(INTERVALS),
         defaultValue: VARIANT_DEFAULTS.SUBSCRIPTION_UNIT
       },
       // Specifies whether or not Proxy Cart tracks the number of items in stock for this product variant.
@@ -375,7 +311,7 @@ export class ProductVariant extends Model {
       // Specifies whether or not customers are allowed to place an order for a product variant when it's out of stock.
       inventory_policy: {
         type: Sequelize.ENUM,
-        values: _.values(INVENTORY_POLICY),
+        values: values(INVENTORY_POLICY),
         defaultValue: VARIANT_DEFAULTS.INVENTORY_POLICY
       },
       // Amount of variant in inventory
@@ -405,48 +341,56 @@ export class ProductVariant extends Model {
       // Unit of Measurement for Weight of the variant, defaults to grams
       weight_unit: {
         type: Sequelize.ENUM,
-        values: _.values(UNITS),
+        values: values(UNITS),
         defaultValue: VARIANT_DEFAULTS.WEIGHT_UNIT
       },
       // Google Specific Listings
-      google: helpers.JSONB('ProductVariant', app, Sequelize, 'google', {
-        defaultValue: {
-          // // 'Google Shopping / Google Product Category'
-          // g_product_category: null,
-          // // 'Google Shopping / Gender'
-          // g_gender: null,
-          // // 'Google Shopping / Age Group'
-          // g_age_group: null,
-          // // 'Google Shopping / MPN'
-          // g_mpn: null,
-          // // 'Google Shopping / Adwords Grouping'
-          // g_adwords_grouping: null,
-          // // 'Google Shopping / Adwords Labels'
-          // g_adwords_label: null,
-          // // 'Google Shopping / Condition'
-          // g_condition: null,
-          // // 'Google Shopping / Custom Product'
-          // g_custom_product: null,
-          // // 'Google Shopping / Custom Label 0'
-          // g_custom_label_0: null,
-          // // 'Google Shopping / Custom Label 1'
-          // g_custom_label_1: null,
-          // // 'Google Shopping / Custom Label 2'
-          // g_custom_label_2: null,
-          // // 'Google Shopping / Custom Label 3'
-          // g_custom_label_3: null,
-          // // 'Google Shopping / Custom Label 4'
-          // g_custom_label_4: null
-        }
-      }),
-      // Amazon Specific listings
-      amazon: helpers.JSONB('ProductVariant', app, Sequelize, 'amazon', {
+      google: {
+        type: Sequelize.JSONB,
         defaultValue: {}
-      }),
+      },
+      //   helpers.JSONB('ProductVariant', app, Sequelize, 'google', {
+      //   defaultValue: {
+      //     // // 'Google Shopping / Google Product Category'
+      //     // g_product_category: null,
+      //     // // 'Google Shopping / Gender'
+      //     // g_gender: null,
+      //     // // 'Google Shopping / Age Group'
+      //     // g_age_group: null,
+      //     // // 'Google Shopping / MPN'
+      //     // g_mpn: null,
+      //     // // 'Google Shopping / Adwords Grouping'
+      //     // g_adwords_grouping: null,
+      //     // // 'Google Shopping / Adwords Labels'
+      //     // g_adwords_label: null,
+      //     // // 'Google Shopping / Condition'
+      //     // g_condition: null,
+      //     // // 'Google Shopping / Custom Product'
+      //     // g_custom_product: null,
+      //     // // 'Google Shopping / Custom Label 0'
+      //     // g_custom_label_0: null,
+      //     // // 'Google Shopping / Custom Label 1'
+      //     // g_custom_label_1: null,
+      //     // // 'Google Shopping / Custom Label 2'
+      //     // g_custom_label_2: null,
+      //     // // 'Google Shopping / Custom Label 3'
+      //     // g_custom_label_3: null,
+      //     // // 'Google Shopping / Custom Label 4'
+      //     // g_custom_label_4: null
+      //   }
+      // }),
+      // Amazon Specific listings
+      amazon: {
+        type: Sequelize.JSONB,
+        defaultValue: {}
+      },
+      //   helpers.JSONB('ProductVariant', app, Sequelize, 'amazon', {
+      //   defaultValue: {}
+      // }),
       // If this product was created in Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -573,5 +517,88 @@ export class ProductVariant extends Model {
     //   foreignKey: 'model_id',
     //   constraints: false
     // })
+  }
+}
+
+export interface ProductVariant {
+  checkRestrictions(app: FabrixApp, customer, shippingAddress): any
+  checkAvailability(app: FabrixApp, qty): any
+  resolveImages(app: FabrixApp, options): any
+  resolveDiscounts(app: FabrixApp, options): any
+  resolveMetadata(app: FabrixApp, options): any
+}
+
+
+// TODO Resolve customer address and see if product is allowed to be sent there
+ProductVariant.prototype.checkRestrictions = function(app: FabrixApp, customer, shippingAddress) {
+  return Promise.resolve(false)
+}
+// TODO check fulfillment policies
+ProductVariant.prototype.checkAvailability = function(app: FabrixApp, qty) {
+  let allowed = true
+  if (qty > this.inventory_quantity && this.inventory_policy === INVENTORY_POLICY.DENY) {
+    allowed = false
+    qty = Math.max(0, qty + ( this.inventory_quantity - qty))
+  }
+  if (this.inventory_policy === INVENTORY_POLICY.RESTRICT) {
+    qty = Math.max(0, qty + ( this.inventory_quantity - qty))
+  }
+  const res = {
+    title: this.title,
+    allowed: allowed,
+    quantity: qty
+  }
+  return Promise.resolve(res)
+}
+
+/**
+ *
+ */
+ProductVariant.prototype.resolveImages = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  return this
+}
+/**
+ *
+ */
+ProductVariant.prototype.resolveDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  if (
+    this.discounts
+    && this.discounts.length > 0
+    && this.discounts.every(d => d instanceof app.models['Discount'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getDiscounts({transaction: options.transaction || null})
+      .then(_discounts => {
+        _discounts = _discounts || []
+        this.discounts = _discounts
+        this.setDataValue('discounts', _discounts)
+        this.set('discounts', _discounts)
+        return this
+      })
+  }
+}
+/**
+ *
+ */
+ProductVariant.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  if (
+    this.metadata
+    && this.metadata instanceof app.models['Metadata'].instance
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getMetadata({transaction: options.transaction || null})
+      .then(_metadata => {
+        _metadata = _metadata || {product_variant_id: this.id}
+        this.metadata = _metadata
+        this.setDataValue('metadata', _metadata)
+        this.set('metadata', _metadata)
+        return this
+      })
   }
 }

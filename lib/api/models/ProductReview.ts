@@ -1,5 +1,6 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { FabrixApp } from '@fabrix/fabrix'
 
 /**
  * @module ProductReview
@@ -16,33 +17,6 @@ export class ProductReview extends Model {
       options: {
         underscored: true,
         classMethods: {
-        },
-        instanceMethods: {
-          /**
-           *
-           * @param options
-           * @returns {*}
-           */
-          resolveMetadata: function(options) {
-            options = options || {}
-            if (
-              this.metadata
-              && this.metadata instanceof app.models['Metadata'].instance
-              && options.reload !== true
-            ) {
-              return Promise.resolve(this)
-            }
-            else {
-              return this.getMetadata({transaction: options.transaction || null})
-                .then(_metadata => {
-                  _metadata = _metadata || {product_review_id: this.id}
-                  this.metadata = _metadata
-                  this.setDataValue('metadata', _metadata)
-                  this.set('metadata', _metadata)
-                  return this
-                })
-            }
-          },
         }
       }
     }
@@ -82,7 +56,7 @@ export class ProductReview extends Model {
 
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -118,5 +92,32 @@ export class ProductReview extends Model {
       //   constraints: false
       // }
     })
+  }
+}
+
+export interface ProductReview {
+  resolveMetadata(app, options): any
+}
+
+/**
+ *
+ */
+ProductReview.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+  if (
+    this.metadata
+    && this.metadata instanceof app.models['Metadata'].instance
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getMetadata({transaction: options.transaction || null})
+      .then(_metadata => {
+        _metadata = _metadata || {product_review_id: this.id}
+        this.metadata = _metadata
+        this.setDataValue('metadata', _metadata)
+        this.set('metadata', _metadata)
+        return this
+      })
   }
 }

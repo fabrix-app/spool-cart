@@ -1,7 +1,3 @@
-
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 
 /**
@@ -34,9 +30,8 @@ export class TaxService extends Service {
   /**
    *
    */
-  getTaxes(obj, lineItems, resolvedItemsFromTo, options) {
-    options = options || {}
-    const taxProvider = this.app.config.generics[obj.tax_provider]
+  getTaxes(obj, lineItems, resolvedItemsFromTo, options: {[key: string]: any} = {}) {
+    const taxProvider = this.app.config.get(`generics.${obj.tax_provider}`)
       || this.app.config.get('generics.tax_provider')
 
     // console.log('WORKING ON TAXES TAX FOR ORDER', obj, lineItems, sendFromTo)

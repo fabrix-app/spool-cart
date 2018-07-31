@@ -1,13 +1,9 @@
-
-
-
-// import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const ModelPermissions = require('spool-permissions/api/controllers/UserController')
+import { UserController as PermissionsController } from '@fabrix/spool-permissions/dist/api/controllers'
 /**
  * @module UserController
  * @description Generated Fabrix.js Controller.
  */
-export class UserController extends ModelPermissions {
+export class UserController extends PermissionsController {
 
   /**
    *

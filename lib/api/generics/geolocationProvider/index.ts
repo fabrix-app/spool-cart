@@ -2,9 +2,9 @@ import { Generic } from '@fabrix/spool-generics'
 
 export class DefaultGeolocationProvider extends Generic {
   constructor(config) {
-    super()
-    this.config = config
+    super(config)
   }
+
   addressToString(address) {
     let street = ''
     let city = ''

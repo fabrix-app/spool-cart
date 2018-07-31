@@ -1,7 +1,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const lib = require('../../lib')
 
 /**
@@ -30,7 +30,7 @@ export class FulfillmentController extends Controller {
     Fulfillment.findByIdDefault(id, {})
       .then(fulfillment => {
         if (!fulfillment) {
-          throw new Errors.FoundError(Error(`Fulfillment id ${id} not found`))
+          throw new ModelError('E_NOT_FOUND', `Fulfillment id ${id} not found`)
         }
         return this.app.services.PermissionsService.sanitizeResult(req, fulfillment)
       })

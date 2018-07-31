@@ -1,5 +1,3 @@
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 
 /**

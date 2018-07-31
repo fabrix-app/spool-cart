@@ -1,4 +1,4 @@
-/* eslint no-underscore-dangle: [0]*/
+// tslint:disable:no-shadowed-variable
 
 /**
  * Module dependencies.
@@ -6,7 +6,7 @@
 // const http = require('http')
 // const IncomingMessageExt = require('../http/request')
 
-export const customer = function(proxyCart, options, callback) {
+export const customer = function(cart, options, callback) {
 
   if (typeof options === 'function') {
     callback = options
@@ -15,20 +15,20 @@ export const customer = function(proxyCart, options, callback) {
   options = options || {}
 
   return function customer(req, res, next) {
-    if (!req._proxyCart) {
-      return this.error(new Error('proxyCart.initialize() middleware not in use'))
+    if (!req._cart) {
+      return this.error(new Error('cart.initialize() middleware not in use'))
     }
 
-    if (req.session && req.session[req._proxyCart.instance._key]) {
-      const property = req._proxyCart.instance._customerProperty || 'customer'
-      const customerS = req.session[req._proxyCart.instance._key][property]
+    if (req.session && req.session[req._cart.instance._key]) {
+      const property = req._cart.instance._customerProperty || 'customer'
+      const customerS = req.session[req._cart.instance._key][property]
       if (customerS) {
-        req._proxyCart.instance.deserializeCustomer(customerS, req, (err, customer) => {
+        req._cart.instance.deserializeCustomer(customerS, req, (err, customer) => {
           if (err) {
             return next(err)
           }
           if (!customer) {
-            delete req._proxyCart.session[property]
+            delete req._cart.session[property]
           }
           else {
             req[property] = customer

@@ -1,8 +1,8 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { values } from 'lodash'
 
-const TAG_MODELS = require('../../lib').Enums.TAG_MODELS
-const _ = require('lodash')
+import { TAG_MODELS } from '../../enums'
 
 /**
  * @module ItemTag
@@ -43,7 +43,7 @@ export class ItemTag extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'tag_model',
-        values: _.values(TAG_MODELS)
+        values: values(TAG_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

@@ -2,9 +2,9 @@
 
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const Errors = require('engine-errors')
-const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
-const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { TRANSACTION_STATUS } from '../../enums'
+import { TRANSACTION_KIND } from '../../enums'
 /**
  * @module PaymentService
  * @description Payment Service
@@ -16,12 +16,11 @@ export class PaymentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  authorize(transaction, options) {
-    options = options || {}
+  authorize(transaction, options: {[key: string]: any} = {}) {
     transaction.description = transaction.description || 'Transaction Authorize'
 
     const Transaction = this.app.models.Transaction
-    const paymentProcessor = this.app.config.generics[transaction.gateway]
+    const paymentProcessor = this.app.config.get(`generics.${transaction.gateway}`)
       || this.app.config.get('generics.payment_processor')
 
     if (!(transaction instanceof Transaction)) {
@@ -42,6 +41,7 @@ export class PaymentService extends Service {
       })
       .then(_transaction => {
         resTransaction = _transaction
+        // tslint:disable:max-line-length
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -71,12 +71,11 @@ export class PaymentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  capture(transaction, options) {
-    options = options || {}
+  capture(transaction, options: {[key: string]: any} = {}) {
     transaction.description = transaction.description || 'Transaction Capture'
 
     const Transaction = this.app.models['Transaction']
-    const paymentProcessor = this.app.config.generics[transaction.gateway]
+    const paymentProcessor = this.app.config.get(`generics.${transaction.gateway}`)
       || this.app.config.get('generics.payment_processor')
 
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -107,6 +106,7 @@ export class PaymentService extends Service {
       })
       .then(_transaction => {
         resTransaction = _transaction
+        // tslint:disable:max-line-length
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -116,7 +116,7 @@ export class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.capture.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction capture of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction capture of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.EngineService.publish(event.type, event, {
@@ -165,6 +165,7 @@ export class PaymentService extends Service {
       })
       .then(_transaction => {
         resTransaction = _transaction
+        // tslint:disable:max-line-length
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -174,7 +175,7 @@ export class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.sale.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction sale of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction sale of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.EngineService.publish(event.type, event, {
@@ -206,6 +207,8 @@ export class PaymentService extends Service {
 
     return transaction.save({transaction: options.transaction || null})
       .then(() => {
+
+        // tslint:disable:max-line-length
         const event = {
           object_id: transaction.order_id,
           object: 'order',
@@ -215,7 +218,7 @@ export class PaymentService extends Service {
             transaction: transaction.id
           }],
           type: `order.transaction.${transaction.kind}.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction ID ${ transaction.id } ${transaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(transaction.amount,transaction.currency)} ${transaction.currency} ${transaction.status}`,
+          message: `Order ID ${transaction.order_id} transaction ID ${ transaction.id } ${transaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(transaction.amount, transaction.currency)} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.EngineService.publish(event.type, event, {
@@ -234,10 +237,9 @@ export class PaymentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  void(transaction, options) {
-    options = options || {}
+  void(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
-    const paymentProcessor = this.app.config.generics[transaction.gateway]
+    const paymentProcessor = this.app.config.get(`generics.${transaction.gateway}`)
       || this.app.config.get('generics.payment_processor')
 
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -251,7 +253,7 @@ export class PaymentService extends Service {
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
         if (!(_transaction instanceof Transaction)) {
           throw new Error('Did not resolve a Transaction instance')
@@ -272,6 +274,7 @@ export class PaymentService extends Service {
       })
       .then(_transaction => {
         resTransaction = _transaction
+        // tslint:disable:max-line-length
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -281,7 +284,7 @@ export class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.void.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } voided of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } voided of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.EngineService.publish(event.type, event, {
@@ -300,10 +303,9 @@ export class PaymentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  refund(transaction, options) {
-    options = options || {}
+  refund(transaction, options: {[key: string]: any} = {}) {
     const Transaction = this.app.models['Transaction']
-    const paymentProcessor = this.app.config.generics[transaction.gateway]
+    const paymentProcessor = this.app.config.get(`generics.${transaction.gateway}`)
       || this.app.config.get('generics.payment_processor')
 
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -318,7 +320,7 @@ export class PaymentService extends Service {
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
 
         if (!(_transaction instanceof Transaction)) {
@@ -341,6 +343,7 @@ export class PaymentService extends Service {
       })
       .then(_transaction => {
         resTransaction = _transaction
+        // tslint:disable:max-line-length
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -350,7 +353,7 @@ export class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.refund.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } refund of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } refund of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.EngineService.publish(event.type, event, {
@@ -376,7 +379,7 @@ export class PaymentService extends Service {
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
         if (!(_transaction instanceof Transaction)) {
           throw new Error('Did not resolve a Transaction instance')
@@ -384,7 +387,7 @@ export class PaymentService extends Service {
         if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
           throw new Error('Transaction can not be tried if it is not pending or has not failed')
         }
-        const paymentProcessor = this.app.config.generics[_transaction.gateway]
+        const paymentProcessor = this.app.config.get(`generics.${_transaction.gateway}`)
           || this.app.config.get('generics.payment_processor')
 
         if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -411,7 +414,7 @@ export class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.${resTransaction.kind}.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } ${resTransaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } ${resTransaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.EngineService.publish(event.type, event, {
@@ -437,7 +440,7 @@ export class PaymentService extends Service {
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
         if (!_transaction) {
-          throw new Errors.FoundError(Error('Transaction Not Found'))
+          throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
         if (!(_transaction instanceof Transaction)) {
           throw new Error('Did not resolve Transaction instance')
@@ -453,6 +456,7 @@ export class PaymentService extends Service {
           throw new Error('Did not return Transaction instance')
         }
         resTransaction = _transaction
+        // tslint:disable:max-line-length
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -462,7 +466,7 @@ export class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: 'order.transaction.cancelled',
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.EngineService.publish(event.type, event, {
@@ -475,4 +479,3 @@ export class PaymentService extends Service {
       })
   }
 }
-

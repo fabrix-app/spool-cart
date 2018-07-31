@@ -11,12 +11,11 @@ export class CustomerCart extends Model {
   }
 
   static config (app, Sequelize) {
-    const config = {
+    return {
       options: {
         underscored: true
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {

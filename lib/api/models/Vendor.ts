@@ -1,8 +1,159 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
-const Errors = require('engine-errors')
-const _ = require('lodash')
+import { isObject, defaultsDeep, isNumber, isString, pick, extend } from 'lodash'
+
+export class VendorResolver extends SequelizeResolver {
+  resolve(vendor, options: {[key: string]: any} = {}) {
+    const VendorModel =  this
+    // const Sequelize = VendorModel.sequelize
+
+    if (vendor instanceof VendorModel.instance) {
+      return Promise.resolve(vendor)
+    }
+    else if (vendor && isObject(vendor) && vendor.id) {
+      return VendorModel.findById(vendor.id, options)
+        .then(foundVendor => {
+          if (!foundVendor) {
+            throw new ModelError('E_NOT_FOUND', `VendorModel ${vendor.id} not found`)
+          }
+          return foundVendor
+        })
+    }
+    else if (vendor && isObject(vendor) && vendor.handle) {
+      return VendorModel.findOne(defaultsDeep({
+        where: {
+          handle: vendor.handle
+        }
+      }, options))
+        .then(resVendor => {
+          if (resVendor) {
+            return resVendor
+          }
+          return VendorModel.create(vendor, { transaction: options.transaction || null})
+        })
+    }
+    else if (vendor && isObject(vendor) && vendor.name) {
+      return VendorModel.findOne(defaultsDeep({
+        where: {
+          name: vendor.name
+        }
+      }, options))
+        .then(resVendor => {
+          if (resVendor) {
+            return resVendor
+          }
+          return VendorModel.create(vendor, { transaction: options.transaction || null})
+        })
+    }
+    else if (vendor && isNumber(vendor)) {
+      return VendorModel.findById(vendor, options)
+        .then(resVendor => {
+          if (!resVendor) {
+            throw new ModelError('E_NOT_FOUND', `VendorModel ${vendor} not found`)
+          }
+          else {
+            return resVendor
+          }
+        })
+    }
+    else if (vendor && isString(vendor)) {
+      return VendorModel.findOne(defaultsDeep({
+        where: {
+          $or: {
+            handle: vendor,
+            name: vendor
+          }
+        }
+      }, options))
+        .then(resVendor => {
+          if (!resVendor) {
+            throw new ModelError('E_NOT_FOUND', `VendorModel ${vendor} not found`)
+          }
+          else {
+            return resVendor
+          }
+        })
+    }
+    else {
+      // TODO make Proper Error
+      const err = new Error(`Not able to resolve vendor ${vendor}`)
+      return Promise.reject(err)
+    }
+  }
+
+  transformVendors(vendors = [], options: {[key: string]: any} = {}) {
+      const VendorModel = this
+      const Sequelize = VendorModel.sequelize
+
+      vendors = vendors.map(vendor => {
+        if (vendor && isNumber(vendor)) {
+          vendor = {
+            id: vendor
+          }
+          return vendor
+        }
+        else if (vendor && isString(vendor)) {
+          vendor = {
+            handle: this.app.services.ProxyCartService.handle(vendor),
+            name: vendor
+          }
+          return vendor
+        }
+        else if (vendor && isObject(vendor)) {
+          vendor.handle = vendor.handle || this.app.services.ProxyCartService.handle(vendor.name)
+          return vendor
+        }
+      })
+
+      vendors = vendors.filter(vendor => vendor)
+
+      return Sequelize.Promise.mapSeries(vendors, vendor => {
+        return VendorModel.findOne({
+          where: pick(vendor, ['id', 'handle']),
+          attributes: ['id', 'handle', 'name'],
+          transaction: options.transaction || null
+        })
+        .then(foundVendor => {
+          if (foundVendor) {
+            return extend(foundVendor, vendor)
+          }
+          else {
+            return VendorModel.create(vendor, {
+              transaction: options.transaction || null
+            })
+          }
+        })
+      })
+  }
+
+  transform (vendor) {
+    if (vendor && isObject(vendor)) {
+      vendor.handle = vendor.handle || this.app.services.ProxyCartService.handle(vendor.name)
+      return vendor
+    }
+    else if (vendor && isString(vendor)) {
+      return {
+        handle: this.app.services.ProxyCartService.handle(vendor),
+        name: vendor
+      }
+    }
+    else {
+      return null
+    }
+  }
+
+  /**
+   *
+   */
+  reverseTransform(vendor) {
+    if (typeof vendor.name !== 'undefined') {
+      return vendor.name
+    }
+    return vendor
+  }
+}
 /**
  * @module Vendor
  * @description Vendor Model
@@ -19,7 +170,7 @@ export class Vendor extends Model {
         underscored: true,
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.engine.live_mode
+        //     live_mode: app.config.get('engine.live_mode')
         //   }
         // },
         scopes: {
@@ -34,152 +185,6 @@ export class Vendor extends Model {
             if (!values.handle && values.name) {
               values.handle = values.name
             }
-          }
-        },
-        classMethods: {
-          resolve: function(vendor, options) {
-            const Vendor =  this
-            // const Sequelize = Vendor.sequelize
-
-            if (vendor instanceof Vendor) {
-              return Promise.resolve(vendor)
-            }
-            else if (vendor && _.isObject(vendor) && vendor.id) {
-              return Vendor.findById(vendor.id, options)
-                .then(foundVendor => {
-                  if (!foundVendor) {
-                    throw new Errors.FoundError(Error(`Vendor ${vendor.id} not found`))
-                  }
-                  return foundVendor
-                })
-            }
-            else if (vendor && _.isObject(vendor) && vendor.handle) {
-              return Vendor.findOne(_.defaultsDeep({
-                where: {
-                  handle: vendor.handle
-                }
-              }, options))
-                .then(resVendor => {
-                  if (resVendor) {
-                    return resVendor
-                  }
-                  return Vendor.create(vendor, { transaction: options.transaction || null})
-                })
-            }
-            else if (vendor && _.isObject(vendor) && vendor.name) {
-              return Vendor.findOne(_.defaultsDeep({
-                where: {
-                  name: vendor.name
-                }
-              }, options))
-                .then(resVendor => {
-                  if (resVendor) {
-                    return resVendor
-                  }
-                  return Vendor.create(vendor, { transaction: options.transaction || null})
-                })
-            }
-            else if (vendor && _.isNumber(vendor)) {
-              return Vendor.findById(vendor, options)
-                .then(resVendor => {
-                  if (!resVendor) {
-                    throw new Errors.FoundError(Error(`Vendor ${vendor} not found`))
-                  }
-                  else {
-                    return resVendor
-                  }
-                })
-            }
-            else if (vendor && _.isString(vendor)) {
-              return Vendor.findOne(_.defaultsDeep({
-                where: {
-                  $or: {
-                    handle: vendor,
-                    name: vendor
-                  }
-                }
-              }, options))
-                .then(resVendor => {
-                  if (!resVendor) {
-                    throw new Errors.FoundError(Error(`Vendor ${vendor} not found`))
-                  }
-                  else {
-                    return resVendor
-                  }
-                })
-            }
-            else {
-              // TODO make Proper Error
-              const err = new Error(`Not able to resolve vendor ${vendor}`)
-              return Promise.reject(err)
-            }
-          },
-          transformVendors: (vendors, options) => {
-            options = options || {}
-            vendors = vendors || []
-            const Vendor = app.models['Vendor']
-            const Sequelize = Vendor.sequelize
-
-            vendors = vendors.map(vendor => {
-              if (vendor && _.isNumber(vendor)) {
-                vendor = {
-                  id: vendor
-                }
-                return vendor
-              }
-              else if (vendor && _.isString(vendor)) {
-                vendor = {
-                  handle: app.services.ProxyCartService.handle(vendor),
-                  name: vendor
-                }
-                return vendor
-              }
-              else if (vendor && _.isObject(vendor)) {
-                vendor.handle = vendor.handle || app.services.ProxyCartService.handle(vendor.name)
-                return vendor
-              }
-            })
-
-            vendors = vendors.filter(vendor => vendor)
-
-            return Sequelize.Promise.mapSeries(vendors, vendor => {
-              return Vendor.findOne({
-                where: _.pick(vendor,['id', 'handle']),
-                attributes: ['id', 'handle', 'name'],
-                transaction: options.transaction || null
-              })
-                .then(foundVendor => {
-                  if (foundVendor) {
-                    return _.extend(foundVendor, vendor)
-                  }
-                  else {
-                    return Vendor.create(vendor, {
-                      transaction: options.transaction || null
-                    })
-                  }
-                })
-            })
-          },
-          transform: function (vendor) {
-            if (vendor && _.isObject(vendor)) {
-              vendor.handle = vendor.handle || app.services.ProxyCartService.handle(vendor.name)
-              return vendor
-            }
-            else if (vendor && _.isString(vendor)) {
-              return {
-                handle: app.services.ProxyCartService.handle(vendor),
-                name: vendor
-              }
-            }
-            else {
-              return null
-            }
-          },
-          reverseTransform: function (vendor) {
-            if (typeof vendor.name !== 'undefined') {
-              return vendor.name
-            }
-            return vendor
           }
         }
       }
@@ -224,7 +229,7 @@ export class Vendor extends Model {
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }
@@ -258,7 +263,7 @@ export class Vendor extends Model {
         model: models.VendorProduct
       },
       foreignKey: 'vendor_id'
-      //constraints: false
+      // constraints: false
     })
   }
 }

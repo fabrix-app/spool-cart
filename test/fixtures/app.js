@@ -16,7 +16,7 @@ const packs = [
   require('@fabrix/spool-generics').GenericsSpool,
   require('@fabrix/spool-email').EmailSpool,
   require('@fabrix/spool-cart-countries').CartCountriesSpool,
-  require('../dist').CartSpool // spool-cart
+  require('../../dist/index').CartSpool // spool-cart
 ]
 
 
@@ -145,7 +145,7 @@ const App = {
     session: {
       secret: 'cart'
     },
-    proxyPassport: {
+    passport: {
       strategies: {
         local: {
           strategy: require('passport-local').Strategy
@@ -280,7 +280,7 @@ const App = {
         }
       }
     },
-    proxyPermissions: {
+    permissions: {
       defaultRole: 'public',
       defaultRegisteredRole: 'registered',
       modelsAsResources: true,
@@ -300,7 +300,7 @@ const App = {
       defaultAdminUsername: 'admin',
       defaultAdminPassword: 'admin1234'
     },
-    proxyCart: {
+    cart: {
       // The default Shop address (Nexus)
       nexus: {
         name: 'Test Shop',
@@ -374,7 +374,7 @@ const App = {
         }
       }
     },
-    proxyNotifications: {
+    notifications: {
       to: {
         // The default name to use if the user has no specified name
         default_name: 'Valued Customer'
@@ -387,14 +387,14 @@ const App = {
       }
     },
     // Proxy Email
-    proxyEmail: {
+    email: {
       default_lang: 'en',
       languages: ['en']
     },
     // Proxy Generics
     generics: {
       payment_processor: {
-        adapter: require('./fixtures/FakePayment'),
+        adapter: require('./FakePayment'),
         options: {
           public: '123',
           secret: '123'
@@ -403,14 +403,14 @@ const App = {
         name: 'Default'
       },
       email_provider: {
-        adapter: require('./fixtures/FakeEmail'),
+        adapter: require('./FakeEmail'),
         options: {
           protocol: 'https',
           host: 'test.com'
         }
       },
       data_store_provider: {
-        adapter: require('./fixtures/FakeDataStore'),
+        adapter: require('./FakeDataStore'),
         options: {}
       }
       // Moved to Default Generics
@@ -439,7 +439,7 @@ const App = {
       //   options: {}
       // }
     },
-    proxyEngine: {
+    engine: {
       live_mode: false,
       profile: 'testProfile',
       crons_config: {

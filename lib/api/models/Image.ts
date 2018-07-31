@@ -1,14 +1,83 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
+import { isObject, isString, isNumber } from 'lodash'
 
-const _ = require('lodash')
+
+export class ImageResolver extends SequelizeResolver {
+  // TODO
+  resolve (image, options) {
+    return Promise.resolve(image)
+  }
+
+  transformImages (images = [], options: {[key: string]: any} = {}) {
+    const ImageModel = this.app.models['Image']
+    const Sequelize = ImageModel.sequelize
+
+    return Sequelize.Promise.mapSeries(images, image => {
+      if (image instanceof ImageModel.instance) {
+        return Promise.resolve(image)
+      }
+      else if (image && image.id) {
+        return ImageModel.findById(image.id, {transaction: options.transaction || null})
+          .then(_image => {
+            if (!_image) {
+              throw new Error('Image Could not be resolved')
+            }
+            return _image
+          })
+      }
+      else if (image && image.id) {
+        return ImageModel.findById(image.id, {transaction: options.transaction || null})
+          .then(_image => {
+            if (!_image) {
+              throw new Error('Image Could not be resolved to create')
+            }
+            return _image
+          })
+      }
+      else if (image && isObject(image)) {
+        return ImageModel.create(image, {transaction: options.transaction || null})
+          .then(_image => {
+            if (!_image) {
+              throw new Error('ImageModel Could not be resolved to create')
+            }
+            return _image
+          })
+      }
+      else if (image && isNumber(image)) {
+        return ImageModel.findById(image, {transaction: options.transaction || null})
+          .then(_image => {
+            if (!_image) {
+              throw new Error('Image Could not be resolved')
+            }
+            return _image
+          })
+      }
+      else if (image && isString(image)) {
+        return ImageModel.create({ src: image}, {transaction: options.transaction || null})
+          .then(_image => {
+            if (!_image) {
+              throw new Error('Image Could not be resolved to create')
+            }
+            return _image
+          })
+      }
+      else {
+        // TODO create proper error
+        const err = new Error(`Unable to resolve ImageModel ${image}`)
+        return Promise.reject(err)
+      }
+    })
+  }
+}
+
 /**
  * @module Image
  * @description Image Model
  */
 export class Image extends Model {
   static get resolver() {
-    return SequelizeResolver
+    return ImageResolver
   }
 
   // TODO, after create download and parse
@@ -39,76 +108,6 @@ export class Image extends Model {
               .catch(err => {
                 return values
               })
-
-          }
-        },
-        classMethods: {
-          // TODO
-          resolve: function(image, options) {
-            return Promise.resolve(image)
-          },
-          transformImages: (images, options) => {
-            options = options || {}
-            images = images || []
-
-            const Image = app.models['Image']
-            const Sequelize = Image.sequelize
-
-            return Sequelize.Promise.mapSeries(images, image => {
-              if (image instanceof Image.instance) {
-                return Promise.resolve(image)
-              }
-              else if (image && image.id) {
-                return Image.findById(image.id, {transaction: options.transaction || null})
-                  .then(image => {
-                    if (!image) {
-                      throw new Error('Image Could not be resolved')
-                    }
-                    return image
-                  })
-              }
-              else if (image && image.id) {
-                return Image.findById(image.id, {transaction: options.transaction || null})
-                  .then(image => {
-                    if (!image) {
-                      throw new Error('Image Could not be resolved to create')
-                    }
-                    return image
-                  })
-              }
-              else if (image && _.isObject(image)) {
-                return Image.create(image, {transaction: options.transaction || null})
-                  .then(image => {
-                    if (!image) {
-                      throw new Error('Image Could not be resolved to create')
-                    }
-                    return image
-                  })
-              }
-              else if (image && _.isNumber(image)) {
-                return Image.findById(image, {transaction: options.transaction || null})
-                  .then(image => {
-                    if (!image) {
-                      throw new Error('Image Could not be resolved')
-                    }
-                    return image
-                  })
-              }
-              else if (image && _.isString(image)) {
-                return Image.create({ src: image}, {transaction: options.transaction || null})
-                  .then(image => {
-                    if (!image) {
-                      throw new Error('Image Could not be resolved to create')
-                    }
-                    return image
-                  })
-              }
-              else {
-                // TODO create proper error
-                const err = new Error(`Unable to resolve Image ${image}`)
-                return Promise.reject(err)
-              }
-            })
           }
         }
       }
@@ -152,7 +151,7 @@ export class Image extends Model {
 
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.engine.live_mode
+        defaultValue: app.config.get('engine.live_mode')
       }
     }
   }

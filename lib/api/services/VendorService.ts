@@ -1,7 +1,5 @@
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-// const _ = require('lodash')
+
 /**
  * @module VendorService
  * @description Vendor Service

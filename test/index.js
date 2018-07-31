@@ -1,13 +1,13 @@
 'use strict'
 
-const FabrixApp = require('fabrix')
+const FabrixApp = require('@fabrix/fabrix')
 const assert = require('assert')
 const supertest = require('supertest')
 
 before(function(done) {
   this.timeout(15000)
 
-  global.app = new FabrixApp(require('./app'))
+  global.app = new FabrixApp(require('./fixtures/app'))
   // return global.app.start().catch(global.app.stop)
   global.app.start()
     .then(() => {

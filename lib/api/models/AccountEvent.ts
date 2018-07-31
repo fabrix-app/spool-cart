@@ -1,7 +1,7 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-const _ = require('lodash')
-const ACCOUNT_EVENT_TYPE = require('../../lib').Enums.ACCOUNT_EVENT_TYPE
+import { values } from 'lodash'
+import { ACCOUNT_EVENT_TYPE } from '../../enums'
 /**
  * @module AccountEvent
  * @description Saves Account Balance updates to accounts/customer
@@ -40,7 +40,7 @@ export class AccountEvent extends Model {
       },
       type: {
         type: Sequelize.ENUM,
-        values: _.values(ACCOUNT_EVENT_TYPE),
+        values: values(ACCOUNT_EVENT_TYPE),
       },
       // The amount of the credit or debit
       price: {
