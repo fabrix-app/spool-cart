@@ -841,60 +841,60 @@ export class Order extends Model {
 
 
 export interface Order {
-  toJSON(app: FabrixApp): any
-  cancel(app: FabrixApp, data): any
-  close(app: FabrixApp): any
-  logDiscountUsage(app: FabrixApp, options): any
-  notifyCustomer(app: FabrixApp, preNotification, options): any
-  addShipping(app: FabrixApp, shipping, options): any
-  removeShipping(app: FabrixApp, shipping, options): any
-  addTaxes(app: FabrixApp, taxes, options): any
-  removeTaxes(app: FabrixApp, taxes, options): any
-  saveShippingAddress(app: FabrixApp, address, options): any
-  saveBillingAddress(app: FabrixApp, address, options): any
-  groupFulfillments(app: FabrixApp, options): any
-  groupTransactions(app: FabrixApp, paymentDetails, options): any
-  groupSubscriptions(app: FabrixApp, active, options): any
-  fulfill(app: FabrixApp, fulfillments, options): any
-  resolveFinancialStatus(app: FabrixApp, options): any
-  resolveFulfillmentStatus(app: FabrixApp, options): any
-  setStatus(app: FabrixApp): any
-  resolveStatus(app: FabrixApp, options): any
-  saveStatus(app: FabrixApp, options): any
-  saveFinancialStatus(app: FabrixApp, options): any
-  saveFulfillmentStatus(app: FabrixApp, options): any
-  setFinancialStatus(app: FabrixApp): any
-  setFulfillmentStatus(app: FabrixApp): any
-  sendToFulfillment(app: FabrixApp, options): any
-  resolveSubscribeImmediately(app: FabrixApp, options): any
-  resolveSendImmediately(app: FabrixApp, options): any
-  attemptImmediate(app: FabrixApp, options): any
-  saveItemsShippingLines(app: FabrixApp, items, options): any
-  saveItemsTaxLines(app: FabrixApp, items, options): any
-  buildOrderItem(app: FabrixApp, item, qty, properties): any
-  addItem(app: FabrixApp, orderItem, options): any
-  updateItem(app: FabrixApp, orderItem, options): any
-  removeItem(app: FabrixApp, orderItem, options): any
-  reconcileTransactions(app: FabrixApp, options): any
-  resolveCustomer(app: FabrixApp, options): any
-  resolveOrderItems(app: FabrixApp, options): any
-  resolveRefunds(app: FabrixApp, options): any
-  resolveTransactions(app: FabrixApp, options): any
-  resolveFulfillments(app: FabrixApp, options): any
-  calculateShipping(app: FabrixApp, options): any
-  calculateTaxes(app: FabrixApp, options): any
-  recalculate(app: FabrixApp, options): any
-  sendCreatedEmail(app: FabrixApp, options): any
-  sendCancelledEmail(app: FabrixApp, options): any
-  sendRefundedEmail(app: FabrixApp, options): any
-  sendPaidEmail(app: FabrixApp, options): any
-  sendPartiallyPaidEmail(app: FabrixApp, options): any
-  sendUpdatedEmail(app: FabrixApp, options): any
+  toJSON(): any
+  cancel(data): any
+  close(): any
+  logDiscountUsage(options): any
+  notifyCustomer(preNotification, options): any
+  addShipping(shipping, options): any
+  removeShipping(shipping, options): any
+  addTaxes(taxes, options): any
+  removeTaxes(taxes, options): any
+  saveShippingAddress(address, options): any
+  saveBillingAddress(address, options): any
+  groupFulfillments(options): any
+  groupTransactions(paymentDetails, options): any
+  groupSubscriptions(active, options): any
+  fulfill(fulfillments, options): any
+  resolveFinancialStatus(options): any
+  resolveFulfillmentStatus(options): any
+  setStatus(): any
+  resolveStatus(options): any
+  saveStatus(options): any
+  saveFinancialStatus(options): any
+  saveFulfillmentStatus(options): any
+  setFinancialStatus(): any
+  setFulfillmentStatus(): any
+  sendToFulfillment(options): any
+  resolveSubscribeImmediately(options): any
+  resolveSendImmediately(options): any
+  attemptImmediate(options): any
+  saveItemsShippingLines(items, options): any
+  saveItemsTaxLines(items, options): any
+  buildOrderItem(item, qty, properties): any
+  addItem(orderItem, options): any
+  updateItem(orderItem, options): any
+  removeItem(orderItem, options): any
+  reconcileTransactions(options): any
+  resolveCustomer(options): any
+  resolveOrderItems(options): any
+  resolveRefunds(options): any
+  resolveTransactions(options): any
+  resolveFulfillments(options): any
+  calculateShipping(options): any
+  calculateTaxes(options): any
+  recalculate(options): any
+  sendCreatedEmail(options): any
+  sendCancelledEmail(options): any
+  sendRefundedEmail(options): any
+  sendPaidEmail(options): any
+  sendPartiallyPaidEmail(options): any
+  sendUpdatedEmail(options): any
 }
 
-Order.prototype.toJSON = (app: FabrixApp) => {
+Order.prototype.toJSON = () => {
   // Make JSON
-  const resp = this instanceof app.models['Order'].instance ? this.get({ plain: true }) : this
+  const resp = this instanceof this.app.models['Order'].instance ? this.get({ plain: true }) : this
 
   // Transform Tags to array on toJSON
   if (resp.tags) {
@@ -913,7 +913,7 @@ Order.prototype.toJSON = (app: FabrixApp) => {
 /**
  *
  */
-Order.prototype.cancel = function(app: FabrixApp, data = {}) {
+Order.prototype.cancel = function(data = {}) {
   this.cancelled_at = new Date(Date.now())
   this.status = ORDER_STATUS.CANCELLED
   this.closed_at = this.cancelled_at
@@ -923,7 +923,7 @@ Order.prototype.cancel = function(app: FabrixApp, data = {}) {
 /**
  * closes the order
  */
-Order.prototype.close = function(app: FabrixApp) {
+Order.prototype.close = function() {
   this.status = ORDER_STATUS.CLOSED
   this.closed_at = new Date(Date.now())
   return this
@@ -931,15 +931,14 @@ Order.prototype.close = function(app: FabrixApp) {
 /**
  *
  */
-Order.prototype.logDiscountUsage = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.models['Order'].datastore.Promise.mapSeries(this.discounted_lines, line => {
-    return app.models['Discount'].findById(line.id, {
+Order.prototype.logDiscountUsage = function(options: {[key: string]: any} = {}) {
+  return this.app.models['Order'].datastore.Promise.mapSeries(this.discounted_lines, line => {
+    return this.app.models['Discount'].findById(line.id, {
       attributes: ['id', 'times_used', 'usage_limit'],
       transaction: options.transaction || null
     })
       .then(_discount => {
         return _discount.logUsage(
-          app,
           this.id,
           this.customer_id,
           line.price,
@@ -951,18 +950,17 @@ Order.prototype.logDiscountUsage = function(app: FabrixApp, options: {[key: stri
 /**
  *
  */
-Order.prototype.notifyCustomer = function(app: FabrixApp, preNotification, options: {[key: string]: any} = {}) {
+Order.prototype.notifyCustomer = function(preNotification, options: {[key: string]: any} = {}) {
   if (this.customer_id) {
     return this.resolveCustomer(
-      app,
       {
       attributes: ['id', 'email', 'company', 'first_name', 'last_name', 'full_name'],
       transaction: options.transaction || null,
       reload: options.reload || null
     })
       .then(() => {
-        if (this.Customer && this.Customer instanceof app.models['Customer'].instance) {
-          return this.Customer.notifyUsers(app, preNotification, {transaction: options.transaction || null})
+        if (this.Customer && this.Customer instanceof this.app.models['Customer'].instance) {
+          return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
         }
         else {
           return
@@ -980,8 +978,8 @@ Order.prototype.notifyCustomer = function(app: FabrixApp, preNotification, optio
 /**
  *
  */
-Order.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {[key: string]: any} = {}) {
-  return this.resolveOrderItems(app, {
+Order.prototype.addShipping = function(shipping = [], options: {[key: string]: any} = {}) {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -994,7 +992,7 @@ Order.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {
             return s.name === ship.name
           })
           // Make sure shipping price is a number
-          ship.price = app.services.ProxyCartService.normalizeCurrency(parseInt(ship.price, 10))
+          ship.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(ship.price, 10))
           if (i > -1) {
             shippingLines[i] = ship
           }
@@ -1008,7 +1006,7 @@ Order.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {
           return s.name === shipping.name
         })
         // Make sure shipping price is a number
-        shipping.price = app.services.ProxyCartService.normalizeCurrency(parseInt(shipping.price, 10))
+        shipping.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(shipping.price, 10))
 
         if (i > -1) {
           shippingLines[i] = shipping
@@ -1027,8 +1025,8 @@ Order.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {
 /**
  *
  */
-Order.prototype.removeShipping = function(app: FabrixApp, shipping = [], options: {[key: string]: any} = {}) {
-  return this.resolveOrderItems(app, {
+Order.prototype.removeShipping = function(shipping = [], options: {[key: string]: any} = {}) {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1057,14 +1055,14 @@ Order.prototype.removeShipping = function(app: FabrixApp, shipping = [], options
       return this.save({transaction: options.transaction || null})
     })
     .then(() => {
-      return this.recalculate(app, {transaction: options.transaction || null})
+      return this.recalculate({transaction: options.transaction || null})
     })
 }
 /**
  *
  */
-Order.prototype.addTaxes = function(app: FabrixApp, taxes = [], options: {[key: string]: any} = {}) {
-  return this.resolveOrderItems(app, {
+Order.prototype.addTaxes = function(taxes = [], options: {[key: string]: any} = {}) {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1077,7 +1075,7 @@ Order.prototype.addTaxes = function(app: FabrixApp, taxes = [], options: {[key: 
             return s.name === tax.name
           })
           // Make sure taxes price is a number
-          tax.price = app.services.ProxyCartService.normalizeCurrency(parseInt(tax.price, 10))
+          tax.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(tax.price, 10))
           if (i > -1) {
             taxLines[i] = tax
           }
@@ -1091,7 +1089,7 @@ Order.prototype.addTaxes = function(app: FabrixApp, taxes = [], options: {[key: 
           return s.name === taxes.name
         })
         // Make sure taxes price is a number
-        taxes.price = app.services.ProxyCartService.normalizeCurrency(parseInt(taxes.price, 10))
+        taxes.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(taxes.price, 10))
 
         if (i > -1) {
           taxLines[i] = taxes
@@ -1104,7 +1102,7 @@ Order.prototype.addTaxes = function(app: FabrixApp, taxes = [], options: {[key: 
       return this.save({transaction: options.transaction || null})
     })
     .then(() => {
-      return this.recalculate(app, {transaction: options.transaction || null})
+      return this.recalculate({transaction: options.transaction || null})
     })
 }
 /**
@@ -1113,8 +1111,8 @@ Order.prototype.addTaxes = function(app: FabrixApp, taxes = [], options: {[key: 
  * @param options
  * @returns {Promise.<T>}
  */
-Order.prototype.removeTaxes = function(app: FabrixApp, taxes = [], options: {[key: string]: any} = {}) {
-  return this.resolveOrderItems(app, {
+Order.prototype.removeTaxes = function(taxes = [], options: {[key: string]: any} = {}) {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1143,32 +1141,32 @@ Order.prototype.removeTaxes = function(app: FabrixApp, taxes = [], options: {[ke
       return this.save({transaction: options.transaction || null})
     })
     .then(() => {
-      return this.recalculate(app, {transaction: options.transaction || null})
+      return this.recalculate({transaction: options.transaction || null})
     })
 }
 /**
  *
  */
-Order.prototype.saveShippingAddress = function(app: FabrixApp, address, options: {[key: string]: any} = {}) {
+Order.prototype.saveShippingAddress = function(address, options: {[key: string]: any} = {}) {
   this.shipping_address = extend(this.shipping_address, address)
-  this.shipping_address = app.services.ProxyCartService.validateAddress(this.shipping_address)
-  return app.services.GeolocationGenericService.locate(this.shipping_address)
+  this.shipping_address = this.app.services.ProxyCartService.validateAddress(this.shipping_address)
+  return this.app.services.GeolocationGenericService.locate(this.shipping_address)
     .then(latLng => {
       this.shipping_address = defaults(this.shipping_address, latLng)
-      return this.recalculate(app, {transaction: options.transaction || null})
+      return this.recalculate({transaction: options.transaction || null})
     })
     .catch(err => {
       return
     })
 }
 
-Order.prototype.saveBillingAddress = function(app: FabrixApp, address, options: {[key: string]: any} = {}) {
+Order.prototype.saveBillingAddress = function(address, options: {[key: string]: any} = {}) {
   this.billing_address = extend(this.billing_address, address)
-  this.billing_address = app.services.ProxyCartService.validateAddress(this.billing_address)
-  return app.services.GeolocationGenericService.locate(this.billing_address)
+  this.billing_address = this.app.services.ProxyCartService.validateAddress(this.billing_address)
+  return this.app.services.GeolocationGenericService.locate(this.billing_address)
     .then(latLng => {
       this.billing_address = defaults(this.billing_address, latLng)
-      return this.recalculate(app, {transaction: options.transaction || null})
+      return this.recalculate({transaction: options.transaction || null})
     })
     .catch(err => {
       return
@@ -1177,8 +1175,8 @@ Order.prototype.saveBillingAddress = function(app: FabrixApp, address, options: 
 /**
  *
  */
-Order.prototype.groupFulfillments = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return this.resolveOrderItems(app, {
+Order.prototype.groupFulfillments = function(options: {[key: string]: any} = {}) {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1197,7 +1195,7 @@ Order.prototype.groupFulfillments = function(app: FabrixApp, options: {[key: str
         return { service: service, items: items }
       })
       // Create the non sent fulfillments
-      return app.models['Order'].datastore.Promise.mapSeries(tGroups, (group) => {
+      return this.app.models['Order'].datastore.Promise.mapSeries(tGroups, (group) => {
         const resFulfillment = this.fulfillments.find(fulfillment => fulfillment.service === group.service)
         return resFulfillment.addOrder_items(group.items, {
           hooks: false,
@@ -1227,9 +1225,9 @@ Order.prototype.groupFulfillments = function(app: FabrixApp, options: {[key: str
  * @param options
  * @returns {*|Promise.<T>}
  */
-Order.prototype.groupTransactions = function(app: FabrixApp, paymentDetails, options: {[key: string]: any} = {}) {
-  return app.models['Order'].datastore.Promise.mapSeries(paymentDetails, (detail, index) => {
-    const transaction = app.models['Transaction'].build({
+Order.prototype.groupTransactions = function(paymentDetails, options: {[key: string]: any} = {}) {
+  return this.app.models['Order'].datastore.Promise.mapSeries(paymentDetails, (detail, index) => {
+    const transaction = this.app.models['Transaction'].build({
       // Set the customer id (in case we can save this source)
       customer_id: this.customer_id,
       // Set the order id
@@ -1253,12 +1251,12 @@ Order.prototype.groupTransactions = function(app: FabrixApp, paymentDetails, opt
     })
     // Return the Payment Service
     if (this.payment_kind === PAYMENT_KIND.MANUAL) {
-      return app.services.PaymentService.manual(transaction, {
+      return this.app.services.PaymentService.manual(transaction, {
         transaction: options.transaction || null
       })
     }
     else {
-      return app.services.PaymentService[this.transaction_kind](transaction, {
+      return this.app.services.PaymentService[this.transaction_kind](transaction, {
         transaction: options.transaction || null
       })
     }
@@ -1272,8 +1270,8 @@ Order.prototype.groupTransactions = function(app: FabrixApp, paymentDetails, opt
     })
 }
 
-Order.prototype.groupSubscriptions = function(app: FabrixApp, active, options: {[key: string]: any} = {}) {
-  return this.resolveOrderItems(app, {
+Order.prototype.groupSubscriptions = function(active, options: {[key: string]: any} = {}) {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1295,8 +1293,8 @@ Order.prototype.groupSubscriptions = function(app: FabrixApp, active, options: {
         })
       })
 
-      return app.models['Order'].datastore.Promise.mapSeries(groups, group => {
-        return app.services.SubscriptionService.create(
+      return this.app.models['Order'].datastore.Promise.mapSeries(groups, group => {
+        return this.app.services.SubscriptionService.create(
           this,
           group.items,
           group.unit,
@@ -1317,7 +1315,7 @@ Order.prototype.groupSubscriptions = function(app: FabrixApp, active, options: {
 /**
  *
  */
-Order.prototype.fulfill = function(app: FabrixApp, fulfillments = [], options: {[key: string]: any} = {}) {
+Order.prototype.fulfill = function(fulfillments = [], options: {[key: string]: any} = {}) {
 
   let toFulfill = []
 
@@ -1337,7 +1335,7 @@ Order.prototype.fulfill = function(app: FabrixApp, fulfillments = [], options: {
       toFulfill = toFulfill.filter(f => f)
       // console.log('BROKE FULFILL', toFulfill)
       return this.datastore.Promise.mapSeries(toFulfill, resFulfillment => {
-        if (!(resFulfillment instanceof app.models['Fulfillment'].instance)) {
+        if (!(resFulfillment instanceof this.app.models['Fulfillment'].instance)) {
           throw new Error('resFulfillment is not an instance of Fulfillment')
         }
         const fulfillment = fulfillments.find(f => f.id === resFulfillment.id)
@@ -1350,7 +1348,6 @@ Order.prototype.fulfill = function(app: FabrixApp, fulfillments = [], options: {
         }
         // console.log('UPDATE', update)
         return resFulfillment.fulfillUpdate(
-          app,
           update,
           {
             transaction: options.transaction || null
@@ -1358,88 +1355,88 @@ Order.prototype.fulfill = function(app: FabrixApp, fulfillments = [], options: {
       })
     })
     .then(() => {
-      return this.saveFulfillmentStatus(app, {transaction: options.transaction || null})
+      return this.saveFulfillmentStatus({transaction: options.transaction || null})
     })
 }
 
 /**
  *
  */
-Order.prototype.resolveFinancialStatus = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveFinancialStatus = function(options: {[key: string]: any} = {}) {
   if (!this.id) {
     return Promise.resolve(this)
   }
-  return this.resolveTransactions(app, {
+  return this.resolveTransactions({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(() => {
       // Set the new financial status
-      this.setFinancialStatus(app)
+      this.setFinancialStatus()
       return this
     })
 }
 /**
  *
  */
-Order.prototype.resolveFulfillmentStatus = function (app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveFulfillmentStatus = function (options: {[key: string]: any} = {}) {
   if (!this.id) {
     return Promise.resolve(this)
   }
   // Set fulfillment status requires fulfillments be resolved.
-  return this.resolveFulfillments(app, {
+  return this.resolveFulfillments({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(() => {
       // Set fulfillment status requires that order items also be resolved
-      return this.resolveOrderItems(app, {
+      return this.resolveOrderItems({
         transaction: options.transaction || null,
         reload: options.reload || null
       })
     })
     .then(() => {
       // Set the new fulfillment status
-      this.setFulfillmentStatus(app)
+      this.setFulfillmentStatus()
       return this
     })
 }
 /**
  *
  */
-Order.prototype.setStatus = function (app: FabrixApp) {
+Order.prototype.setStatus = function () {
   if (
     this.financial_status === ORDER_FINANCIAL.PAID
     && this.fulfillment_status === ORDER_FULFILLMENT.FULFILLED
     && this.status === ORDER_STATUS.OPEN
   ) {
-    this.close(app)
+    this.close()
   }
   else if (
     this.financial_status === ORDER_FINANCIAL.CANCELLED
     && this.fulfillment_status === ORDER_FULFILLMENT.CANCELLED
     && this.status === ORDER_STATUS.OPEN
   ) {
-    this.cancel(app)
+    this.cancel()
   }
   return this
 }
 /**
  *
  */
-Order.prototype.resolveStatus = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return this.resolveFinancialStatus(app, {
+Order.prototype.resolveStatus = function(options: {[key: string]: any} = {}) {
+  return this.resolveFinancialStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(() => {
-      return this.resolveFulfillmentStatus(app, {
+      return this.resolveFulfillmentStatus({
         transaction: options.transaction || null,
         reload: options.reload || null
       })
     })
     .then(() => {
-      return this.setStatus(app)
+      return this.setStatus()
     })
 }
 /**
@@ -1447,11 +1444,11 @@ Order.prototype.resolveStatus = function(app: FabrixApp, options: {[key: string]
  * @param options
  * @returns {*}
  */
-Order.prototype.saveStatus = function (app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.saveStatus = function (options: {[key: string]: any} = {}) {
   if (!this.id) {
     return Promise.resolve(this)
   }
-  return this.resolveStatus(app, {
+  return this.resolveStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1483,13 +1480,13 @@ Order.prototype.saveStatus = function (app: FabrixApp, options: {[key: string]: 
 /**
  *
  */
-Order.prototype.saveFinancialStatus = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.saveFinancialStatus = function(options: {[key: string]: any} = {}) {
   let currentStatus, previousStatus
   // If not a persisted instance
   if (!this.id) {
     return Promise.resolve(this)
   }
-  return this.resolveFinancialStatus(app, {
+  return this.resolveFinancialStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1526,7 +1523,7 @@ Order.prototype.saveFinancialStatus = function(app: FabrixApp, options: {[key: s
           message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
           data: this
         }
-        return app.services.EngineService.publish(event.type, event, {
+        return this.app.services.EngineService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1537,7 +1534,7 @@ Order.prototype.saveFinancialStatus = function(app: FabrixApp, options: {[key: s
     })
     .then(() => {
       if (currentStatus === ORDER_FINANCIAL.PAID && previousStatus !== ORDER_FINANCIAL.PAID) {
-        return this.attemptImmediate(app, options)
+        return this.attemptImmediate(options)
       }
       else {
         return this
@@ -1550,24 +1547,24 @@ Order.prototype.saveFinancialStatus = function(app: FabrixApp, options: {[key: s
 /**
  *
  */
-Order.prototype.saveFulfillmentStatus = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.saveFulfillmentStatus = function(options: {[key: string]: any} = {}) {
   let currentStatus, previousStatus
   // If not a persisted instance return right away
   if (!this.id) {
     return Promise.resolve(this)
   }
-  return this.resolveOrderItems(app, {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(() => {
-      return this.resolveFulfillments(app, {
+      return this.resolveFulfillments({
         transaction: options.transaction || null,
         reload: options.reload || null
       })
     })
     .then(() => {
-      this.setFulfillmentStatus(app)
+      this.setFulfillmentStatus()
 
       if (this.changed('fulfillment_status')) {
         currentStatus = this.fulfillment_status
@@ -1599,7 +1596,7 @@ Order.prototype.saveFulfillmentStatus = function(app: FabrixApp, options: {[key:
           message: `Order ${ this.name || 'ID ' + this.id } fulfillment status changed from "${previousStatus}" to "${currentStatus}"`,
           data: this
         }
-        return app.services.EngineService.publish(event.type, event, {
+        return this.app.services.EngineService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1615,7 +1612,7 @@ Order.prototype.saveFulfillmentStatus = function(app: FabrixApp, options: {[key:
 /**
  *
  */
-Order.prototype.setFinancialStatus = function(app: FabrixApp) {
+Order.prototype.setFinancialStatus = function() {
   if (!this.transactions) {
     throw new Error('Order.setFinancialStatus requires transactions to be populated')
     // return Promise.reject(err)
@@ -1773,7 +1770,7 @@ Order.prototype.setFinancialStatus = function(app: FabrixApp) {
     financialStatus = ORDER_FINANCIAL.CANCELLED
   }
   // tslint:disable:max-line-length
-  app.log.debug(`ORDER ${this.id}: FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}, Pending: ${totalPending}, Cancelled: ${totalCancelled}`)
+  this.app.log.debug(`ORDER ${this.id}: FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}, Pending: ${totalPending}, Cancelled: ${totalCancelled}`)
   // pending: The finances are pending. (This is the default value.)
   // cancelled: The finances pending have been cancelled.
   // authorized: The finances have been authorized.
@@ -1795,7 +1792,7 @@ Order.prototype.setFinancialStatus = function(app: FabrixApp) {
 /**
  *
  */
-Order.prototype.setFulfillmentStatus = function(app: FabrixApp) {
+Order.prototype.setFulfillmentStatus = function() {
   if (!this.fulfillments) {
     throw new Error('Order.setFulfillmentStatus requires fulfillments to be populated')
     // return Promise.reject(err)
@@ -1869,15 +1866,15 @@ Order.prototype.setFulfillmentStatus = function(app: FabrixApp) {
 /**
  *
  */
-Order.prototype.sendToFulfillment = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.sendToFulfillment = function(options: {[key: string]: any} = {}) {
 
-  return this.resolveFulfillments(app, {
+  return this.resolveFulfillments({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(() => {
-      return app.models['Order'].datastore.Promise.mapSeries(this.fulfillments, fulfillment => {
-        return app.services.FulfillmentService.sendFulfillment(this, fulfillment, {transaction: options.transaction || null})
+      return this.app.models['Order'].datastore.Promise.mapSeries(this.fulfillments, fulfillment => {
+        return this.app.services.FulfillmentService.sendFulfillment(this, fulfillment, {transaction: options.transaction || null})
       })
     })
     .then(fulfillments => {
@@ -1892,11 +1889,11 @@ Order.prototype.sendToFulfillment = function(app: FabrixApp, options: {[key: str
 /**
  * Resolve if this should subscribe immediately
  */
-Order.prototype.resolveSubscribeImmediately = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveSubscribeImmediately = function(options: {[key: string]: any} = {}) {
   if (!this.has_subscription) {
     return Promise.resolve(false)
   }
-  return this.resolveFinancialStatus(app, {
+  return this.resolveFinancialStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -1907,7 +1904,7 @@ Order.prototype.resolveSubscribeImmediately = function(app: FabrixApp, options: 
 /**
  * Resolve if this should send to fulfillment immediately
  */
-Order.prototype.resolveSendImmediately = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveSendImmediately = function(options: {[key: string]: any} = {}) {
 
   if (this.fulfillment_kind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
     return Promise.resolve(false)
@@ -1916,7 +1913,7 @@ Order.prototype.resolveSendImmediately = function(app: FabrixApp, options: {[key
     // console.log('NOT ME', this.fulfillment_status, ORDER_FULFILLMENT.PENDING, ORDER_FULFILLMENT.NONE)
     return Promise.resolve(false)
   }
-  return this.resolveFinancialStatus(app, { transaction: options.transaction || null })
+  return this.resolveFinancialStatus({ transaction: options.transaction || null })
     .then(() => {
       return this.financial_status === ORDER_FINANCIAL.PAID
     })
@@ -1924,14 +1921,14 @@ Order.prototype.resolveSendImmediately = function(app: FabrixApp, options: {[key
 /**
  *
  */
-Order.prototype.attemptImmediate = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return this.resolveSendImmediately(app, {
+Order.prototype.attemptImmediate = function(options: {[key: string]: any} = {}) {
+  return this.resolveSendImmediately({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(immediate => {
       if (immediate) {
-        return this.sendToFulfillment(app, { transaction: options.transaction || null })
+        return this.sendToFulfillment({ transaction: options.transaction || null })
       }
       else {
         return this.fulfillments
@@ -1939,7 +1936,7 @@ Order.prototype.attemptImmediate = function(app: FabrixApp, options: {[key: stri
     })
     .then(() => {
       // Determine if this subscription should be created immediately
-      return this.resolveSubscribeImmediately(app, {
+      return this.resolveSubscribeImmediately({
         transaction: options.transaction || null,
         reload: options.reload || null
       })
@@ -1947,7 +1944,6 @@ Order.prototype.attemptImmediate = function(app: FabrixApp, options: {[key: stri
     .then(immediate => {
       if (immediate) {
         return this.groupSubscriptions(
-          app,
           immediate,
           { transaction: options.transaction || null }
         )
@@ -1963,14 +1959,14 @@ Order.prototype.attemptImmediate = function(app: FabrixApp, options: {[key: stri
 /**
  *
  */
-Order.prototype.saveItemsShippingLines = function (app: FabrixApp, items, options: {[key: string]: any} = {}) {
+Order.prototype.saveItemsShippingLines = function (items, options: {[key: string]: any} = {}) {
   // Filter any non manual shipping lines
   let shippingLines = this.shipping_lines.filter(line =>
     Object.keys(line).indexOf('id') === -1
     && Object.keys(line).indexOf('line') === -1
   )
 
-  return app.models['OrderItem'].datastore.Promise.mapSeries(items, item => {
+  return this.app.models['OrderItem'].datastore.Promise.mapSeries(items, item => {
     return item.setItemsShippingLines(items.find(i => i.id === item.id))
       .save(options)
   })
@@ -1988,15 +1984,15 @@ Order.prototype.saveItemsShippingLines = function (app: FabrixApp, items, option
 /**
  *
  */
-Order.prototype.saveItemsTaxLines = function (app: FabrixApp, items, options: {[key: string]: any} = {}) {
+Order.prototype.saveItemsTaxLines = function (items, options: {[key: string]: any} = {}) {
   // Filter any non manual tax lines
   let taxLines = this.tax_lines.filter(line =>
     Object.keys(line).indexOf('id') === -1
     && Object.keys(line).indexOf('line') === -1
   )
 
-  return app.models['OrderItem'].datastore.Promise.mapSeries(items, item => {
-    return item.setItemsTaxLines(app, items.find(i => i.id === item.id))
+  return this.app.models['OrderItem'].datastore.Promise.mapSeries(items, item => {
+    return item.setItemsTaxLines(items.find(i => i.id === item.id))
       .save(options)
   })
     .then(_items => {
@@ -2028,12 +2024,12 @@ Order.prototype.saveItemsTaxLines = function (app: FabrixApp, items, options: {[
  * Builds obj for Order Item
  */
 // TODO resolve vendor, check fulfillable quantity, calculate price
-Order.prototype.buildOrderItem = function(app: FabrixApp, item, qty = 0, properties) {
+Order.prototype.buildOrderItem = function(item, qty = 0, properties) {
   item.Product = item.Product || {}
   item.images = item.images || []
-  const OrderItem = app.models['OrderItem']
+  const OrderItem = this.app.models['OrderItem']
 
-  return OrderItem.build(app, {
+  return OrderItem.build({
     order_id: this.id,
     customer_id: this.customer_id,
     product_id: item.product_id,
@@ -2073,7 +2069,7 @@ Order.prototype.buildOrderItem = function(app: FabrixApp, item, qty = 0, propert
     images: item.images.length > 0 ? item.images : item.Product.images || [],
     fulfillable_quantity: item.fulfillable_quantity || qty,
     max_quantity: item.max_quantity,
-    grams: app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,
+    grams: this.app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,
     average_shipping: item.Product.average_shipping,
     exclude_payment_types: item.Product.exclude_payment_types,
     vendor_id: item.Product.vendors ? item.Product.vendors[0].id : null,
@@ -2084,7 +2080,7 @@ Order.prototype.buildOrderItem = function(app: FabrixApp, item, qty = 0, propert
  *
  */
 // TODO shipping_lines coupon_lines discount_lines to parent order
-Order.prototype.addItem = function(app: FabrixApp, orderItem, options: {[key: string]: any} = {}) {
+Order.prototype.addItem = function(orderItem, options: {[key: string]: any} = {}) {
   if (!this.order_items) {
     const err = new Error('Order.addItem requires order_items to be populated')
     return Promise.reject(err)
@@ -2095,7 +2091,7 @@ Order.prototype.addItem = function(app: FabrixApp, orderItem, options: {[key: st
         item.product_id === orderItem.product_id && item.variant_id === orderItem.variant_id)
 
       if (!prevOrderItem) {
-        return orderItem.reconcileFulfillment(app, { transaction: options.transaction || null })
+        return orderItem.reconcileFulfillment({ transaction: options.transaction || null })
           .then(() => {
             return orderItem.save({ transaction: options.transaction || null })
           })
@@ -2120,7 +2116,7 @@ Order.prototype.addItem = function(app: FabrixApp, orderItem, options: {[key: st
           prevOrderItem.properties = orderItem.properties
         }
         // console.log('BREAKING', prevOrderItem)
-        return prevOrderItem.reconcileFulfillment(app, { transaction: options.transaction || null })
+        return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
           .then(() => {
             return prevOrderItem.save({transaction: options.transaction || null})
           })
@@ -2134,7 +2130,7 @@ Order.prototype.addItem = function(app: FabrixApp, orderItem, options: {[key: st
  *
  */
 // TODO add shipping_lines coupon_lines discount_lines to parent order
-Order.prototype.updateItem = function(app: FabrixApp, orderItem, options: {[key: string]: any} = {}) {
+Order.prototype.updateItem = function(orderItem, options: {[key: string]: any} = {}) {
   if (!this.order_items) {
     const err = new Error('Order.updateItem requires order_items to be populated')
     return Promise.reject(err)
@@ -2192,13 +2188,13 @@ Order.prototype.updateItem = function(app: FabrixApp, orderItem, options: {[key:
       // console.log('BREAKING update', prevOrderItem)
 
       if (prevOrderItem.quantity <= 0) {
-        return prevOrderItem.reconcileFulfillment(app, { transaction: options.transaction || null })
+        return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
           .then(() => {
             return prevOrderItem.destroy({transaction: options.transaction || null})
           })
       }
       else {
-        return prevOrderItem.reconcileFulfillment(app, { transaction: options.transaction || null })
+        return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
           .then(() => {
             return prevOrderItem.save({transaction: options.transaction || null})
           })
@@ -2212,7 +2208,7 @@ Order.prototype.updateItem = function(app: FabrixApp, orderItem, options: {[key:
  *
  */
 // TODO remove tax_lines shipping_lines coupon_lines discount_lines to parent order
-Order.prototype.removeItem = function(app: FabrixApp, orderItem, options: {[key: string]: any} = {}) {
+Order.prototype.removeItem = function(orderItem, options: {[key: string]: any} = {}) {
   if (!this.order_items) {
     const err = new Error('Order.removeItem requires order_items to be populated')
     return Promise.reject(err)
@@ -2236,13 +2232,13 @@ Order.prototype.removeItem = function(app: FabrixApp, orderItem, options: {[key:
       prevOrderItem.total_weight = prevOrderItem.total_weight - orderItem.total_weight
 
       if (prevOrderItem.quantity <= 0) {
-        return prevOrderItem.reconcileFulfillment(app, { transaction: options.transaction || null })
+        return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
           .then(() => {
             return prevOrderItem.destroy({transaction: options.transaction || null})
           })
       }
       else {
-        return prevOrderItem.reconcileFulfillment(app, { transaction: options.transaction || null })
+        return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
           .then(() => {
             return prevOrderItem.save({transaction: options.transaction || null})
           })
@@ -2255,16 +2251,15 @@ Order.prototype.removeItem = function(app: FabrixApp, orderItem, options: {[key:
 /**
  *
  */
-Order.prototype.reconcileTransactions = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.reconcileTransactions = function(options: {[key: string]: any} = {}) {
   // Get fresh financial status
-  this.setFinancialStatus(app)
+  this.setFinancialStatus()
   // Test if the total due has changed
   if (this.changed('total_due')) {
     // partially cancel/void/refund
     if (this.total_due <= this.previous('total_due')) {
       const amount = this.previous('total_due') - this.total_due
-      return app.services.TransactionService.reconcileUpdate(
-        app,
+      return this.app.services.TransactionService.reconcileUpdate(
         this,
         amount,
         { transaction: options.transaction || null }
@@ -2274,8 +2269,7 @@ Order.prototype.reconcileTransactions = function(app: FabrixApp, options: {[key:
     else {
       const amount = this.total_due - this.previous('total_due')
       // console.log('CREATE NEW TRANSACTION', amount)
-      return app.services.TransactionService.reconcileCreate(
-        app,
+      return this.app.services.TransactionService.reconcileCreate(
         this,
         amount,
         { transaction: options.transaction || null }
@@ -2289,10 +2283,10 @@ Order.prototype.reconcileTransactions = function(app: FabrixApp, options: {[key:
 /**
  * Resolve Order's Customer if there is one
  */
-Order.prototype.resolveCustomer = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveCustomer = function(options: {[key: string]: any} = {}) {
   if (
     this.Customer
-    && this.Customer instanceof app.models['Customer'].instance
+    && this.Customer instanceof this.app.models['Customer'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -2315,10 +2309,10 @@ Order.prototype.resolveCustomer = function(app: FabrixApp, options: {[key: strin
 /**
  *
  */
-Order.prototype.resolveOrderItems = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveOrderItems = function(options: {[key: string]: any} = {}) {
   if (
     this.order_items
-    && this.order_items.every(o => o instanceof app.models['OrderItem'].instance)
+    && this.order_items.every(o => o instanceof this.app.models['OrderItem'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -2337,11 +2331,11 @@ Order.prototype.resolveOrderItems = function(app: FabrixApp, options: {[key: str
 /**
  *
  */
-Order.prototype.resolveRefunds = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveRefunds = function(options: {[key: string]: any} = {}) {
   let totalRefunds = 0
   if (
     this.refunds
-    && this.refunds.every(r => r instanceof app.models['Refund'].instance)
+    && this.refunds.every(r => r instanceof this.app.models['Refund'].instance)
     && options.reload !== true
   ) {
     this.refunds.forEach(refund => {
@@ -2370,10 +2364,10 @@ Order.prototype.resolveRefunds = function(app: FabrixApp, options: {[key: string
 /**
  *
  */
-Order.prototype.resolveTransactions = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveTransactions = function(options: {[key: string]: any} = {}) {
   if (
     this.transactions
-    && this.transactions.every(t => t instanceof app.models['Transaction'].instance)
+    && this.transactions.every(t => t instanceof this.app.models['Transaction'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -2392,14 +2386,14 @@ Order.prototype.resolveTransactions = function(app: FabrixApp, options: {[key: s
 /**
  *
  */
-Order.prototype.resolveFulfillments = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.resolveFulfillments = function(options: {[key: string]: any} = {}) {
   if (
     this.fulfillments
-    && this.fulfillments.every(f => f instanceof app.models['Fulfillment'].instance)
+    && this.fulfillments.every(f => f instanceof this.app.models['Fulfillment'].instance)
     && options.reload !== true
   ) {
     return this.datastore.Promise.mapSeries(this.fulfillments, fulfillment => {
-      return fulfillment.resolveOrderItems(app, {
+      return fulfillment.resolveOrderItems({
         transaction: options.transaction || null,
         reload: options.reload || null
       })
@@ -2415,7 +2409,7 @@ Order.prototype.resolveFulfillments = function(app: FabrixApp, options: {[key: s
   else {
     return this.getFulfillments({
       include: [{
-        model: app.models['OrderItem'],
+        model: this.app.models['OrderItem'].instance,
         as: 'order_items'
       }],
       transaction: options.transaction || null
@@ -2432,45 +2426,51 @@ Order.prototype.resolveFulfillments = function(app: FabrixApp, options: {[key: s
 /**
  *
  */
-Order.prototype.calculateShipping = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.calculateShipping = function(options: {[key: string]: any} = {}) {
   if (!this.has_shipping) {
     return Promise.resolve(this)
   }
-  return this.resolveOrderItems(app, options)
+  return this.resolveOrderItems(options)
     .then(() => {
-      return app.services.ShippingService.calculate(this, this.order_items, this.shipping_address, app.models['Order'], options)
+      return this.app.services.ShippingService.calculate(this, this.order_items, this.shipping_address, this.app.models['Order'], options)
     })
     .then(shippingResult => {
-      return this.saveItemsShippingLines(app, shippingResult.line_items, options)
+      return this.saveItemsShippingLines(shippingResult.line_items, options)
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
 /**
  *
  */
-Order.prototype.calculateTaxes = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.calculateTaxes = function(options: {[key: string]: any} = {}) {
   if (!this.has_taxes) {
     return Promise.resolve(this)
   }
-  return this.resolveOrderItems(app, options)
+  return this.resolveOrderItems(options)
     .then(() => {
-      return app.services.TaxService.calculate(this, this.order_items, this.shipping_address, app.models['Order'], options)
+      return this.app.services.TaxService.calculate(
+        this,
+        this.order_items,
+        this.shipping_address,
+        this.app.models['Order'],
+        options
+      )
     })
     .then(taxesResult => {
-      return this.saveItemsTaxLines(app, taxesResult.line_items)
+      return this.saveItemsTaxLines(taxesResult.line_items)
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
 /**
  *
  */
-Order.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.recalculate = function(options: {[key: string]: any} = {}) {
 
   let totalLineItemsPrice = 0
   let totalShipping = 0
@@ -2480,7 +2480,7 @@ Order.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: 
   let totalOverrides = 0
   let totalItems = 0
 
-  return this.resolveOrderItems(app, { transaction: options.transaction || null })
+  return this.resolveOrderItems({ transaction: options.transaction || null })
     .then(() => {
       this.order_items.forEach(item => {
         totalLineItemsPrice = totalLineItemsPrice + item.price
@@ -2512,7 +2512,7 @@ Order.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: 
 
       this.subtotal_price = Math.max(0, this.total_line_items_price)
 
-      return this.calculateTaxes(app, {transactions: options.transaction || null})
+      return this.calculateTaxes({transactions: options.transaction || null})
     })
     .then(() => {
       this.tax_lines.forEach(i => {
@@ -2535,23 +2535,23 @@ Order.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: 
       )
 
       // resolve current transactions
-      return this.resolveTransactions(app, { transaction: options.transaction || null })
+      return this.resolveTransactions({ transaction: options.transaction || null })
     })
     .then(() => {
       // reconcile the transactions
-      return this.reconcileTransactions(app, { transaction: options.transaction || null })
+      return this.reconcileTransactions({ transaction: options.transaction || null })
     })
     .then(() => {
       // resolve the current fulfillments
-      return this.resolveFulfillments(app, { transaction: options.transaction || null })
+      return this.resolveFulfillments({ transaction: options.transaction || null })
     })
     .then(() => {
       // Set the new Financial Status
-      this.setFinancialStatus(app)
+      this.setFinancialStatus()
       // Set the new Fulfillment Status
-      this.setFulfillmentStatus(app)
+      this.setFulfillmentStatus()
       // Set the new Overall Status
-      this.setStatus(app)
+      this.setStatus()
       // Save the changes
       return this.save({transaction: options.transaction || null})
     })
@@ -2559,76 +2559,76 @@ Order.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: 
 /**
  *
  */
-Order.prototype.sendCreatedEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.sendCreatedEmail = function(options: {[key: string]: any} = {}) {
   let resEmail
-  return app.emails.Order.created(this, {
-    send_email: app.config.get('cart.emails.orderCreated')
+  return this.app.emails.Order.created(this, {
+    send_email: this.app.config.get('cart.emails.orderCreated')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
       resEmail = email
-      return this.notifyCustomer(app, resEmail, {transaction: options.transaction || null})
+      return this.notifyCustomer(resEmail, {transaction: options.transaction || null})
     })
     .then(notification => {
-      if (app.config.get('cart.notifications.admin.orderCreated')) {
-        return app.services.ProxyCartService.notifyAdmins(resEmail, {transaction: options.transaction || null})
+      if (this.app.config.get('cart.notifications.admin.orderCreated')) {
+        return this.app.services.ProxyCartService.notifyAdmins(resEmail, {transaction: options.transaction || null})
       }
       return notification
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Order.prototype.sendCancelledEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Order.cancelled(this, {
-    send_email: app.config.get('cart.emails.orderCancelled')
+Order.prototype.sendCancelledEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Order.cancelled(this, {
+    send_email: this.app.config.get('cart.emails.orderCancelled')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Order.prototype.sendRefundedEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Order.refunded(this, {
-    send_email: app.config.get('cart.emails.orderRefunded')
+Order.prototype.sendRefundedEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Order.refunded(this, {
+    send_email: this.app.config.get('cart.emails.orderRefunded')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Order.prototype.sendPaidEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Order.paid(this, {
-    send_email: app.config.get('cart.emails.orderPaid')
+Order.prototype.sendPaidEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Order.paid(this, {
+    send_email: this.app.config.get('cart.emails.orderPaid')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
@@ -2637,35 +2637,35 @@ Order.prototype.sendPaidEmail = function(app: FabrixApp, options: {[key: string]
  * @param options
  * @returns {Promise.<T>}
  */
-Order.prototype.sendPartiallyPaidEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Order.prototype.sendPartiallyPaidEmail = function(options: {[key: string]: any} = {}) {
 
-  return app.emails.Order.partiallyPaid(this, {
-    send_email: app.config.get('cart.emails.orderPaid')
+  return this.app.emails.Order.partiallyPaid(this, {
+    send_email: this.app.config.get('cart.emails.orderPaid')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Order.prototype.sendUpdatedEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Order.updated(this, {
-    send_email: app.config.get('cart.emails.orderUpdated')
+Order.prototype.sendUpdatedEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Order.updated(this, {
+    send_email: this.app.config.get('cart.emails.orderUpdated')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }

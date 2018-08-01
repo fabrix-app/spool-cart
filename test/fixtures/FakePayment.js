@@ -1,7 +1,7 @@
 'use strict'
 const _ = require('lodash')
 const shortId = require('shortid')
-const Generic = require('spool-generics').Generic
+const Generic = require('@fabrix/spool-generics').Generic
 
 module.exports = class FakePaymentProcessor extends Generic {
   constructor(options) {

@@ -14,7 +14,7 @@ describe('Admin User OrderController', () => {
   let fulfillmentID
 
   before((done) => {
-    shopProducts = global.app.shopProducts
+    shopProducts = global.shopProducts
     adminUser = supertest.agent(global.app.spools.express.server)
     // Login as Admin
     adminUser

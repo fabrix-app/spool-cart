@@ -3,7 +3,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Customer'],
+          model: app.models['Customer'].instance,
           // as: 'customer'
         },
         // {

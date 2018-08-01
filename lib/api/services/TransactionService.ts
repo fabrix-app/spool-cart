@@ -551,7 +551,7 @@ export class TransactionService extends Service {
    * @returns {Promise.<transaction>}
    */
   afterCreate(transaction, options: {[key: string]: any} = {}) {
-    return transaction.reconcileOrderFinancialStatus(this.app, options)
+    return transaction.reconcileOrderFinancialStatus(options)
       .catch(err => {
         this.app.log.error(err)
         return transaction
@@ -564,7 +564,7 @@ export class TransactionService extends Service {
    * @returns {Promise.<transaction>}
    */
   afterUpdate(transaction, options: {[key: string]: any} = {}) {
-    return transaction.reconcileOrderFinancialStatus(this.app, options)
+    return transaction.reconcileOrderFinancialStatus(options)
       .catch(err => {
         this.app.log.error(err)
         return transaction

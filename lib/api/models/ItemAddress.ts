@@ -7,6 +7,10 @@ import { SequelizeResolver } from '@fabrix/spool-sequelize'
  */
 export class ItemAddress extends Model {
 
+  static get resolver() {
+    return SequelizeResolver
+  }
+
   static config (app, Sequelize) {
     return {
       options: {

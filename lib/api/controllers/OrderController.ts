@@ -2,7 +2,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 
@@ -232,7 +232,7 @@ export class OrderController extends Controller {
     const CartService = this.app.services.CartService
     const SubscriptionService = this.app.services.SubscriptionService
 
-    lib.Validator.validateOrder.create(req.body)
+    Validator.validateOrder.create(req.body)
       .then(values => {
         if (req.body.cart || req.body.cart_token || req.body.cart_id) {
           if (!req.body.cart) {
@@ -289,7 +289,7 @@ export class OrderController extends Controller {
    */
   update(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.update(req.body)
+    Validator.validateOrder.update(req.body)
       .then(values => {
         req.body.id = req.params.id
         return OrderService.update(req.body)
@@ -312,7 +312,7 @@ export class OrderController extends Controller {
    */
   cancel(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.cancel(req.body)
+    Validator.validateOrder.cancel(req.body)
       .then(values => {
         req.body.id = req.params.id
         return OrderService.cancel(req.body)
@@ -340,7 +340,7 @@ export class OrderController extends Controller {
       return res.serverError(err)
     }
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.authorize(req.body)
+    Validator.validateOrder.authorize(req.body)
       .then(values => {
         return OrderService.authorize(orderId, req.body)
       })
@@ -368,7 +368,7 @@ export class OrderController extends Controller {
     }
 
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.capture(req.body)
+    Validator.validateOrder.capture(req.body)
       .then(values => {
         return OrderService.capture(orderId, req.body)
       })
@@ -396,7 +396,7 @@ export class OrderController extends Controller {
     }
 
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.void(req.body)
+    Validator.validateOrder.void(req.body)
       .then(values => {
         return OrderService.void(orderId, req.body)
       })
@@ -423,7 +423,7 @@ export class OrderController extends Controller {
     }
 
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.retry(req.body)
+    Validator.validateOrder.retry(req.body)
       .then(values => {
         return OrderService.retry(orderId, req.body)
       })
@@ -450,7 +450,7 @@ export class OrderController extends Controller {
     }
 
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.refund(req.body)
+    Validator.validateOrder.refund(req.body)
       .then(values => {
         return OrderService.refund(orderId, req.body)
       })
@@ -518,7 +518,7 @@ export class OrderController extends Controller {
     }
 
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.send(req.body)
+    Validator.validateOrder.send(req.body)
       .then(values => {
         return OrderService.send(orderId, req.body)
       })
@@ -638,7 +638,7 @@ export class OrderController extends Controller {
       id = req.order.id
     }
 
-    lib.Validator.validateOrder.pricingOverrides(req.body)
+    Validator.validateOrder.pricingOverrides(req.body)
       .then(values => {
         return OrderService.pricingOverrides(req.body, id, req.user)
       })
@@ -663,7 +663,7 @@ export class OrderController extends Controller {
    */
   addItem(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.addItem(req.body)
+    Validator.validateOrder.addItem(req.body)
       .then(values => {
         return OrderService.addItem(req.params.id, req.body)
       })
@@ -685,7 +685,7 @@ export class OrderController extends Controller {
    */
   addItems(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.addItems(req.body)
+    Validator.validateOrder.addItems(req.body)
       .then(values => {
         return OrderService.addItems(req.params.id, req.body)
       })
@@ -706,7 +706,7 @@ export class OrderController extends Controller {
    */
   updateItem(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.updateItem(req.body)
+    Validator.validateOrder.updateItem(req.body)
       .then(values => {
         return OrderService.updateItem(req.params.id, req.body)
       })
@@ -730,7 +730,7 @@ export class OrderController extends Controller {
     if (req.params.item) {
       req.body.id = req.params.item
     }
-    lib.Validator.validateOrder.removeItem(req.body)
+    Validator.validateOrder.removeItem(req.body)
       .then(values => {
         return OrderService.removeItem(req.params.id, req.body)
       })
@@ -752,7 +752,7 @@ export class OrderController extends Controller {
    */
   addShipping(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.addShipping(req.body)
+    Validator.validateOrder.addShipping(req.body)
       .then(values => {
         return OrderService.addShipping(req.params.id, req.body)
       })
@@ -774,7 +774,7 @@ export class OrderController extends Controller {
    */
   removeShipping(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.removeShipping(req.body)
+    Validator.validateOrder.removeShipping(req.body)
       .then(values => {
         return OrderService.removeShipping(req.params.id, req.body)
       })
@@ -796,7 +796,7 @@ export class OrderController extends Controller {
    */
   addTaxes(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.addTaxes(req.body)
+    Validator.validateOrder.addTaxes(req.body)
       .then(values => {
         return OrderService.addTaxes(req.params.id, req.body)
       })
@@ -818,7 +818,7 @@ export class OrderController extends Controller {
    */
   removeTaxes(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.removeTaxes(req.body)
+    Validator.validateOrder.removeTaxes(req.body)
       .then(values => {
         return OrderService.removeTaxes(req.params.id, req.body)
       })
@@ -840,7 +840,7 @@ export class OrderController extends Controller {
    */
   pay(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.pay(req.body)
+    Validator.validateOrder.pay(req.body)
       .then(values => {
         return OrderService.pay(req.params.id, req.body)
       })
@@ -864,7 +864,7 @@ export class OrderController extends Controller {
     const id = req.params.id
     const transaction = req.params.transaction
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateTransaction.authorize(req.body)
+    Validator.validateTransaction.authorize(req.body)
       .then(values => {
         return OrderService.authorizeTransaction(id, transaction)
       })
@@ -887,7 +887,7 @@ export class OrderController extends Controller {
     const id = req.params.id
     const transaction = req.params.transaction
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateTransaction.capture(req.body)
+    Validator.validateTransaction.capture(req.body)
       .then(values => {
         return OrderService.captureTransaction(id, transaction)
       })
@@ -911,7 +911,7 @@ export class OrderController extends Controller {
     const id = req.params.id
     const transaction = req.params.transaction
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateTransaction.sale(req.body)
+    Validator.validateTransaction.sale(req.body)
       .then(values => {
         return OrderService.payTransaction(id, transaction)
       })
@@ -935,7 +935,7 @@ export class OrderController extends Controller {
     const id = req.params.id
     const transaction = req.params.transaction
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateTransaction.void(req.body)
+    Validator.validateTransaction.void(req.body)
       .then(values => {
         return OrderService.voidTransaction(id, transaction)
       })
@@ -959,7 +959,7 @@ export class OrderController extends Controller {
     const id = req.params.id
     const transaction = req.params.transaction
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateTransaction.refund(req.body)
+    Validator.validateTransaction.refund(req.body)
       .then(values => {
         return OrderService.refundTransaction(id, transaction)
       })
@@ -983,7 +983,7 @@ export class OrderController extends Controller {
     const id = req.params.id
     const transaction = req.params.transaction
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateTransaction.retry(req.body)
+    Validator.validateTransaction.retry(req.body)
       .then(values => {
         return OrderService.retryTransaction(id, transaction)
       })
@@ -1007,7 +1007,7 @@ export class OrderController extends Controller {
     const id = req.params.id
     const transaction = req.params.transaction
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateTransaction.cancel(req.body)
+    Validator.validateTransaction.cancel(req.body)
       .then(values => {
         return OrderService.cancelTransaction(id, transaction)
       })
@@ -1029,7 +1029,7 @@ export class OrderController extends Controller {
    */
   fulfill(req, res) {
     const OrderService = this.app.services.OrderService
-    lib.Validator.validateOrder.fulfill(req.body)
+    Validator.validateOrder.fulfill(req.body)
       .then(values => {
         return OrderService.fulfill(req.params.id, req.body)
       })

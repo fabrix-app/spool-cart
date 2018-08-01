@@ -3,7 +3,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 // import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-// const lib = require('../../lib')
+// import * as Validator from '../../validator'
 
 /**
  * @module CartController

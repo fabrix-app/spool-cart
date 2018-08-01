@@ -2,7 +2,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 
@@ -160,7 +160,7 @@ export class DiscountController extends Controller {
 
     req.body = req.body || {}
 
-    lib.Validator.validateDiscount.create(req.body)
+    Validator.validateDiscount.create(req.body)
       .then(values => {
         return DiscountService.create(req.body)
       })
@@ -186,7 +186,7 @@ export class DiscountController extends Controller {
     const discountID = req.params.id
     req.body = req.body || {}
 
-    lib.Validator.validateDiscount.update(req.body)
+    Validator.validateDiscount.update(req.body)
       .then(values => {
         return DiscountService.update(discountID, req.body)
       })
@@ -211,7 +211,7 @@ export class DiscountController extends Controller {
 
     const discountID = req.params.id
 
-    lib.Validator.validateDiscount.destroy(discountID)
+    Validator.validateDiscount.destroy(discountID)
       .then(values => {
         return DiscountService.destroy(discountID)
       })
@@ -308,7 +308,7 @@ export class DiscountController extends Controller {
       order: sort,
       include: [
         {
-          model: this.app.models['Discount'],
+          model: this.app.models['Discount'].instance,
           as: 'discounts',
           where: {
             id: discountId
@@ -413,7 +413,7 @@ export class DiscountController extends Controller {
       order: sort,
       include: [
         {
-          model: this.app.models['Discount'],
+          model: this.app.models['Discount'].instance,
           as: 'discounts',
           where: {
             id: discountId
@@ -497,7 +497,7 @@ export class DiscountController extends Controller {
       order: sort,
       include: [
         {
-          model: this.app.models['Discount'],
+          model: this.app.models['Discount'].instance,
           as: 'discounts',
           where: {
             id: discountId
@@ -601,7 +601,7 @@ export class DiscountController extends Controller {
       order: sort,
       include: [
         {
-          model: this.app.models['Discount'],
+          model: this.app.models['Discount'].instance,
           as: 'discounts',
           where: {
             id: discountId

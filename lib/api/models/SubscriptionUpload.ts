@@ -1,7 +1,7 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { values } from 'lodash'
-const INTERVALS = require('../../lib').Enums.INTERVALS
+import { INTERVALS } from '../../enums'
 
 // const SUBSCRIPTION_CANCEL = require('../../lib').Enums.SUBSCRIPTION_CANCEL
 

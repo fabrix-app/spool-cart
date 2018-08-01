@@ -9,8 +9,8 @@ describe('Admin User Checkout with Product Discount', () => {
   let discountService, discountID
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
     discountService = global.app.services.DiscountService
     adminUser = supertest.agent(global.app.spools.express.server)
     // Login as Admin

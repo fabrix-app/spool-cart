@@ -231,24 +231,30 @@ export class Cart extends Model {
           }
         ],
         hooks: {
-          beforeCreate: (cart, options) => {
-            return app.services.CartService.beforeCreate(cart, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeUpdate: (cart, options) => {
-            return app.services.CartService.beforeUpdate(cart, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeSave: (cart, options) => {
-            return app.services.CartService.beforeSave(cart, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          beforeCreate: [
+            (cart, options) => {
+              return app.services.CartService.beforeCreate(cart, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeUpdate: [
+            (cart, options) => {
+              return app.services.CartService.beforeUpdate(cart, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeSave: [
+            (cart, options) => {
+              return app.services.CartService.beforeSave(cart, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         }
       }
     }
@@ -613,51 +619,51 @@ export class Cart extends Model {
 
 
 export interface Cart {
-  resetDefaults(app): any
-  setLineItems(app, lines): any
-  setItemDiscountedLines(app, item, discount, criteria ): any
-  setItemsDiscountedLines(app, discounts, criteria): any
-  setDiscountedLines(app, lines): any
-  setPricingOverrides(app, lines): any
-  setCouponLines(app, lines): any
-  setItemsShippingLines(app, items): any
-  setShippingLines(app, lines): any
-  setItemsTaxLines(app, items): any
-  setTaxLines(app, lines): any
-  setTotals(app): any
-  setLineProperties(app, lines): any
-  line(app, data): any
-  addLine(app: FabrixApp, item, qty, properties, options): any
-  removeLine(app: FabrixApp, item, qty, options): any
-  addShipping(app: FabrixApp, shipping, options): any
-  removeShipping(app: FabrixApp, shipping, options): any
-  addTaxes(app: FabrixApp, taxes, options): any
-  removeTaxes(app: FabrixApp, taxes, options): any
-  close(app: FabrixApp, status, save): any
-  draft(app: FabrixApp, status, save): any
-  clear(app: FabrixApp): any
-  ordered(app, FabrixApp, order, save): any
-  buildOrder(app, options): any
-  calculatePricingOverrides(app: FabrixApp, options): any
-  calculateDiscounts(app: FabrixApp, options): any
-  calculateShipping(app: FabrixApp, options): any
-  calculateTaxes(app: FabrixApp, options): any
-  recalculate(app: FabrixApp, options): any
-  resolveCustomer(app: FabrixApp, options): any
-  resolveCustomerAndItemCollections(app: FabrixApp, options): any
-  resolveDiscounts(app: FabrixApp, options): any
-  getCollectionPairs(app: FabrixApp, options): any
-  resolveShippingAddress(app: FabrixApp, options): any
-  resolveBillingAddress(app: FabrixApp, options): any
-  updateShippingAddress(app: FabrixApp, address, options): any
-  updateBillingAddress(app: FabrixApp, address, options): any
+  resetDefaults(): any
+  setLineItems( lines): any
+  setItemDiscountedLines( item, discount, criteria ): any
+  setItemsDiscountedLines( discounts, criteria): any
+  setDiscountedLines( lines): any
+  setPricingOverrides( lines): any
+  setCouponLines( lines): any
+  setItemsShippingLines( items): any
+  setShippingLines( lines): any
+  setItemsTaxLines( items): any
+  setTaxLines( lines): any
+  setTotals(): any
+  setLineProperties( lines): any
+  line( data): any
+  addLine(item, qty, properties, options): any
+  removeLine(item, qty, options): any
+  addShipping(shipping, options): any
+  removeShipping(shipping, options): any
+  addTaxes(taxes, options): any
+  removeTaxes(taxes, options): any
+  close(status, save): any
+  draft(status, save): any
+  clear(): any
+  ordered(order, save): any
+  buildOrder( options): any
+  calculatePricingOverrides(options): any
+  calculateDiscounts(options): any
+  calculateShipping(options): any
+  calculateTaxes(options): any
+  recalculate(options): any
+  resolveCustomer(options): any
+  resolveCustomerAndItemCollections(options): any
+  resolveDiscounts(options): any
+  getCollectionPairs(options): any
+  resolveShippingAddress(options): any
+  resolveBillingAddress(options): any
+  updateShippingAddress(address, options): any
+  updateBillingAddress(address, options): any
 }
 
 /**
  * Resets the defaults so they can be recalculated
  * @returns {*}
  */
-Cart.prototype.resetDefaults = function(app: FabrixApp) {
+Cart.prototype.resetDefaults = function() {
   this.total_items = 0
   this.total_shipping = 0
   this.subtotal_price = 0
@@ -706,7 +712,7 @@ Cart.prototype.resetDefaults = function(app: FabrixApp) {
 /**
  *
  */
-Cart.prototype.setLineItems = function(app: FabrixApp, lines = []) {
+Cart.prototype.setLineItems = function( lines = []) {
   this.line_items = lines
 
   this.total_items = 0
@@ -734,8 +740,8 @@ Cart.prototype.setLineItems = function(app: FabrixApp, lines = []) {
 /**
  *
  */
-Cart.prototype.setItemDiscountedLines = function(app: FabrixApp, item, discount, criteria) {
-  if (!(discount instanceof app.models['Discount'].instance)) {
+Cart.prototype.setItemDiscountedLines = function( item, discount, criteria) {
+  if (!(discount instanceof this.app.models['Discount'].instance)) {
     throw new Error('setItemDiscountedLines expects discount parameter to be a Discount Instance')
   }
   item = discount.discountItem(item, criteria)
@@ -744,7 +750,7 @@ Cart.prototype.setItemDiscountedLines = function(app: FabrixApp, item, discount,
 /**
  *
  */
-Cart.prototype.setItemsDiscountedLines = function (app: FabrixApp, discounts, criteria) {
+Cart.prototype.setItemsDiscountedLines = function (discounts, criteria) {
   // Make this an array if null
   discounts = discounts || []
   // Make this an array if null
@@ -860,25 +866,25 @@ Cart.prototype.setItemsDiscountedLines = function (app: FabrixApp, discounts, cr
     })
     return item
   })
-  return this.setDiscountedLines(app, factoredDiscountedLines)
+  return this.setDiscountedLines(factoredDiscountedLines)
 }
 /**
  *
  */
-Cart.prototype.setDiscountedLines = function(app: FabrixApp, lines = []) {
+Cart.prototype.setDiscountedLines = function( lines = []) {
   this.total_discounts = 0
   this.discounted_lines = lines
   this.discounted_lines.forEach(line => {
     this.total_discounts = this.total_discounts + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 }
 
 /**
  *
  * @param lines
  */
-Cart.prototype.setPricingOverrides = function(app: FabrixApp, lines = []) {
+Cart.prototype.setPricingOverrides = function( lines = []) {
   this.total_overrides = 0
   this.pricing_overrides = lines
   this.pricing_overrides.forEach(line => {
@@ -891,7 +897,7 @@ Cart.prototype.setPricingOverrides = function(app: FabrixApp, lines = []) {
  *
  * @param lines
  */
-Cart.prototype.setCouponLines = function(app: FabrixApp, lines) {
+Cart.prototype.setCouponLines = function( lines) {
   this.total_coupons = 0
   this.coupon_lines = lines || []
   this.coupon_lines.forEach(line => {
@@ -900,7 +906,7 @@ Cart.prototype.setCouponLines = function(app: FabrixApp, lines) {
   return this.setTotals()
 }
 
-Cart.prototype.setItemsShippingLines = function (app: FabrixApp, items) {
+Cart.prototype.setItemsShippingLines = function (items) {
   let shippingLines = []
   let totalShipping = 0
   // Make this an array if null
@@ -934,7 +940,7 @@ Cart.prototype.setItemsShippingLines = function (app: FabrixApp, items) {
 /**
  *
  */
-Cart.prototype.setShippingLines = function(app: FabrixApp, lines = []) {
+Cart.prototype.setShippingLines = function( lines = []) {
   this.total_shipping = 0
   this.shipping_lines = [...this.shipping_lines, ...lines],
     this.shipping_lines.forEach(line => {
@@ -945,7 +951,7 @@ Cart.prototype.setShippingLines = function(app: FabrixApp, lines = []) {
 /**
  *
  */
-Cart.prototype.setItemsTaxLines = function (app: FabrixApp, items) {
+Cart.prototype.setItemsTaxLines = function (items) {
   let taxesLines = []
   let totalTaxes = 0
   // Make this an array if null
@@ -979,19 +985,19 @@ Cart.prototype.setItemsTaxLines = function (app: FabrixApp, items) {
 /**
  *
  */
-Cart.prototype.setTaxLines = function(app: FabrixApp, lines = []) {
+Cart.prototype.setTaxLines = function( lines = []) {
   this.total_tax = 0
   this.tax_lines = [...this.tax_lines, ...lines]
   this.tax_lines.forEach(line => {
     this.total_tax = this.total_tax + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 }
 
 /**
  *
  */
-Cart.prototype.setTotals = function(app: FabrixApp) {
+Cart.prototype.setTotals = function() {
   // Set Cart values
   this.total_price = Math.max(0,
     this.total_tax
@@ -1011,7 +1017,7 @@ Cart.prototype.setTotals = function(app: FabrixApp) {
 /**
  *
  */
-Cart.prototype.setLineProperties = (app: FabrixApp, line) => {
+Cart.prototype.setLineProperties = (line) => {
   if (line.properties) {
     for (const l in line.properties) {
       if (line.properties.hasOwnProperty(l)) {
@@ -1026,7 +1032,7 @@ Cart.prototype.setLineProperties = (app: FabrixApp, line) => {
    *
    */
   // TODO Select Vendor
-Cart.prototype.line = function(app, data) {
+Cart.prototype.line = function(data) {
   // handle empty product
   data.Product = data.Product || {}
   data.property_pricing = data.property_pricing || data.Product.property_pricing
@@ -1088,7 +1094,7 @@ Cart.prototype.line = function(app, data) {
     quantity: data.quantity,
     fulfillable_quantity: data.fulfillable_quantity,
     max_quantity: data.max_quantity,
-    grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
+    grams: this.app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
     vendors: data.Product.vendors,
     vendor_id: data.vendor_id || null,
     average_shipping: data.Product.average_shipping,
@@ -1101,7 +1107,7 @@ Cart.prototype.line = function(app, data) {
 /**
  *
  */
-Cart.prototype.addLine = function(app: FabrixApp, item, qty, properties, options = {}) {
+Cart.prototype.addLine = function( item, qty, properties, options = {}) {
   // The quantity available of this variant
   let lineQtyAvailable = -1
   let line
@@ -1131,7 +1137,7 @@ Cart.prototype.addLine = function(app: FabrixApp, item, qty, properties, options
       const itemIndex = findIndex(lineItems, {variant_id: item.id})
       // If already in cart
       if (itemIndex > -1) {
-        app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
+        this.app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
         const maxQuantity = lineItems[itemIndex].max_quantity || -1
         let calculatedQty = lineItems[itemIndex].quantity + qty
 
@@ -1174,7 +1180,7 @@ Cart.prototype.addLine = function(app: FabrixApp, item, qty, properties, options
         line = this.line(item)
         line = this.setLineProperties(line)
 
-        app.log.silly('Cart.addLine NEW LINE', line)
+        this.app.log.silly('Cart.addLine NEW LINE', line)
         // Add line to line items
         lineItems.push(line)
         // Assign line items
@@ -1187,7 +1193,7 @@ Cart.prototype.addLine = function(app: FabrixApp, item, qty, properties, options
 /**
  *
  */
-Cart.prototype.removeLine = function(app: FabrixApp, item, qty, options = {}) {
+Cart.prototype.removeLine = function( item, qty, options = {}) {
   const lineItems = this.line_items
   if (!qty || !isNumber(qty)) {
     qty = 1
@@ -1198,7 +1204,7 @@ Cart.prototype.removeLine = function(app: FabrixApp, item, qty, options = {}) {
     lineItems[itemIndex].fulfillable_quantity = Math.max(0, lineItems[itemIndex].fulfillable_quantity - qty)
     // Resolve Grams
     if ( lineItems[itemIndex].quantity < 1) {
-      app.log.silly(`Cart.removeLine removing '${lineItems[itemIndex].variant_id}' line completely`)
+      this.app.log.silly(`Cart.removeLine removing '${lineItems[itemIndex].variant_id}' line completely`)
       lineItems.splice(itemIndex, 1)
     }
     this.line_items = lineItems
@@ -1209,7 +1215,7 @@ Cart.prototype.removeLine = function(app: FabrixApp, item, qty, options = {}) {
 /**
  *
  */
-Cart.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {[key: string]: any} = {}) {
+Cart.prototype.addShipping = function( shipping = [], options: {[key: string]: any} = {}) {
   const shippingLines = this.shipping_lines
 
   if (isArray(shipping)) {
@@ -1218,7 +1224,7 @@ Cart.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {[
         return s.name === ship.name
       })
       // Make sure shipping price is a number
-      ship.price = app.services.ProxyCartService.normalizeCurrency(parseInt(ship.price, 10))
+      ship.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(ship.price, 10))
       if (i > -1) {
         shippingLines[i] = ship
       }
@@ -1232,7 +1238,7 @@ Cart.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {[
       return s.name === shipping.name
     })
     // Make sure shipping price is a number
-    shipping.price = app.services.ProxyCartService.normalizeCurrency(parseInt(shipping.price, 10))
+    shipping.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(shipping.price, 10))
 
     if (i > -1) {
       shippingLines[i] = shipping
@@ -1249,7 +1255,7 @@ Cart.prototype.addShipping = function(app: FabrixApp, shipping = [], options: {[
 /**
  *
  */
-Cart.prototype.removeShipping = function(app: FabrixApp, shipping = [], options: {[key: string]: any} = {}) {
+Cart.prototype.removeShipping = function( shipping = [], options: {[key: string]: any} = {}) {
   const shippingLines = this.shipping_lines
 
   if (isArray(shipping)) {
@@ -1278,7 +1284,7 @@ Cart.prototype.removeShipping = function(app: FabrixApp, shipping = [], options:
 /**
  *
  */
-Cart.prototype.addTaxes = function(app: FabrixApp, taxes = [], options = {}) {
+Cart.prototype.addTaxes = function( taxes = [], options = {}) {
 
   const taxLines = this.tax_lines
 
@@ -1288,7 +1294,7 @@ Cart.prototype.addTaxes = function(app: FabrixApp, taxes = [], options = {}) {
         return s.name === tax.name
       })
       // Make sure taxes price is a number
-      tax.price = app.services.ProxyCartService.normalizeCurrency(parseInt(tax.price, 10))
+      tax.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(tax.price, 10))
       if (i > -1) {
         taxLines[i] = tax
       }
@@ -1302,7 +1308,7 @@ Cart.prototype.addTaxes = function(app: FabrixApp, taxes = [], options = {}) {
       return s.name === taxes.name
     })
     // Make sure taxes price is a number
-    taxes.price = app.services.ProxyCartService.normalizeCurrency(parseInt(taxes.price, 10))
+    taxes.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(taxes.price, 10))
 
     if (i > -1) {
       taxLines[i] = taxes
@@ -1317,7 +1323,7 @@ Cart.prototype.addTaxes = function(app: FabrixApp, taxes = [], options = {}) {
 /**
  *
  */
-Cart.prototype.removeTaxes = function(app: FabrixApp, taxes = [], options = {}) {
+Cart.prototype.removeTaxes = function( taxes = [], options = {}) {
   const taxLines = this.tax_lines
 
   if (isArray(taxes)) {
@@ -1344,7 +1350,7 @@ Cart.prototype.removeTaxes = function(app: FabrixApp, taxes = [], options = {}) 
 /**
  *
  */
-Cart.prototype.close = function(app: FabrixApp, status, save) {
+Cart.prototype.close = function( status, save) {
   this.status = status || CART_STATUS.CLOSED
   if (save) {
     return this.save(save)
@@ -1354,7 +1360,7 @@ Cart.prototype.close = function(app: FabrixApp, status, save) {
 /**
  *
  */
-Cart.prototype.draft = function (app: FabrixApp, status, save) {
+Cart.prototype.draft = function (status, save) {
   this.status = status || CART_STATUS.DRAFT
   if (save) {
     return this.save(save)
@@ -1362,14 +1368,14 @@ Cart.prototype.draft = function (app: FabrixApp, status, save) {
   return this // Promise.resolve(this)
 }
 
-Cart.prototype.clear = function (app: FabrixApp) {
+Cart.prototype.clear = function () {
   this.line_items = []
   return this
 }
 /**
  *
  */
-Cart.prototype.ordered = function(app: FabrixApp, order, save) {
+Cart.prototype.ordered = function( order, save) {
   this.order_id = order.id
   this.status = CART_STATUS.ORDERED
   if (save) {
@@ -1381,15 +1387,15 @@ Cart.prototype.ordered = function(app: FabrixApp, order, save) {
 /**
  *
  */
-Cart.prototype.buildOrder = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.buildOrder = function( options: {[key: string]: any} = {}) {
   return {
     // Request info
     client_details: options.client_details || this.client_details || {},
     ip: options.ip || null,
     payment_details: options.payment_details,
-    payment_kind: options.payment_kind || app.config.get('cart.orders.payment_kind'),
-    transaction_kind: options.transaction_kind || app.config.get('cart.orders.transaction_kind'),
-    fulfillment_kind: options.fulfillment_kind || app.config.get('cart.orders.fulfillment_kind'),
+    payment_kind: options.payment_kind || this.app.config.get('cart.orders.payment_kind'),
+    transaction_kind: options.transaction_kind || this.app.config.get('cart.orders.transaction_kind'),
+    fulfillment_kind: options.fulfillment_kind || this.app.config.get('cart.orders.fulfillment_kind'),
     processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.CHECKOUT,
     shipping_address: options.shipping_address || this.shipping_address,
     billing_address: options.billing_address || this.billing_address,
@@ -1434,7 +1440,7 @@ Cart.prototype.buildOrder = function(app: FabrixApp, options: {[key: string]: an
 /**
  *
  */
-Cart.prototype.calculatePricingOverrides = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.calculatePricingOverrides = function( options: {[key: string]: any} = {}) {
 
   this.line_items = this.line_items || []
   this.pricing_overrides = this.pricing_overrides || []
@@ -1452,7 +1458,7 @@ Cart.prototype.calculatePricingOverrides = function(app: FabrixApp, options: {[k
         return this.Customer
       }
       else {
-        return app.models['Customer'].findById(this.customer_id, {
+        return this.app.models['Customer'].findById(this.customer_id, {
           attributes: ['id', 'account_balance'],
           transaction: options.transaction || null
         })
@@ -1499,7 +1505,7 @@ Cart.prototype.calculatePricingOverrides = function(app: FabrixApp, options: {[k
       return this.setPricingOverrides(pricingOverrides)
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 },
@@ -1507,7 +1513,7 @@ Cart.prototype.calculatePricingOverrides = function(app: FabrixApp, options: {[k
 /**
  *
  */
-Cart.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.calculateDiscounts = function( options: {[key: string]: any} = {}) {
 
   const criteria = []
   const productIds = this.line_items.map(item => item.product_id)
@@ -1516,7 +1522,7 @@ Cart.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: str
   let resDiscounts
   return Promise.resolve()
     .then(() => {
-      return this.getCollectionPairs(app, {transaction: options.transaction || null})
+      return this.getCollectionPairs({transaction: options.transaction || null})
     })
     .then(_collections => {
       collectionPairs = _collections || []
@@ -1546,7 +1552,7 @@ Cart.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: str
         })
       }
       if (criteria.length > 0) {
-        return app.models['ItemDiscount'].findAll({
+        return this.app.models['ItemDiscount'].findAll({
           where: {
             $or: criteria
           },
@@ -1588,7 +1594,7 @@ Cart.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: str
       })
 
       if (discounts.length > 0) {
-        return app.models['Discount'].findAll({
+        return this.app.models['Discount'].findAll({
           where: {
             id: discounts.map(item => item.discount_id),
             status: DISCOUNT_STATUS.ENABLED
@@ -1631,7 +1637,7 @@ Cart.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: str
       return this.setItemsDiscountedLines(resDiscounts, discountCriteria)
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
@@ -1639,11 +1645,17 @@ Cart.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: str
 /**
  *
  */
-Cart.prototype.calculateShipping = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.calculateShipping = function( options: {[key: string]: any} = {}) {
   if (!this.has_shipping) {
     return Promise.resolve(this)
   }
-  return app.services.ShippingService.calculate(this, this.line_items, this.shipping_address, app.models['Cart'], options)
+  return this.app.services.ShippingService.calculate(
+    this,
+    this.line_items,
+    this.shipping_address,
+    this.app.models['Cart'].instance,
+    options
+  )
     .then(shippingResult => {
       // console.log('WORKING ON SHIPPING RESULT', shippingResult.line_items)
       this.setItemsShippingLines(shippingResult.line_items)
@@ -1651,18 +1663,18 @@ Cart.prototype.calculateShipping = function(app: FabrixApp, options: {[key: stri
       return this
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
 /**
  *
  */
-Cart.prototype.calculateTaxes = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.calculateTaxes = function( options: {[key: string]: any} = {}) {
   if (!this.has_taxes) {
     return Promise.resolve(this)
   }
-  return app.services.TaxService.calculate(this, this.line_items, this.shipping_address, app.models['Cart'], options)
+  return this.app.services.TaxService.calculate(this, this.line_items, this.shipping_address, this.app.models['Cart'].instance, options)
     .then(taxesResult => {
       // console.log('WORKING ON TAXES RESULT', taxesResult.line_items)
       this.setItemsTaxLines(taxesResult.line_items)
@@ -1670,14 +1682,14 @@ Cart.prototype.calculateTaxes = function(app: FabrixApp, options: {[key: string]
       return this
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
 /**
  *
  */
-Cart.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.recalculate = function( options: {[key: string]: any} = {}) {
   // Default Values
   // const collections = []
 
@@ -1685,27 +1697,27 @@ Cart.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: a
   this.setLineItems(this.line_items)
   return Promise.resolve()
     .then(() => {
-      return this.calculateDiscounts(app, {transaction: options.transaction || null})
+      return this.calculateDiscounts({transaction: options.transaction || null})
     })
     // .then(discounts => {
     //   // Calculate Coupons
     //   return app.services.CouponService.calculate(this, collections, app.models['Cart'])
     // })
     .then(() => {
-      return this.calculateShipping(app, {transaction: options.transaction || null})
+      return this.calculateShipping({transaction: options.transaction || null})
     })
     .then(() => {
-      return this.calculateTaxes(app, {transaction: options.transaction || null})
+      return this.calculateTaxes({transaction: options.transaction || null})
     })
     .then(() => {
       // Calculate Customer Balance
-      return this.calculatePricingOverrides(app, {transaction: options.transaction || null})
+      return this.calculatePricingOverrides({transaction: options.transaction || null})
     })
     .then(() => {
       return this.setTotals()
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
@@ -1713,10 +1725,10 @@ Cart.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: a
 /**
  *
  */
-Cart.prototype.resolveCustomer = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.resolveCustomer = function( options: {[key: string]: any} = {}) {
   if (
     this.Customer
-    && this.Customer instanceof app.models['Customer'].instance
+    && this.Customer instanceof this.app.models['Customer'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1740,7 +1752,7 @@ Cart.prototype.resolveCustomer = function(app: FabrixApp, options: {[key: string
 }
 
 // TODO
-Cart.prototype.resolveCustomerAndItemCollections = function(app: FabrixApp, options = {}) {
+Cart.prototype.resolveCustomerAndItemCollections = function( options = {}) {
   this.line_items.forEach(item => {
     //
   })
@@ -1749,11 +1761,11 @@ Cart.prototype.resolveCustomerAndItemCollections = function(app: FabrixApp, opti
 /**
  *
  */
-Cart.prototype.resolveDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.resolveDiscounts = function( options: {[key: string]: any} = {}) {
   if (
     this.discounts
     && this.discounts.length > 0
-    && this.discounts.every(d => d instanceof app.models['Discount'].instance)
+    && this.discounts.every(d => d instanceof this.app.models['Discount'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1770,7 +1782,7 @@ Cart.prototype.resolveDiscounts = function(app: FabrixApp, options: {[key: strin
   }
 }
 
-Cart.prototype.getCollectionPairs = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.getCollectionPairs = function( options: {[key: string]: any} = {}) {
   const collectionPairs = []
   const criteria = []
   let productIds = this.line_items.map(item => item.product_id)
@@ -1802,7 +1814,7 @@ Cart.prototype.getCollectionPairs = function(app: FabrixApp, options: {[key: str
       }
 
       if (criteria.length > 0) {
-        return app.models['ItemCollection'].findAll({
+        return this.app.models['ItemCollection'].findAll({
           where: {
             $or: criteria
           },
@@ -1834,22 +1846,22 @@ Cart.prototype.getCollectionPairs = function(app: FabrixApp, options: {[key: str
       return collectionPairs
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return []
     })
 }
 
-Cart.prototype.resolveShippingAddress = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.resolveShippingAddress = function( options: {[key: string]: any} = {}) {
   if (
     this.shipping_address
-    && this.shipping_address instanceof app.models['Address'].instance
+    && this.shipping_address instanceof this.app.models['Address'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
   }
   // Some carts may not have a shipping address Id
   else if (!this.shipping_address_id) {
-    this.shipping_address = app.models['Address'].build({})
+    this.shipping_address = this.app.models['Address'].build({})
     return Promise.resolve(this)
   }
   else {
@@ -1867,17 +1879,17 @@ Cart.prototype.resolveShippingAddress = function(app: FabrixApp, options: {[key:
 /**
  *
  */
-Cart.prototype.resolveBillingAddress = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Cart.prototype.resolveBillingAddress = function( options: {[key: string]: any} = {}) {
   if (
     this.billing_address
-    && this.billing_address instanceof app.models['Address'].instance
+    && this.billing_address instanceof this.app.models['Address'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
   }
   // Some carts may not have a billing address Id
   else if (!this.billing_address_id) {
-    this.billing_address = app.models['Address'].build({})
+    this.billing_address = this.app.models['Address'].build({})
     return Promise.resolve(this)
   }
   else {
@@ -1895,8 +1907,8 @@ Cart.prototype.resolveBillingAddress = function(app: FabrixApp, options: {[key: 
 /**
  *
  */
-Cart.prototype.updateShippingAddress = function(app: FabrixApp, address, options: {[key: string]: any} = {}) {
-  const Address = app.models['Address']
+Cart.prototype.updateShippingAddress = function( address, options: {[key: string]: any} = {}) {
+  const Address = this.app.models['Address']
   const shippingUpdate = Address.cleanAddress(address)
 
   return this.resolveShippingAddress({transaction: options.transaction || null})
@@ -1929,8 +1941,8 @@ Cart.prototype.updateShippingAddress = function(app: FabrixApp, address, options
 /**
  *
  */
-Cart.prototype.updateBillingAddress = function(app: FabrixApp, address, options: {[key: string]: any} = {}) {
-  const Address = app.models['Address']
+Cart.prototype.updateBillingAddress = function( address, options: {[key: string]: any} = {}) {
+  const Address = this.app.models['Address']
   const billingUpdate = Address.cleanAddress(address)
 
   return this.resolveBillingAddress({transaction: options.transaction || null})

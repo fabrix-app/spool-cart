@@ -129,14 +129,14 @@ export class CollectionService extends Service {
       })
       .then(_discounts => {
         if (_discounts && _discounts.length > 0) {
-          return resCollection.setDiscounts(this.app, _discounts.map(d => d.id), {transaction: options.transaction || null})
+          return resCollection.setDiscounts(_discounts.map(d => d.id), {transaction: options.transaction || null})
         }
         return
       })
       .then(_discounts => {
         if (collection.tags && collection.tags.length > 0) {
           collection.tags = _.sortedUniq(collection.tags.filter(n => n))
-          return Tag.transformTags(this.app, collection.tags, {transaction: options.transaction || null})
+          return Tag.transformTags(collection.tags, {transaction: options.transaction || null})
         }
         return
       })

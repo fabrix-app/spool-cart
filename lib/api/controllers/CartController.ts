@@ -3,8 +3,9 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const lib = require('../../lib')
-const CART_STATUS = require('../../lib').Enums.CART_STATUS
+
+import * as Validator from '../../validator'
+import  { CART_STATUS } from '../../enums'
 
 /**
  * @module CartController
@@ -236,7 +237,7 @@ export class CartController extends Controller {
       req.body.owners = [req.user]
     }
 
-    lib.Validator.validateCart.create(req.body)
+    Validator.validateCart.create(req.body)
       .then(values => {
         return CartService.create(req.body)
       })
@@ -273,7 +274,7 @@ export class CartController extends Controller {
   draft(req, res) {
     const CartService = this.app.services.CartService
     req.body.status = CART_STATUS.DRAFT
-    lib.Validator.validateCart.create(req.body)
+    Validator.validateCart.create(req.body)
       .then(values => {
         return CartService.create(req.body)
       })
@@ -321,7 +322,7 @@ export class CartController extends Controller {
     if (req.user && !req.body.owners) {
       req.body.owners = [req.user]
     }
-    lib.Validator.validateCart.update(req.body)
+    Validator.validateCart.update(req.body)
       .then(values => {
         return CartService.update(id, req.body)
       })
@@ -366,7 +367,7 @@ export class CartController extends Controller {
     }
 
     const CartService = this.app.services.CartService
-    lib.Validator.validateCart.checkout(req.body)
+    Validator.validateCart.checkout(req.body)
       .then(values => {
 
         const cartId = req.params.id || req.body.cart.id
@@ -422,7 +423,7 @@ export class CartController extends Controller {
     if (!id && req.cart) {
       id = req.cart.id
     }
-    lib.Validator.validateCart.addItems(req.body)
+    Validator.validateCart.addItems(req.body)
       .then(values => {
         return CartService.addItemsToCart(req.body, id)
       })
@@ -452,7 +453,7 @@ export class CartController extends Controller {
     if (!id && req.cart) {
       id = req.cart.id
     }
-    lib.Validator.validateCart.removeItems(req.body)
+    Validator.validateCart.removeItems(req.body)
       .then(values => {
         return CartService.removeItemsFromCart(req.body, id)
       })
@@ -478,7 +479,7 @@ export class CartController extends Controller {
    */
   addShipping(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateCart.addShipping(req.body)
+    Validator.validateCart.addShipping(req.body)
       .then(values => {
         return CartService.addShipping(req.params.id, req.body)
       })
@@ -501,7 +502,7 @@ export class CartController extends Controller {
    */
   removeShipping(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateCart.removeShipping(req.body)
+    Validator.validateCart.removeShipping(req.body)
       .then(values => {
         return CartService.removeShipping(req.params.id, req.body)
       })
@@ -524,7 +525,7 @@ export class CartController extends Controller {
    */
   addTaxes(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateCart.addTaxes(req.body)
+    Validator.validateCart.addTaxes(req.body)
       .then(values => {
         return CartService.addTaxes(req.params.id, req.body)
       })
@@ -547,7 +548,7 @@ export class CartController extends Controller {
    */
   removeTaxes(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateCart.removeTaxes(req.body)
+    Validator.validateCart.removeTaxes(req.body)
       .then(values => {
         return CartService.removeTaxes(req.params.id, req.body)
       })
@@ -580,7 +581,7 @@ export class CartController extends Controller {
       id = req.cart.id
     }
 
-    lib.Validator.validateCart.pricingOverrides(req.body)
+    Validator.validateCart.pricingOverrides(req.body)
       .then(values => {
         return CartService.pricingOverrides(req.body, id, req.user)
       })
@@ -610,7 +611,7 @@ export class CartController extends Controller {
     if (!id && req.cart) {
       id = req.cart.id
     }
-    lib.Validator.validateCart.clear(req.body)
+    Validator.validateCart.clear(req.body)
       .then(values => {
         return CartService.clearCart(id)
       })

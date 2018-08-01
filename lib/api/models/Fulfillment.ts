@@ -374,46 +374,46 @@ export class Fulfillment extends Model {
 }
 
 export interface Fulfillment {
-  pending(app: FabrixApp): any
-  none(app: FabrixApp): any
-  partial(app: FabrixApp): any
-  sent(app: FabrixApp): any
-  fulfilled(app: FabrixApp): any
-  cancelled(app: FabrixApp): any
-  fulfillUpdate(app: FabrixApp, data, options): any
-  reconcileFulfillmentStatus(app: FabrixApp, options): any
-  resolveFulfillmentStatus(app: FabrixApp, options): any
-  resolveOrderItems(app: FabrixApp, options): any
-  saveFulfillmentStatus(app: FabrixApp, options): any
-  setFulfillmentStatus(app: FabrixApp, options): any
+  pending(): any
+  none(): any
+  partial(): any
+  sent(): any
+  fulfilled(): any
+  cancelled(): any
+  fulfillUpdate(data, options): any
+  reconcileFulfillmentStatus(options): any
+  resolveFulfillmentStatus(options): any
+  resolveOrderItems(options): any
+  saveFulfillmentStatus(options): any
+  setFulfillmentStatus(options): any
 }
 
 /**
  *
  * @returns {*}
  */
-Fulfillment.prototype.pending = (app: FabrixApp) => {
+Fulfillment.prototype.pending = () => {
   return this
 }
 /**
  *
  * @returns {*}
  */
-Fulfillment.prototype.none = (app: FabrixApp) => {
+Fulfillment.prototype.none = () => {
   return this
 }
 /**
  *
  * @returns {*}
  */
-Fulfillment.prototype.partial = (app: FabrixApp) => {
+Fulfillment.prototype.partial = () => {
   return this
 }
 /**
  *
  * @returns {*}
  */
-Fulfillment.prototype.sent = (app: FabrixApp) => {
+Fulfillment.prototype.sent = () => {
   this.sent_at = new Date(Date.now())
   this.status = FULFILLMENT_STATUS.SENT
   return this
@@ -422,7 +422,7 @@ Fulfillment.prototype.sent = (app: FabrixApp) => {
  *
  * @returns {*}
  */
-Fulfillment.prototype.fulfilled = (app: FabrixApp) => {
+Fulfillment.prototype.fulfilled = () => {
   this.fulfilled_at = new Date(Date.now())
   this.status = FULFILLMENT_STATUS.FULFILLED
   return this
@@ -431,7 +431,7 @@ Fulfillment.prototype.fulfilled = (app: FabrixApp) => {
  *
  * @returns {*}
  */
-Fulfillment.prototype.cancelled = (app: FabrixApp) => {
+Fulfillment.prototype.cancelled = () => {
   this.cancelled_at = new Date(Date.now())
   this.status = FULFILLMENT_STATUS.CANCELLED
   return this
@@ -439,8 +439,8 @@ Fulfillment.prototype.cancelled = (app: FabrixApp) => {
 /**
  *
  */
-Fulfillment.prototype.fulfillUpdate = (app: FabrixApp, data = {}, options: {[key: string]: any} = {}) => {
-  return this.resolveOrderItems(app, {
+Fulfillment.prototype.fulfillUpdate = (data = {}, options: {[key: string]: any} = {}) => {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -461,20 +461,20 @@ Fulfillment.prototype.fulfillUpdate = (app: FabrixApp, data = {}, options: {[key
       })
     })
     .then(() => {
-      return this.saveFulfillmentStatus(app, {transaction: options.transaction || null})
+      return this.saveFulfillmentStatus({transaction: options.transaction || null})
     })
 }
 /**
  *
  */
-Fulfillment.prototype.reconcileFulfillmentStatus = (app: FabrixApp, options: {[key: string]: any} = {}) => {
-  return this.resolveFulfillmentStatus(app, {
+Fulfillment.prototype.reconcileFulfillmentStatus = (options: {[key: string]: any} = {}) => {
+  return this.resolveFulfillmentStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(() => {
       if (this.changed('status')) {
-        return this.getOrder(app, {transaction: options.transaction || null})
+        return this.getOrder({transaction: options.transaction || null})
       }
       else {
         return null
@@ -482,7 +482,7 @@ Fulfillment.prototype.reconcileFulfillmentStatus = (app: FabrixApp, options: {[k
     })
     .then(resOrder => {
       if (resOrder) {
-        return resOrder.saveFulfillmentStatus(app, {transaction: options.transaction || null})
+        return resOrder.saveFulfillmentStatus({transaction: options.transaction || null})
       }
       else {
         return null
@@ -491,7 +491,7 @@ Fulfillment.prototype.reconcileFulfillmentStatus = (app: FabrixApp, options: {[k
     .then(resOrder => {
       if (resOrder) {
         // Save the status changes
-        return resOrder.saveStatus(app, {transaction: options.transaction || null})
+        return resOrder.saveStatus({transaction: options.transaction || null})
       }
       else {
         return null
@@ -504,27 +504,27 @@ Fulfillment.prototype.reconcileFulfillmentStatus = (app: FabrixApp, options: {[k
 /**
  *
  */
-Fulfillment.prototype.resolveFulfillmentStatus = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Fulfillment.prototype.resolveFulfillmentStatus = (options: {[key: string]: any} = {}) => {
   // let currentStatus, previousStatus
   if (!this.id) {
     return Promise.resolve(this)
   }
-  return this.resolveOrderItems(app, {
+  return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
     .then(() => {
-      this.setFulfillmentStatus(app)
+      this.setFulfillmentStatus()
       return this
     })
 }
 /**
  *
  */
-Fulfillment.prototype.resolveOrderItems = (app: FabrixApp, options: {[key: string]: any}) => {
+Fulfillment.prototype.resolveOrderItems = (options: {[key: string]: any}) => {
   if (
     this.order_items
-    && this.order_items.every(i => i instanceof app.models['OrderItem'].instance)
+    && this.order_items.every(i => i instanceof this.app.models['OrderItem'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -544,8 +544,8 @@ Fulfillment.prototype.resolveOrderItems = (app: FabrixApp, options: {[key: strin
 /**
  *
  */
-Fulfillment.prototype.saveFulfillmentStatus = (app: FabrixApp, options: {[key: string]: any} = {}) => {
-  return this.resolveFulfillmentStatus(app, {
+Fulfillment.prototype.saveFulfillmentStatus = (options: {[key: string]: any} = {}) => {
+  return this.resolveFulfillmentStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
   })
@@ -557,7 +557,7 @@ Fulfillment.prototype.saveFulfillmentStatus = (app: FabrixApp, options: {[key: s
  *
  * @returns {*}
  */
-Fulfillment.prototype.setFulfillmentStatus = (app: FabrixApp) => {
+Fulfillment.prototype.setFulfillmentStatus = () => {
   if (!this.order_items) {
     throw new Error('Fulfillment.setFulfillmentStatus requires order_items to be populated')
   }

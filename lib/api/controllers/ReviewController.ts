@@ -2,7 +2,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 
 /**
  * @module ReviewController
@@ -126,7 +126,7 @@ export class ReviewController extends Controller {
    */
   create(req, res) {
     const ReviewService = this.app.services.ReviewService
-    lib.Validator.validateImage.create(req.body)
+    Validator.validateReview.create(req.body)
       .then(values => {
         return ReviewService.create(req.body)
       })
@@ -149,7 +149,7 @@ export class ReviewController extends Controller {
    */
   update(req, res) {
     const ReviewService = this.app.services.ReviewService
-    lib.Validator.validateImage.update(req.body)
+    Validator.validateReview.update(req.body)
       .then(values => {
         return ReviewService.update(req.body)
       })
@@ -172,7 +172,7 @@ export class ReviewController extends Controller {
    */
   destroy(req, res) {
     const ReviewService = this.app.services.ReviewService
-    lib.Validator.validateImage.destroy(req.body)
+    Validator.validateReview.destroy(req.body)
       .then(values => {
         return ReviewService.destroy(req.body)
       })

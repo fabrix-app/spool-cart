@@ -313,20 +313,20 @@ export class Source extends Model {
 }
 
 export interface Source {
-  getBrand(app: FabrixApp): any
-  getType(app: FabrixApp): any
-  getLast4(app: FabrixApp): any
-  getExpiration(app: FabrixApp): any
-  notifyCustomer(app: FabrixApp, preNotification, options): any
-  resolveCustomer(app: FabrixApp, options): any
-  sendExpiredEmail(app: FabrixApp, options): any
-  sendWillExpireEmail(app: FabrixApp, options): any
+  getBrand(): any
+  getType(): any
+  getLast4(): any
+  getExpiration(): any
+  notifyCustomer(preNotification, options): any
+  resolveCustomer(options): any
+  sendExpiredEmail(options): any
+  sendWillExpireEmail(options): any
 }
 
 /**
  * Get the Credit/Debit Card Brand Company Name
  */
-Source.prototype.getBrand = function(app: FabrixApp) {
+Source.prototype.getBrand = function() {
   let brand = this.gateway
 
   if (this.payment_details && this.payment_details.credit_card_company) {
@@ -337,7 +337,7 @@ Source.prototype.getBrand = function(app: FabrixApp) {
 /**
  * Get's the type of the
  */
-Source.prototype.getType = function(app: FabrixApp) {
+Source.prototype.getType = function() {
   let type
   switch (this.payment_details.type) {
     case 'credit_card':
@@ -355,7 +355,7 @@ Source.prototype.getType = function(app: FabrixApp) {
  * Get's the Last 4 Digits of a Payment Method, if Applicable
  * @returns {string}
  */
-Source.prototype.getLast4 = function (app: FabrixApp) {
+Source.prototype.getLast4 = function () {
   let last4 = '****'
 
   if (this.payment_details && this.payment_details.credit_card_last4) {
@@ -368,7 +368,7 @@ Source.prototype.getLast4 = function (app: FabrixApp) {
  * Get's the expiration date of the card if applicable.
  * @returns {string}
  */
-Source.prototype.getExpiration = function (app: FabrixApp) {
+Source.prototype.getExpiration = function () {
   let expiration = 'MM/YYYY'
 
   if (
@@ -383,17 +383,17 @@ Source.prototype.getExpiration = function (app: FabrixApp) {
 /**
  *
  */
-Source.prototype.notifyCustomer = function(app: FabrixApp, preNotification, options: {[key: string]: any} = {}) {
+Source.prototype.notifyCustomer = function(preNotification, options: {[key: string]: any} = {}) {
   options = options || {}
   if (this.customer_id) {
-    return this.resolveCustomer(app, {
+    return this.resolveCustomer({
       attributes: ['id', 'email', 'company', 'first_name', 'last_name', 'full_name'],
       transaction: options.transaction || null,
       reload: options.reload || null
     })
       .then(() => {
-        if (this.Customer && this.Customer instanceof app.models['Customer'].instance) {
-          return this.Customer.notifyUsers(app, preNotification, {transaction: options.transaction || null})
+        if (this.Customer && this.Customer instanceof this.app.models['Customer'].instance) {
+          return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
         }
         else {
           return
@@ -411,11 +411,10 @@ Source.prototype.notifyCustomer = function(app: FabrixApp, preNotification, opti
 /**
  *
  */
-Source.prototype.resolveCustomer = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  options = options || {}
+Source.prototype.resolveCustomer = function(options: {[key: string]: any} = {}) {
   if (
     this.Customer
-    && this.Customer instanceof app.models['Customer'].instance
+    && this.Customer instanceof this.app.models['Customer'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -439,10 +438,9 @@ Source.prototype.resolveCustomer = function(app: FabrixApp, options: {[key: stri
 /**
  *
  */
-Source.prototype.sendExpiredEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  options = options || {}
-  return app.emails.Source.expired(this, {
-    send_email: app.config.get('cart.emails.sourceExpired')
+Source.prototype.sendExpiredEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Source.expired(this, {
+    send_email: this.app.config.get('cart.emails.sourceExpired')
   }, {
     transaction: options.transaction || null
   })
@@ -450,25 +448,24 @@ Source.prototype.sendExpiredEmail = function(app: FabrixApp, options: {[key: str
       return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Source.prototype.sendWillExpireEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  options = options || {}
-  return app.emails.Source.willExpire(this, {
-    send_email: app.config.get('cart.emails.sourceWillExpire')
+Source.prototype.sendWillExpireEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Source.willExpire(this, {
+    send_email: this.app.config.get('cart.emails.sourceWillExpire')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }

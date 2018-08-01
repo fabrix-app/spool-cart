@@ -3,7 +3,7 @@ import * as controllers from './controllers/index'
 import * as crons from './crons/index'
 import * as events from './events/index'
 import * as emails from './emails/index'
-import * as generics from './generics/index'
+// import * as generics from './generics/index'
 import * as models from './models/index'
 import * as policies from './policies/index'
 import * as services from './services/index'
@@ -17,7 +17,7 @@ export {
   crons,
   events,
   emails,
-  generics,
+  // generics,
   models,
   policies,
   services,

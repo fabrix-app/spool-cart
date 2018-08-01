@@ -1,5 +1,5 @@
-export { Address } from './Address'
 export { Account } from './Account'
+export { Address } from './Address'
 export { AccountEvent } from './AccountEvent'
 export { Cart } from './Cart'
 export { Collection } from './Collection'

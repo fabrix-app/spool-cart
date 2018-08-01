@@ -1,6 +1,6 @@
 'use strict'
 const _ = require('lodash')
-const Generic = require('spool-generics').Generic
+const Generic = require('@fabrix/spool-generics').Generic
 module.exports = class FakeDataStoreProvider extends Generic {
   constructor(options) {
     super()

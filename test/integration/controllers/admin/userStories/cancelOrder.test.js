@@ -8,8 +8,8 @@ describe('Admin User Cancel Order', () => {
   let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID, transactionID
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
 
     adminUser = supertest.agent(global.app.spools.express.server)
     // Login as Admin

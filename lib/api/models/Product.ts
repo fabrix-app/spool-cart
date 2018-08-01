@@ -761,35 +761,35 @@ export class Product extends Model {
 }
 
 export interface Product {
-  setItemDiscountedLines(app: FabrixApp, discounts, criteria, options): any
-  setDiscountedLines(app: FabrixApp, lines): any
-  setCalculatedPrice(app: FabrixApp, calculatedPrice): any
-  setTotals(app: FabrixApp): any
-  getCustomerHistory(app: FabrixApp, customer, options): any
-  hasPurchaseHistory(app: FabrixApp, customerId, options): any
-  isSubscribed(app: FabrixApp, customerId, options): any
-  getCollectionPairs(app: FabrixApp, options): any
-  calculateDiscounts(app: FabrixApp, options): any
-  calculate(app: FabrixApp, options): any
-  mergeIntoCollections(app: FabrixApp, colsB): any
-  toJSON(app: FabrixApp): any
-  resolveVariants(app: FabrixApp, options): any
-  getDefaultVariant(app: FabrixApp, options): any
-  resolveAssociations(app: FabrixApp, options): any
-  resolveImages(app: FabrixApp, options): any
-  resolveVendors(app: FabrixApp, options): any
-  resolveMetadata(app: FabrixApp, options): any
-  resolveShops(app: FabrixApp, options): any
-  resolveTags(app: FabrixApp, options): any
-  resolveCollections(app: FabrixApp, options): any
-  resolveCoupons(app: FabrixApp, options): any
-  resolveDiscounts(app: FabrixApp, options): any
+  setItemDiscountedLines(discounts, criteria, options): any
+  setDiscountedLines(lines): any
+  setCalculatedPrice(calculatedPrice): any
+  setTotals(): any
+  getCustomerHistory(customer, options): any
+  hasPurchaseHistory(customerId, options): any
+  isSubscribed(customerId, options): any
+  getCollectionPairs(options): any
+  calculateDiscounts(options): any
+  calculate(options): any
+  mergeIntoCollections(colsB): any
+  toJSON(): any
+  resolveVariants(options): any
+  getDefaultVariant(options): any
+  resolveAssociations(options): any
+  resolveImages(options): any
+  resolveVendors(options): any
+  resolveMetadata(options): any
+  resolveShops(options): any
+  resolveTags(options): any
+  resolveCollections(options): any
+  resolveCoupons(options): any
+  resolveDiscounts(options): any
 
 }
 /**
  *
  */
-Product.prototype.setItemDiscountedLines = function (app: FabrixApp, discounts = [], criteria = [], options: {[key: string]: any} = {}) {
+Product.prototype.setItemDiscountedLines = function (discounts = [], criteria = [], options: {[key: string]: any} = {}) {
 
   // Set this to the default
   this.discounted_lines = []
@@ -880,24 +880,24 @@ Product.prototype.setItemDiscountedLines = function (app: FabrixApp, discounts =
 
   // console.log('FACTORED PRODUCT DISCOUNTS',factoredDiscountedLines)
 
-  return this.setDiscountedLines(app, factoredDiscountedLines)
+  return this.setDiscountedLines(factoredDiscountedLines)
 }
 /**
  *
  */
-Product.prototype.setDiscountedLines = function(app: FabrixApp, lines) {
+Product.prototype.setDiscountedLines = function(lines) {
   this.total_discounts = 0
   this.discounted_lines = lines || []
   this.discounted_lines.forEach(line => {
     this.total_discounts = this.total_discounts + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 }
 
 /**
  *
  */
-Product.prototype.setCalculatedPrice = function(app: FabrixApp, calculatedPrice) {
+Product.prototype.setCalculatedPrice = function(calculatedPrice) {
   this.calculated_price = calculatedPrice
   return this
 }
@@ -905,7 +905,7 @@ Product.prototype.setCalculatedPrice = function(app: FabrixApp, calculatedPrice)
 /**
  *
  */
-Product.prototype.setTotals = function(app: FabrixApp) {
+Product.prototype.setTotals = function() {
   // Set Cart values
   this.total_price = Math.max(0,
     this.total_tax
@@ -926,12 +926,12 @@ Product.prototype.setTotals = function(app: FabrixApp) {
 /**
  *
  */
-Product.prototype.getCustomerHistory = function(app: FabrixApp, customer, options: {[key: string]: any} = {}) {
+Product.prototype.getCustomerHistory = function(customer, options: {[key: string]: any} = {}) {
   let hasPurchaseHistory = false, isSubscribed = false
-  return this.hasPurchaseHistory(app, customer.id, options)
+  return this.hasPurchaseHistory(customer.id, options)
     .then(pHistory => {
       hasPurchaseHistory = pHistory
-      return this.isSubscribed(app, customer.id, options)
+      return this.isSubscribed(customer.id, options)
     })
     .then(pHistory => {
       isSubscribed = pHistory
@@ -948,8 +948,8 @@ Product.prototype.getCustomerHistory = function(app: FabrixApp, customer, option
 /**
  *
  */
-Product.prototype.hasPurchaseHistory = function(app: FabrixApp, customerId, options: {[key: string]: any} = {}) {
-  return app.models['OrderItem'].findOne({
+Product.prototype.hasPurchaseHistory = function(customerId, options: {[key: string]: any} = {}) {
+  return this.app.models['OrderItem'].findOne({
     where: {
       customer_id: customerId,
       product_id: this.id,
@@ -976,8 +976,8 @@ Product.prototype.hasPurchaseHistory = function(app: FabrixApp, customerId, opti
 /**
  *
  */
-Product.prototype.isSubscribed = function(app: FabrixApp, customerId, options: {[key: string]: any} = {}) {
-  return app.models['Subscription'].findOne({
+Product.prototype.isSubscribed = function(customerId, options: {[key: string]: any} = {}) {
+  return this.app.models['Subscription'].findOne({
     where: {
       customer_id: customerId,
       active: true,
@@ -1006,7 +1006,7 @@ Product.prototype.isSubscribed = function(app: FabrixApp, customerId, options: {
 /**
  *
  */
-Product.prototype.getCollectionPairs = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.getCollectionPairs = function(options: {[key: string]: any} = {}) {
   const collectionPairs = []
   const criteria = []
 
@@ -1032,7 +1032,7 @@ Product.prototype.getCollectionPairs = function(app: FabrixApp, options: {[key: 
       }
 
       if (criteria.length > 0) {
-        return app.models['ItemCollection'].findAll({
+        return this.app.models['ItemCollection'].findAll({
           where: {
             $or: criteria
           },
@@ -1062,14 +1062,14 @@ Product.prototype.getCollectionPairs = function(app: FabrixApp, options: {[key: 
       return collectionPairs
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return []
     })
 }
 /**
  *
  */
-Product.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.calculateDiscounts = function(options: {[key: string]: any} = {}) {
   const criteria = []
   let collectionPairs = [], discountCriteria = [], checkHistory = []
   // const discountedLines = this.discounted_lines || []
@@ -1077,7 +1077,7 @@ Product.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: 
   let resDiscounts
   return Promise.resolve()
     .then(() => {
-      return this.getCollectionPairs(app, {
+      return this.getCollectionPairs({
         req: options.req || null,
         transaction: options.transaction || null
       })
@@ -1110,7 +1110,7 @@ Product.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: 
         })
       }
       if (criteria.length > 0) {
-        return app.models['ItemDiscount'].findAll({
+        return this.app.models['ItemDiscount'].findAll({
           where: {
             $or: criteria
           },
@@ -1154,7 +1154,7 @@ Product.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: 
       // console.log('Broke Criteria', discountCriteria)
 
       if (discounts.length > 0) {
-        return app.models['Discount'].findAll({
+        return this.app.models['Discount'].findAll({
           where: {
             id: discounts.map(item => item.discount_id),
             status: DISCOUNT_STATUS.ENABLED
@@ -1202,10 +1202,10 @@ Product.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: 
         }
       })
 
-      return this.setItemDiscountedLines(app, resDiscounts, discountCriteria, options)
+      return this.setItemDiscountedLines(resDiscounts, discountCriteria, options)
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
@@ -1213,7 +1213,7 @@ Product.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: 
 /**
  *
  */
-Product.prototype.calculate = function (app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.calculate = function (options: {[key: string]: any} = {}) {
   if (!this) {
     return
   }
@@ -1229,7 +1229,7 @@ Product.prototype.calculate = function (app: FabrixApp, options: {[key: string]:
   // )
 
   // obj, collections, resolver, options
-  return this.calculateDiscounts(app, options)
+  return this.calculateDiscounts(options)
     .then(() => {
       return this
     })
@@ -1237,7 +1237,7 @@ Product.prototype.calculate = function (app: FabrixApp, options: {[key: string]:
 /**
  *
  */
-Product.prototype.mergeIntoCollections = function(app: FabrixApp, colsB = []) {
+Product.prototype.mergeIntoCollections = function(colsB = []) {
   const collections = this.collections
 
   colsB.forEach(collection => {
@@ -1260,10 +1260,10 @@ Product.prototype.mergeIntoCollections = function(app: FabrixApp, colsB = []) {
  * Returns only metadata data
  * Converts vendors to array of strings
  */
-Product.prototype.toJSON = function(app: FabrixApp) {
+Product.prototype.toJSON = function() {
   const position = this.position
   // Make JSON
-  const resp = this instanceof app.models['Product'].instance ? this.get({ plain: true }) : this
+  const resp = this instanceof this.app.models['Product'].instance ? this.get({ plain: true }) : this
   // Set Defaults
   // resp.calculated_price = resp.price
 
@@ -1330,10 +1330,10 @@ Product.prototype.toJSON = function(app: FabrixApp) {
 /**
  *
  */
-Product.prototype.resolveVariants = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveVariants = function(options: {[key: string]: any} = {}) {
   if (
     this.variants
-    && this.variants.every(v => v instanceof app.models['ProductVariant'].instance)
+    && this.variants.every(v => v instanceof this.app.models['ProductVariant'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1356,10 +1356,10 @@ Product.prototype.resolveVariants = function(app: FabrixApp, options: {[key: str
 /**
  *
  */
-Product.prototype.getDefaultVariant = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.getDefaultVariant = function(options: {[key: string]: any} = {}) {
   if (
     this.variants
-    && this.variants.every(v => v instanceof app.models['ProductVariant'].instance)
+    && this.variants.every(v => v instanceof this.app.models['ProductVariant'].instance)
     && this.variants.some(v => v.position === 1)
     && options.reload !== true
   ) {
@@ -1382,10 +1382,10 @@ Product.prototype.getDefaultVariant = function(app: FabrixApp, options: {[key: s
 /**
  *
  */
-Product.prototype.resolveAssociations = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveAssociations = function(options: {[key: string]: any} = {}) {
   if (
     this.associations
-    && this.associations.every(p => p instanceof app.models['Product'].instance)
+    && this.associations.every(p => p instanceof this.app.models['Product'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1407,10 +1407,10 @@ Product.prototype.resolveAssociations = function(app: FabrixApp, options: {[key:
 /**
  *
  */
-Product.prototype.resolveImages = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveImages = function(options: {[key: string]: any} = {}) {
   if (
     this.images
-    && this.images.every(i => i instanceof app.models['ProductImage'].instance)
+    && this.images.every(i => i instanceof this.app.models['ProductImage'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1433,10 +1433,10 @@ Product.prototype.resolveImages = function(app: FabrixApp, options: {[key: strin
 /**
  *
  */
-Product.prototype.resolveVendors = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveVendors = function(options: {[key: string]: any} = {}) {
   if (
     this.vendors
-    && this.vendors.every(v => v instanceof app.models['Vendor'].instance)
+    && this.vendors.every(v => v instanceof this.app.models['Vendor'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1458,10 +1458,10 @@ Product.prototype.resolveVendors = function(app: FabrixApp, options: {[key: stri
 /**
  *
  */
-Product.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveMetadata = function(options: {[key: string]: any} = {}) {
   if (
     this.metadata
-    && this.metadata instanceof app.models['Metadata'].instance
+    && this.metadata instanceof this.app.models['Metadata'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1481,11 +1481,11 @@ Product.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: str
 /**
  *
  */
-Product.prototype.resolveShops = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveShops = function(options: {[key: string]: any} = {}) {
   if (
     this.shops
     && this.shops.length > 0
-    && this.shops.every(d => d instanceof app.models['Shop'].instance)
+    && this.shops.every(d => d instanceof this.app.models['Shop'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1507,11 +1507,11 @@ Product.prototype.resolveShops = function(app: FabrixApp, options: {[key: string
 /**
  *
  */
-Product.prototype.resolveTags = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveTags = function(options: {[key: string]: any} = {}) {
   if (
     this.tags
     && this.tags.length > 0
-    && this.tags.every(t => t instanceof app.models['Tag'].instance)
+    && this.tags.every(t => t instanceof this.app.models['Tag'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1555,11 +1555,11 @@ Product.prototype.resolveTags = function(app: FabrixApp, options: {[key: string]
 /**
  *
  */
-Product.prototype.resolveCollections = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveCollections = function(options: {[key: string]: any} = {}) {
   if (
     this.collections
     && this.collections.length > 0
-    && this.collections.every(c => c instanceof app.models['Collection'].instance)
+    && this.collections.every(c => c instanceof this.app.models['Collection'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1581,11 +1581,11 @@ Product.prototype.resolveCollections = function(app: FabrixApp, options: {[key: 
 /**
  *
  */
-Product.prototype.resolveCoupons = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveCoupons = function(options: {[key: string]: any} = {}) {
   if (
     this.coupons
     && this.coupons.length > 0
-    && this.coupons.every(c => c instanceof app.models['Coupon'].instance)
+    && this.coupons.every(c => c instanceof this.app.models['Coupon'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1604,11 +1604,11 @@ Product.prototype.resolveCoupons = function(app: FabrixApp, options: {[key: stri
 /**
  *
  */
-Product.prototype.resolveDiscounts = function (app: FabrixApp, options: {[key: string]: any} = {}) {
+Product.prototype.resolveDiscounts = function (options: {[key: string]: any} = {}) {
   if (
     this.discounts
     && this.discounts.length > 0
-    && this.discounts.every(d => d instanceof app.models['Discount'].instance)
+    && this.discounts.every(d => d instanceof this.app.models['Discount'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)

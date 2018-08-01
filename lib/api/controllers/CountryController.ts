@@ -1,7 +1,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 // import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
 /**
@@ -20,7 +20,7 @@ export class CountryController extends Controller {
 
   createCountry(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.createCountry(req.body)
+    Validator.validateCountry.createCountry(req.body)
       .then(values => {
         return CountryService.createCountry(req.body)
       })
@@ -36,7 +36,7 @@ export class CountryController extends Controller {
   }
   updateCountry(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.updateCountry(req.body)
+    Validator.validateCountry.updateCountry(req.body)
       .then(values => {
         return CountryService.updateCountry(req.body)
       })
@@ -52,7 +52,7 @@ export class CountryController extends Controller {
   }
   destroyCountry(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.destroyCountry(req.body)
+    Validator.validateCountry.destroyCountry(req.body)
       .then(values => {
         return CountryService.destroyCountry(req.body)
       })
@@ -87,7 +87,7 @@ export class CountryController extends Controller {
       req: req,
       include: [
         {
-          model: this.app.models['Province'],
+          model: this.app.models['Province'].instance,
           as: 'provinces'
         }
       ]
@@ -192,7 +192,7 @@ export class CountryController extends Controller {
    */
   createCity(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.createCity(req.body)
+    Validator.validateCountry.createCity(req.body)
       .then(values => {
         return CountryService.createCity(req.body)
       })
@@ -214,7 +214,7 @@ export class CountryController extends Controller {
    */
   updateCity(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.updateCity(req.body)
+    Validator.validateCountry.updateCity(req.body)
       .then(values => {
         return CountryService.updateCity(req.body)
       })
@@ -236,7 +236,7 @@ export class CountryController extends Controller {
    */
   destroyCity(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.destroyCity(req.body)
+    Validator.validateCountry.destroyCity(req.body)
       .then(values => {
         return CountryService.destroyCity(req.body)
       })
@@ -267,7 +267,7 @@ export class CountryController extends Controller {
    */
   createCounty(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.createCounty(req.body)
+    Validator.validateCountry.createCounty(req.body)
       .then(values => {
         return CountryService.createCounty(req.body)
       })
@@ -289,7 +289,7 @@ export class CountryController extends Controller {
    */
   updateCounty(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.updateCounty(req.body)
+    Validator.validateCountry.updateCounty(req.body)
       .then(values => {
         return CountryService.updateCounty(req.body)
       })
@@ -311,7 +311,7 @@ export class CountryController extends Controller {
    */
   destroyCounty(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.destroyCounty(req.body)
+    Validator.validateCountry.destroyCounty(req.body)
       .then(values => {
         return CountryService.destroyCounty(req.body)
       })
@@ -375,7 +375,7 @@ export class CountryController extends Controller {
    */
   createProvince(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.createProvince(req.body)
+    Validator.validateCountry.createProvince(req.body)
       .then(values => {
         return CountryService.createProvince(req.body)
       })
@@ -397,7 +397,7 @@ export class CountryController extends Controller {
    */
   updateProvince(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.updateProvince(req.body)
+    Validator.validateCountry.updateProvince(req.body)
       .then(values => {
         return CountryService.updateProvince(req.body)
       })
@@ -419,7 +419,7 @@ export class CountryController extends Controller {
    */
   destroyProvince(req, res) {
     const CountryService = this.app.services.CountryService
-    lib.Validator.validateCountry.destroyProvince(req.body)
+    Validator.validateCountry.destroyProvince(req.body)
       .then(values => {
         return CountryService.destroyProvince(req.body)
       })

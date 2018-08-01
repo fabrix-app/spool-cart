@@ -633,47 +633,47 @@ export class Subscription extends Model {
 }
 
 export interface Subscription {
-  activate(app: FabrixApp): any
-  resolveCustomer(app: FabrixApp, options): any
-  resolveDiscounts(app: FabrixApp, options): any
-  resolveLastOrder(app: FabrixApp, options): any
-  resolveOriginalOrder(app: FabrixApp, options): any
-  notifyCustomer(app: FabrixApp, preNotification, options): any
-  resetDefaults(app: FabrixApp): any
-  setLineProperties(app: FabrixApp, line): any
-  setLineItems(app: FabrixApp, lines): any
-  setItemDiscountedLines(app: FabrixApp, item, discount, criteria): any
-  setItemsDiscountedLines(app: FabrixApp, discounts, criteria): any
-  setDiscountedLines(app: FabrixApp, lines): any
-  setPricingOverrides(app: FabrixApp, lines): any
-  setCouponLines(app: FabrixApp, lines): any
-  setItemsShippingLines(app: FabrixApp, items): any
-  setShippingLines(app: FabrixApp, lines): any
-  setItemsTaxLines(app: FabrixApp, items): any
-  setTaxLines(app: FabrixApp, lines): any
-  setTotals(app: FabrixApp): any
-  line(app: FabrixApp, data): any
-  addLine(app: FabrixApp, item, qty, properties, options): any
-  removeLine(app: FabrixApp, item, qty): any
-  renew(app: FabrixApp): any
-  willRenew(app: FabrixApp): any
-  retry(app: FabrixApp): any
-  sendActivateEmail(app: FabrixApp, options): any
-  sendCancelledEmail(app: FabrixApp, options): any
-  sendDeactivateEmail(app: FabrixApp, options): any
-  sendFailedEmail(app: FabrixApp, options): any
-  sendRenewedEmail(app: FabrixApp, options): any
-  sendUpdatedEmail(app: FabrixApp, options): any
-  sendWillRenewEmail(app: FabrixApp, options): any
-  buildOrder(app: FabrixApp, data): any
-  calculateDiscounts(app: FabrixApp, options): any
-  getCollectionPairs(app: FabrixApp, options): any
-  calculateTaxes(app: FabrixApp, options): any
-  recalculate(app: FabrixApp, options): any
+  activate(): any
+  resolveCustomer(options): any
+  resolveDiscounts(options): any
+  resolveLastOrder(options): any
+  resolveOriginalOrder(options): any
+  notifyCustomer(preNotification, options): any
+  resetDefaults(): any
+  setLineProperties(line): any
+  setLineItems(lines): any
+  setItemDiscountedLines(item, discount, criteria): any
+  setItemsDiscountedLines(discounts, criteria): any
+  setDiscountedLines(lines): any
+  setPricingOverrides(lines): any
+  setCouponLines(lines): any
+  setItemsShippingLines(items): any
+  setShippingLines(lines): any
+  setItemsTaxLines(items): any
+  setTaxLines(lines): any
+  setTotals(): any
+  line(data): any
+  addLine(item, qty, properties, options): any
+  removeLine(item, qty): any
+  renew(): any
+  willRenew(): any
+  retry(): any
+  sendActivateEmail(options): any
+  sendCancelledEmail(options): any
+  sendDeactivateEmail(options): any
+  sendFailedEmail(options): any
+  sendRenewedEmail(options): any
+  sendUpdatedEmail(options): any
+  sendWillRenewEmail(options): any
+  buildOrder(data): any
+  calculateDiscounts(options): any
+  getCollectionPairs(options): any
+  calculateTaxes(options): any
+  recalculate(options): any
 }
 
 
-Subscription.prototype.activate = function(app: FabrixApp) {
+Subscription.prototype.activate = function() {
   this.cancel_reason = null
   this.cancelled_at = null
   this.cancelled = false
@@ -721,10 +721,10 @@ Subscription.prototype.activate = function(app: FabrixApp) {
 /**
  *
  */
-Subscription.prototype.resolveCustomer = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.resolveCustomer = function(options: {[key: string]: any} = {}) {
   if (
     this.Customer
-    && this.Customer instanceof app.models['Customer'].instance
+    && this.Customer instanceof this.app.models['Customer'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -749,11 +749,11 @@ Subscription.prototype.resolveCustomer = function(app: FabrixApp, options: {[key
  * @param options
  * @returns {Promise.<T>}
  */
-Subscription.prototype.resolveDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.resolveDiscounts = function(options: {[key: string]: any} = {}) {
   if (
     this.discounts
     && this.discounts.length > 0
-    && this.discounts.every(d => d instanceof app.models['Discount'].instance)
+    && this.discounts.every(d => d instanceof this.app.models['Discount'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -772,10 +772,10 @@ Subscription.prototype.resolveDiscounts = function(app: FabrixApp, options: {[ke
 /**
  *
  */
-Subscription.prototype.resolveLastOrder = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.resolveLastOrder = function(options: {[key: string]: any} = {}) {
   if (
     this.last_order
-    && this.last_order instanceof app.models['Order'].instance
+    && this.last_order instanceof this.app.models['Order'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -799,10 +799,10 @@ Subscription.prototype.resolveLastOrder = function(app: FabrixApp, options: {[ke
 /**
  *
  */
-Subscription.prototype.resolveOriginalOrder = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.resolveOriginalOrder = function(options: {[key: string]: any} = {}) {
   if (
     this.original_order
-    && this.original_order instanceof app.models['Order'].instance
+    && this.original_order instanceof this.app.models['Order'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -825,8 +825,7 @@ Subscription.prototype.resolveOriginalOrder = function(app: FabrixApp, options: 
 /**
  *
  */
-Subscription.prototype.notifyCustomer = function(app: FabrixApp, preNotification, options: {[key: string]: any} = {}) {
-  options = options || {}
+Subscription.prototype.notifyCustomer = function(preNotification, options: {[key: string]: any} = {}) {
   if (this.customer_id) {
     return this.resolveCustomer({
       attributes: ['id', 'email', 'company', 'first_name', 'last_name', 'full_name'],
@@ -834,7 +833,7 @@ Subscription.prototype.notifyCustomer = function(app: FabrixApp, preNotification
       reload: options.reload || null
     })
       .then(() => {
-        if (this.Customer && this.Customer instanceof app.models['Customer'].instance) {
+        if (this.Customer && this.Customer instanceof this.app.models['Customer'].instance) {
           return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
         }
         else {
@@ -853,7 +852,7 @@ Subscription.prototype.notifyCustomer = function(app: FabrixApp, preNotification
 /**
  *
  */
-Subscription.prototype.resetDefaults = function(app: FabrixApp) {
+Subscription.prototype.resetDefaults = function() {
   this.total_items = 0
   this.total_shipping = 0
   this.subtotal_price = 0
@@ -890,7 +889,7 @@ Subscription.prototype.resetDefaults = function(app: FabrixApp) {
 /**
  *
  */
-Subscription.prototype.setLineProperties = function(app: FabrixApp, line) {
+Subscription.prototype.setLineProperties = function(line) {
   if (line.properties) {
     for (const l in line.properties) {
       if (line.properties.hasOwnProperty(l)) {
@@ -904,7 +903,7 @@ Subscription.prototype.setLineProperties = function(app: FabrixApp, line) {
 /**
  *
  */
-Subscription.prototype.setLineItems = function(app: FabrixApp, lines) {
+Subscription.prototype.setLineItems = function(lines) {
   this.line_items = lines || []
 
   this.total_items = 0
@@ -933,8 +932,8 @@ Subscription.prototype.setLineItems = function(app: FabrixApp, lines) {
 /**
  *
  */
-Subscription.prototype.setItemDiscountedLines = function(app: FabrixApp, item, discount, criteria) {
-  if (!(discount instanceof app.models['Discount'].instance)) {
+Subscription.prototype.setItemDiscountedLines = function(item, discount, criteria) {
+  if (!(discount instanceof this.app.models['Discount'].instance)) {
     throw new Error('setItemDiscountedLines expects discount parameter to be a Discount Instance')
   }
   item = discount.discountItem(item, criteria)
@@ -943,7 +942,7 @@ Subscription.prototype.setItemDiscountedLines = function(app: FabrixApp, item, d
 /**
  *
  */
-Subscription.prototype.setItemsDiscountedLines = function (app: FabrixApp, discounts, criteria) {
+Subscription.prototype.setItemsDiscountedLines = function (discounts, criteria) {
   // Make this an array if null
   discounts = discounts || []
   // Make this an array if null
@@ -966,7 +965,7 @@ Subscription.prototype.setItemsDiscountedLines = function (app: FabrixApp, disco
   // For each item run the normal discounts
   this.line_items = this.line_items.map((item, index) => {
     discounts.forEach(discount => {
-      item = this.setItemDiscountedLines(app, item, discount, criteria)
+      item = this.setItemDiscountedLines(item, discount, criteria)
     })
 
     if (item.discounted_lines.length > 0) {
@@ -1063,48 +1062,48 @@ Subscription.prototype.setItemsDiscountedLines = function (app: FabrixApp, disco
 
   // console.log('Factored results', factoredDiscountedLines)
 
-  return this.setDiscountedLines(app, factoredDiscountedLines)
+  return this.setDiscountedLines(factoredDiscountedLines)
 }
 /**
  *
  */
-Subscription.prototype.setDiscountedLines = function(app: FabrixApp, lines) {
+Subscription.prototype.setDiscountedLines = function(lines) {
   this.total_discounts = 0
   this.discounted_lines = lines || []
   this.discounted_lines.forEach(line => {
     this.total_discounts = this.total_discounts + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 }
 
 /**
  *
  */
-Subscription.prototype.setPricingOverrides = function(app: FabrixApp, lines) {
+Subscription.prototype.setPricingOverrides = function(lines) {
   this.total_overrides = 0
   this.pricing_overrides = lines || []
   this.pricing_overrides.forEach(line => {
     this.total_overrides = this.total_overrides + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 },
 
 /**
  *
  */
-Subscription.prototype.setCouponLines = function(app: FabrixApp, lines) {
+Subscription.prototype.setCouponLines = function(lines) {
   this.total_coupons = 0
   this.coupon_lines = lines || []
   this.coupon_lines.forEach(line => {
     this.total_coupons = this.total_coupons + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 }
 
 /**
  *
  */
-Subscription.prototype.setItemsShippingLines = function (app: FabrixApp, items) {
+Subscription.prototype.setItemsShippingLines = function (items) {
   let shippingLines = []
   let totalShipping = 0
   // Make this an array if null
@@ -1132,25 +1131,25 @@ Subscription.prototype.setItemsShippingLines = function (app: FabrixApp, items) 
 
     return item
   })
-  return this.setShippingLines(app, shippingLines)
+  return this.setShippingLines(shippingLines)
 }
 
 /**
  *
  */
-Subscription.prototype.setShippingLines = function(app: FabrixApp, lines) {
+Subscription.prototype.setShippingLines = function(lines) {
   this.total_shipping = 0
   this.shipping_lines = lines || []
   this.shipping_lines.forEach(line => {
     this.total_shipping = this.total_shipping + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 }
 
 /**
  *
  */
-Subscription.prototype.setItemsTaxLines = function (app: FabrixApp, items) {
+Subscription.prototype.setItemsTaxLines = function (items) {
   let taxesLines = []
   let totalTaxes = 0
   // Make this an array if null
@@ -1178,25 +1177,25 @@ Subscription.prototype.setItemsTaxLines = function (app: FabrixApp, items) {
 
     return item
   })
-  return this.setTaxLines(app, taxesLines)
+  return this.setTaxLines(taxesLines)
 }
 
 /**
  *
  */
-Subscription.prototype.setTaxLines = function(app: FabrixApp, lines) {
+Subscription.prototype.setTaxLines = function(lines) {
   this.total_tax = 0
   this.tax_lines = lines || []
   this.tax_lines.forEach(line => {
     this.total_tax = this.total_tax + line.price
   })
-  return this.setTotals(app)
+  return this.setTotals()
 }
 
 /**
  *
  */
-Subscription.prototype.setTotals = function(app: FabrixApp) {
+Subscription.prototype.setTotals = function() {
   // Set Cart values
   this.total_price = Math.max(0,
     this.total_tax
@@ -1214,7 +1213,7 @@ Subscription.prototype.setTotals = function(app: FabrixApp) {
   return this
 }
 
-Subscription.prototype.line = function(app: FabrixApp, data) {
+Subscription.prototype.line = function(data) {
   // handle empty product
   data.Product = data.Product || {}
   data.property_pricing = data.property_pricing || data.Product.property_pricing
@@ -1275,7 +1274,7 @@ Subscription.prototype.line = function(app: FabrixApp, data) {
     quantity: data.quantity,
     fulfillable_quantity: data.fulfillable_quantity,
     max_quantity: data.max_quantity,
-    grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
+    grams: this.app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
     average_shipping: data.Product.average_shipping,
     exclude_payment_types: data.Product.exclude_payment_types,
     vendor: data.Product.vendor ? data.Product.vendor.name || data.Product.vendor : data.Product.vendor,
@@ -1287,11 +1286,11 @@ Subscription.prototype.line = function(app: FabrixApp, data) {
 /**
  *
  */
-Subscription.prototype.addLine = function(app: FabrixApp, item, qty, properties, options: {[key: string]: any} = {}) {
+Subscription.prototype.addLine = function(item, qty, properties, options: {[key: string]: any} = {}) {
   // The quantity available of this variant
   let lineQtyAvailable = -1
   // Check if Product is Available
-  return item.checkAvailability(app, qty, {transaction: options.transaction || null})
+  return item.checkAvailability(qty, {transaction: options.transaction || null})
     .then(availability => {
       if (!availability.allowed) {
         throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
@@ -1299,7 +1298,6 @@ Subscription.prototype.addLine = function(app: FabrixApp, item, qty, properties,
       lineQtyAvailable = availability.quantity
       // Check if Product is Restricted
       return item.checkRestrictions(
-        app,
         this.Customer || this.customer_id,
         {transaction: options.transaction || null}
       )
@@ -1316,7 +1314,7 @@ Subscription.prototype.addLine = function(app: FabrixApp, item, qty, properties,
       }
       const itemIndex = findIndex(lineItems, {variant_id: item.id})
       if (itemIndex > -1) {
-        app.log.silly('Subscription.addLine NEW QTY', lineItems[itemIndex])
+        this.app.log.silly('Subscription.addLine NEW QTY', lineItems[itemIndex])
         const maxQuantity = lineItems[itemIndex].max_quantity
         let calculatedQty = lineItems[itemIndex].quantity + qty
 
@@ -1331,7 +1329,7 @@ Subscription.prototype.addLine = function(app: FabrixApp, item, qty, properties,
         lineItems[itemIndex].quantity = calculatedQty
         lineItems[itemIndex].fulfillable_quantity = calculatedQty
 
-        lineItems[itemIndex] = this.setLineProperties(app, lineItems[itemIndex])
+        lineItems[itemIndex] = this.setLineProperties(lineItems[itemIndex])
 
         this.line_items = lineItems
       }
@@ -1351,10 +1349,10 @@ Subscription.prototype.addLine = function(app: FabrixApp, item, qty, properties,
         item.fulfillable_quantity = calculatedQty
         item.max_quantity = maxQuantity
         item.properties = properties
-        let line = this.line(app, item)
-        line = this.setLineProperties(app, line)
+        let line = this.line(item)
+        line = this.setLineProperties(line)
 
-        app.log.silly('Subscription.addLine NEW LINE', line)
+        this.app.log.silly('Subscription.addLine NEW LINE', line)
         lineItems.push(line)
         this.line_items = lineItems
       }
@@ -1362,7 +1360,7 @@ Subscription.prototype.addLine = function(app: FabrixApp, item, qty, properties,
     })
 }
 
-Subscription.prototype.removeLine = function(app: FabrixApp, item, qty) {
+Subscription.prototype.removeLine = function(item, qty) {
   const lineItems = this.line_items
   if (!qty || !isNumber(qty)) {
     qty = 1
@@ -1373,7 +1371,7 @@ Subscription.prototype.removeLine = function(app: FabrixApp, item, qty) {
     lineItems[itemIndex].fulfillable_quantity = Math.max(0, lineItems[itemIndex].fulfillable_quantity - qty)
     // Resolve Grams
     if ( lineItems[itemIndex].quantity < 1) {
-      app.log.silly(`Cart.removeLine removing '${lineItems[itemIndex].variant_id}' line completely`)
+      this.app.log.silly(`Cart.removeLine removing '${lineItems[itemIndex].variant_id}' line completely`)
       lineItems.splice(itemIndex, 1)
     }
     this.line_items = lineItems
@@ -1384,7 +1382,7 @@ Subscription.prototype.removeLine = function(app: FabrixApp, item, qty) {
 /**
  *
  */
-Subscription.prototype.renew = function(app: FabrixApp) {
+Subscription.prototype.renew = function() {
   this.renewed_at = new Date(Date.now())
   this.renew_retry_at = null
   this.total_renewal_attempts = 0
@@ -1404,7 +1402,7 @@ Subscription.prototype.renew = function(app: FabrixApp) {
   return this
 }
 
-Subscription.prototype.willRenew = function(app: FabrixApp) {
+Subscription.prototype.willRenew = function() {
   this.notice_sent = true
   this.notice_sent_at = new Date(Date.now())
   return this
@@ -1413,7 +1411,7 @@ Subscription.prototype.willRenew = function(app: FabrixApp) {
  *
  * @returns Instance
  */
-Subscription.prototype.retry = function(app: FabrixApp) {
+Subscription.prototype.retry = function() {
   this.renew_retry_at = new Date(Date.now())
   this.total_renewal_attempts++
   return this
@@ -1421,103 +1419,85 @@ Subscription.prototype.retry = function(app: FabrixApp) {
 /**
  *
  */
-Subscription.prototype.sendActivateEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Subscription.activated(this, {
-    send_email: app.config.get('cart.emails.subscriptionRenewed')
+Subscription.prototype.sendActivateEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Subscription.activated(this, {
+    send_email: this.app.config.get('cart.emails.subscriptionRenewed')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Subscription.prototype.sendCancelledEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Subscription.cancelled(this, {
-    send_email: app.config.get('cart.emails.subscriptionCancelled')
+Subscription.prototype.sendCancelledEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Subscription.cancelled(this, {
+    send_email: this.app.config.get('cart.emails.subscriptionCancelled')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Subscription.prototype.sendDeactivateEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Subscription.deactivated(this, {
-    send_email: app.config.get('cart.emails.subscriptionDeactivated')
+Subscription.prototype.sendDeactivateEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Subscription.deactivated(this, {
+    send_email: this.app.config.get('cart.emails.subscriptionDeactivated')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Subscription.prototype.sendFailedEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Subscription.failed(this, {
-    send_email: app.config.get('cart.emails.subscriptionFailed')
+Subscription.prototype.sendFailedEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Subscription.failed(this, {
+    send_email: this.app.config.get('cart.emails.subscriptionFailed')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Subscription.prototype.sendRenewedEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Subscription.renewed(this, {
-    send_email: app.config.get('cart.emails.subscriptionRenewed')
+Subscription.prototype.sendRenewedEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Subscription.renewed(this, {
+    send_email: this.app.config.get('cart.emails.subscriptionRenewed')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
-      return
-    })
-}
-
-/**
- *
- */
-Subscription.prototype.sendUpdatedEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  return app.emails.Subscription.updated(this, {
-    send_email: app.config.get('cart.emails.subscriptionUpdated')
-  }, {
-    transaction: options.transaction || null
-  })
-    .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
-    })
-    .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
@@ -1525,18 +1505,17 @@ Subscription.prototype.sendUpdatedEmail = function(app: FabrixApp, options: {[ke
 /**
  *
  */
-Subscription.prototype.sendWillRenewEmail = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  options = options || {}
-  return app.emails.Subscription.willRenew(this, {
-    send_email: app.config.get('cart.emails.subscriptionWillRenew')
+Subscription.prototype.sendUpdatedEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Subscription.updated(this, {
+    send_email: this.app.config.get('cart.emails.subscriptionUpdated')
   }, {
     transaction: options.transaction || null
   })
     .then(email => {
-      return this.notifyCustomer(app, email, {transaction: options.transaction || null})
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
@@ -1544,15 +1523,33 @@ Subscription.prototype.sendWillRenewEmail = function(app: FabrixApp, options: {[
 /**
  *
  */
-Subscription.prototype.buildOrder = function(app: FabrixApp, data: {[key: string]: any} = {}) {
+Subscription.prototype.sendWillRenewEmail = function(options: {[key: string]: any} = {}) {
+  return this.app.emails.Subscription.willRenew(this, {
+    send_email: this.app.config.get('cart.emails.subscriptionWillRenew')
+  }, {
+    transaction: options.transaction || null
+  })
+    .then(email => {
+      return this.notifyCustomer(email, {transaction: options.transaction || null})
+    })
+    .catch(err => {
+      this.app.log.error(err)
+      return
+    })
+}
+
+/**
+ *
+ */
+Subscription.prototype.buildOrder = function(data: {[key: string]: any} = {}) {
   return {
     // Request info
     client_details: data.client_details || this.client_details,
     ip: data.ip || null,
     payment_details: data.payment_details,
-    payment_kind: data.payment_kind || app.config.get('cart.orders.payment_kind'),
-    transaction_kind: data.transaction_kind || app.config.get('cart.orders.transaction_kind'),
-    fulfillment_kind: data.fulfillment_kind || app.config.get('cart.orders.fulfillment_kind'),
+    payment_kind: data.payment_kind || this.app.config.get('cart.orders.payment_kind'),
+    transaction_kind: data.transaction_kind || this.app.config.get('cart.orders.transaction_kind'),
+    fulfillment_kind: data.fulfillment_kind || this.app.config.get('cart.orders.fulfillment_kind'),
     processing_method: data.processing_method || PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
     shipping_address: data.shipping_address || this.shipping_address,
     billing_address: data.billing_address || this.billing_address,
@@ -1597,7 +1594,7 @@ Subscription.prototype.buildOrder = function(app: FabrixApp, data: {[key: string
 /**
  *
  */
-Subscription.prototype.calculateDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.calculateDiscounts = function(options: {[key: string]: any} = {}) {
   const criteria = []
   const productIds = this.line_items.map(item => item.product_id)
   let collectionPairs = [], discountCriteria = [], checkHistory = []
@@ -1634,7 +1631,7 @@ Subscription.prototype.calculateDiscounts = function(app: FabrixApp, options: {[
         })
       }
       if (criteria.length > 0) {
-        return app.models['ItemDiscount'].findAll({
+        return this.app.models['ItemDiscount'].findAll({
           where: {
             $or: criteria
           },
@@ -1675,10 +1672,10 @@ Subscription.prototype.calculateDiscounts = function(app: FabrixApp, options: {[
         return d
       })
 
-      app.log.debug('Subscription.calculateDiscount criteria', discountCriteria)
+      this.app.log.debug('Subscription.calculateDiscount criteria', discountCriteria)
 
       if (discounts.length > 0) {
-        return app.models['Discount'].findAll({
+        return this.app.models['Discount'].findAll({
           where: {
             id: discounts.map(item => item.discount_id),
             status: DISCOUNT_STATUS.ENABLED
@@ -1703,7 +1700,7 @@ Subscription.prototype.calculateDiscounts = function(app: FabrixApp, options: {[
 
       if (checkHistory.length > 0) {
         return Promise.all(checkHistory.map(discount => {
-          return discount.eligibleCustomer(app, this.customer_id, {transaction: options.transaction || null})
+          return discount.eligibleCustomer(this.customer_id, {transaction: options.transaction || null})
         }))
       }
       else {
@@ -1718,17 +1715,17 @@ Subscription.prototype.calculateDiscounts = function(app: FabrixApp, options: {[
           resDiscounts.splice(i, 1)
         }
       })
-      return this.setItemsDiscountedLines(app, resDiscounts, discountCriteria)
+      return this.setItemsDiscountedLines(resDiscounts, discountCriteria)
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }
 /**
  *
  */
-Subscription.prototype.getCollectionPairs = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.getCollectionPairs = function(options: {[key: string]: any} = {}) {
   const collectionPairs = []
   const criteria = []
   let productIds = this.line_items.map(item => item.product_id)
@@ -1762,7 +1759,7 @@ Subscription.prototype.getCollectionPairs = function(app: FabrixApp, options: {[
       // console.log('BROKE CRITERIA',criteria)
 
       if (criteria.length > 0) {
-        return app.models['ItemCollection'].findAll({
+        return this.app.models['ItemCollection'].findAll({
           where: {
             $or: criteria
           },
@@ -1794,18 +1791,24 @@ Subscription.prototype.getCollectionPairs = function(app: FabrixApp, options: {[
       return collectionPairs
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return []
     })
 }
 /**
  *
  */
-Subscription.prototype.calculateTaxes = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.calculateTaxes = function(options: {[key: string]: any} = {}) {
   if (!this.has_taxes) {
     return Promise.resolve(this)
   }
-  return app.services.TaxService.calculate(this, this.line_items, this.shipping_address, app.models['Subscription'], options)
+  return this.app.services.TaxService.calculate(
+    this,
+    this.line_items,
+    this.shipping_address,
+    this.app.models['Subscription'],
+    options
+  )
     .then(taxesResult => {
       // console.log('WORKING ON TAXES RESULT', taxesResult.line_items)
       this.setItemsTaxLines(taxesResult.line_items)
@@ -1813,7 +1816,7 @@ Subscription.prototype.calculateTaxes = function(app: FabrixApp, options: {[key:
       return this
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 },
@@ -1821,7 +1824,7 @@ Subscription.prototype.calculateTaxes = function(app: FabrixApp, options: {[key:
  *
  * @returns {Promise.<T>}
  */
-Subscription.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Subscription.prototype.recalculate = function(options: {[key: string]: any} = {}) {
 
   // const collections = []
 
@@ -1855,8 +1858,8 @@ Subscription.prototype.recalculate = function(app: FabrixApp, options: {[key: st
   }
   this.renews_on = d.format('YYYY-MM-DD HH:mm:ss')
 
-  this.resetDefaults(app)
-  this.setLineItems(app, this.line_items)
+  this.resetDefaults()
+  this.setLineItems(this.line_items)
 
   // // Get Subscription Collections
   // return app.services.CollectionService.subscriptionCollections(this)
@@ -1883,16 +1886,16 @@ Subscription.prototype.recalculate = function(app: FabrixApp, options: {[key: st
 
   return Promise.resolve()
     .then(() => {
-      return this.calculateDiscounts(app, {transaction: options.transaction || null})
+      return this.calculateDiscounts({transaction: options.transaction || null})
     })
     .then(() => {
-      return this.calculateTaxes(app, {transaction: options.transaction || null})
+      return this.calculateTaxes({transaction: options.transaction || null})
     })
     .then(() => {
-      return this.setTotals(app)
+      return this.setTotals()
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return this
     })
 }

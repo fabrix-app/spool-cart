@@ -403,16 +403,16 @@ export class Transaction extends Model {
 }
 
 export interface Transaction {
-  retry(app: FabrixApp): any
-  cancel(app: FabrixApp): any
-  resolveOrder(app: FabrixApp, options): any
-  reconcileOrderFinancialStatus(app: FabrixApp, options): any
+  retry(): any
+  cancel(): any
+  resolveOrder(options): any
+  reconcileOrderFinancialStatus(options): any
 }
 
 /**
  *
  */
-Transaction.prototype.retry = function(app: FabrixApp) {
+Transaction.prototype.retry = function() {
   this.retry_at = new Date(Date.now())
   this.total_retry_attempts++
 
@@ -429,7 +429,7 @@ Transaction.prototype.retry = function(app: FabrixApp) {
  *
  * @returns {*}
  */
-Transaction.prototype.cancel = function(app: FabrixApp) {
+Transaction.prototype.cancel = function() {
   this.cancelled_at = new Date(Date.now())
   this.status = TRANSACTION_STATUS.CANCELLED
 
@@ -442,8 +442,8 @@ Transaction.prototype.cancel = function(app: FabrixApp) {
 /**
  *
  */
-Transaction.prototype.resolveOrder = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  const Order = app.models['Order']
+Transaction.prototype.resolveOrder = function(options: {[key: string]: any} = {}) {
+  const Order = this.app.models['Order']
   if (
     this.Order
     && this.Order instanceof Order.instance
@@ -464,8 +464,8 @@ Transaction.prototype.resolveOrder = function(app: FabrixApp, options: {[key: st
 /**
  *
  */
-Transaction.prototype.reconcileOrderFinancialStatus = function(app: FabrixApp, options: {[key: string]: any} = {}) {
-  const Order = app.models['Order']
+Transaction.prototype.reconcileOrderFinancialStatus = function(options: {[key: string]: any} = {}) {
+  const Order = this.app.models['Order']
   // If the status or the kind have not changed
   if (!this.changed('status') && !this.changed('kind')) {
     return Promise.resolve(this)
@@ -492,11 +492,11 @@ Transaction.prototype.reconcileOrderFinancialStatus = function(app: FabrixApp, o
         throw new Error('Order could not be resolved for transaction')
       }
       resOrder = foundOrder
-      return resOrder.saveFinancialStatus(app, {transaction: options.transaction || null})
+      return resOrder.saveFinancialStatus({transaction: options.transaction || null})
     })
     .then(() => {
       // Save the status changes
-      return resOrder.saveStatus(app, {transaction: options.transaction || null})
+      return resOrder.saveStatus({transaction: options.transaction || null})
     })
     .then(() => {
       return this

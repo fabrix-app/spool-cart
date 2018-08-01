@@ -161,7 +161,7 @@ export class VendorResolver extends SequelizeResolver {
 export class Vendor extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return VendorResolver
   }
 
   static config (app, Sequelize) {

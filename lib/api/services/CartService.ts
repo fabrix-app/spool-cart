@@ -56,11 +56,11 @@ export class CartService extends Service {
     }, {
       include: [
         {
-          model: this.app.models['Address'],
+          model: this.app.models['Address'].instance,
           as: 'shipping_address'
         },
         {
-          model: this.app.models['Address'],
+          model: this.app.models['Address'].instance,
           as: 'billing_address'
         }
       ]

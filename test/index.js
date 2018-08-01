@@ -1,23 +1,22 @@
 'use strict'
 
-const FabrixApp = require('@fabrix/fabrix')
-const assert = require('assert')
-const supertest = require('supertest')
+const FabrixApp = require('@fabrix/fabrix').FabrixApp
 
 before(function(done) {
-  this.timeout(15000)
+  this.timeout(150000)
 
   global.app = new FabrixApp(require('./fixtures/app'))
   // return global.app.start().catch(global.app.stop)
   global.app.start()
     .then(() => {
+      console.log('BROKE, MADE IT HERE')
       return global.app.models.Shop.findAll()
     })
     .then(shops => {
-      global.app.shopID = shops[0].id
+      global.shopID = shops[0].id
       let products = require('./fixtures/products')
       products = products.map( product => {
-        product.shops = [{id: global.app.shopID}]
+        product.shops = [{id: global.shopID}]
         return product
       })
       return global.app.services.ProductService.addProducts(products)
@@ -28,7 +27,7 @@ before(function(done) {
         // console.log('BEFORE ALL',product)
         return product.get({plain: true})
       })
-      global.app.shopProducts = products
+      global.shopProducts = products
       done()
     })
     .catch(err => {

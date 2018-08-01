@@ -183,33 +183,37 @@ export class Address extends Model {
           }
         },
         hooks: {
-          beforeValidate: (values, options) => {
-            try {
-              values = app.services.ProxyCartService.normalizeAddress(values)
-              // return fn(null, values)
-            }
-            catch (err) {
-              return Promise.resolve(err)
-              // return fn(err, values)
-            }
-          },
-          beforeCreate: (values, options) => {
-
-            if (!values.token) {
-              values.token = `address_${shortId.generate()}`
-            }
-
-            return app.services.GeolocationGenericService.locate(values)
-              .then(latLng => {
-                values = defaults(values, latLng)
+          beforeValidate: [
+            (values, options) => {
+              try {
+                values = app.services.ProxyCartService.normalizeAddress(values)
                 // return fn(null, values)
-              })
-              .catch(err => {
-                // Don't break over Geolocation failure
-                app.log.logger.error(err)
-                // return fn(null, values)
-              })
-          },
+              }
+              catch (err) {
+                return Promise.resolve(err)
+                // return fn(err, values)
+              }
+            }
+          ],
+          beforeCreate: [
+            (values, options) => {
+
+              if (!values.token) {
+                values.token = `address_${shortId.generate()}`
+              }
+
+              return app.services.GeolocationGenericService.locate(values)
+                .then(latLng => {
+                  values = defaults(values, latLng)
+                  // return fn(null, values)
+                })
+                .catch(err => {
+                  // Don't break over Geolocation failure
+                  app.log.error(err)
+                  // return fn(null, values)
+                })
+            }
+          ],
           beforeUpdate: (values, options) => {
             return app.services.GeolocationGenericService.locate(values)
               .then(latLng => {
@@ -218,14 +222,10 @@ export class Address extends Model {
               })
               .catch(err => {
                 // Don't break over Geolocation failure
-                app.log.logger.error(err)
+                app.log.error(err)
                 return values
               })
           }
-        },
-
-        instanceMethods: {
-
         }
       }
     }

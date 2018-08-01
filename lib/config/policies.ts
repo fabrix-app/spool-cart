@@ -1,28 +1,49 @@
-
-
 export const policies = {
   CartController: {
     // '*': ['CartPolicy.session', 'CustomerPolicy.session'],
-    create: ['ProxyCartPolicy.clientDetails'],
-    checkout: ['ProxyCartPolicy.clientDetails']
+    create: {
+      'POST': ['ProxyCartPolicy.clientDetails'],
+      'PUT': ['ProxyCartPolicy.clientDetails']
+    },
+    checkout: {
+      'POST': ['ProxyCartPolicy.clientDetails'],
+      'PUT': ['ProxyCartPolicy.clientDetails']
+    }
   },
   CollectionController: {
-    uploadCSV: [ 'CollectionPolicy.csv' ]
+    uploadCSV: {
+      'POST': [ 'CollectionPolicy.csv' ]
+    }
   },
   CustomerController: {
     // '*': ['CartPolicy.session', 'CustomerPolicy.session'],
-    create: ['ProxyCartPolicy.clientDetails'],
-    uploadCSV: [ 'CustomerPolicy.csv' ]
+    create: {
+      'POST': ['ProxyCartPolicy.clientDetails'],
+      'PUT': ['ProxyCartPolicy.clientDetails']
+    },
+    uploadCSV: {
+      'POST': [ 'CustomerPolicy.csv' ]
+    }
   },
   SubscriptionController: {
-    uploadCSV: [ 'SubscriptionPolicy.csv' ]
+    uploadCSV: {
+      'POST': [ 'SubscriptionPolicy.csv' ]
+    }
   },
   ProductController: {
-    createImage: ['ProductPolicy.image'],
-    uploadCSV: [ 'ProductPolicy.csv'],
-    uploadMetaCSV: [ 'ProductPolicy.csv']
+    createImage: {
+      'POST': ['ProductPolicy.image']
+    },
+    uploadCSV: {
+      'POST': [ 'ProductPolicy.csv']
+    },
+    uploadMetaCSV: {
+      'POST': [ 'ProductPolicy.csv']
+    }
   },
   VendorController: {
-    uploadCSV: [ 'VendorPolicy.csv' ]
-  },
+    uploadCSV: {
+      'POST': [ 'VendorPolicy.csv' ]
+    }
+  }
 }

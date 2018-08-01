@@ -7,140 +7,123 @@ const path = require('path')
 // const lib = require('../lib')
 const Service = require('@fabrix/fabrix/dist/common').FabrixService
 
-const packs = [
-  require('@fabrix/spool-router').RouterSpool,
-  require('@fabrix/spool-passport').PassportSpool,
-  require('@fabrix/spool-engine').EngineSpool,
-  require('@fabrix/spool-permissions').PermissionsSpool,
-  require('@fabrix/spool-notifications').NotificationsSpool,
-  require('@fabrix/spool-generics').GenericsSpool,
-  require('@fabrix/spool-email').EmailSpool,
-  require('@fabrix/spool-cart-countries').CartCountriesSpool,
-  require('../../dist/index').CartSpool // spool-cart
-]
-
-
-const SERVER = process.env.SERVER || 'express'
-const ORM = process.env.ORM || 'sequelize'
 const DIALECT = process.env.DIALECT || 'postgres'
-
-let web = {}
 
 const stores = {
   sqlitedev: {
     adapter: require('sails-disk')
-  },
-  // uploads: {
-  //   database: 'ProxyCart',
-  //   storage: './test/test.uploads.sqlite',
-  //   host: '127.0.0.1',
-  //   dialect: 'sqlite',
-  //   logging: false
-  // }
-}
-
-if (ORM === 'waterline') {
-  packs.push(require('spool-waterline'))
-}
-else if (ORM === 'sequelize') {
-  packs.push(require('spool-sequelize'))
-  if (DIALECT === 'postgres') {
-    stores.sqlitedev = {
-      orm: 'sequelize',
-      database: 'Sequelize',
-      host: '127.0.0.1',
-      dialect: 'postgres',
-      logging: false
-    }
-    stores.uploads = {
-      orm: 'sequelize',
-      database: 'Sequelize',
-      host: '127.0.0.1',
-      dialect: 'postgres',
-      logging: false
-    }
-  }
-  else {
-    stores.sqlitedev = {
-      orm: 'sequelize',
-      database: 'Sequelize',
-      storage: './test/test.sqlite',
-      host: '127.0.0.1',
-      dialect: 'sqlite',
-      logging: false
-    }
-    stores.uploads = {
-      orm: 'sequelize',
-      database: 'Sequelize',
-      storage: './test/test.sqlite',
-      host: '127.0.0.1',
-      dialect: 'sqlite',
-      logging: false
-    }
   }
 }
 
-if ( SERVER === 'express' ) {
-  packs.push(require('spool-express'))
-  web = {
-    express: require('express'),
-    middlewares: {
-      order: [
-        'static',
-        'addMethods',
-        'cookieParser',
-        'session',
-        'bodyParser',
-        'passportInit',
-        'passportSession',
-        'cartInit',
-        'cartSession',
-        'cartSessionCart',
-        'cartSessionCustomer',
-        'methodOverride',
-        'router',
-        'www',
-        '404',
-        '500'
-      ],
-      static: require('express').static('test/static')
-    }
+
+if (DIALECT === 'postgres') {
+  stores.sqlitedev = {
+    orm: 'sequelize',
+    database: 'Sequelize',
+    host: '127.0.0.1',
+    dialect: 'postgres',
+    logging: false,
+    migrate: 'drop'
+  }
+  stores.uploads = {
+    orm: 'sequelize',
+    database: 'Sequelize',
+    host: '127.0.0.1',
+    dialect: 'postgres',
+    logging: false,
+    migrate: 'drop'
+  }
+}
+else {
+  stores.sqlitedev = {
+    orm: 'sequelize',
+    database: 'Sequelize',
+    storage: './test/test.sqlite',
+    host: '127.0.0.1',
+    dialect: 'sqlite',
+    logging: false,
+    migrate: 'drop'
+  }
+  stores.uploads = {
+    orm: 'sequelize',
+    database: 'Sequelize',
+    storage: './test/test.sqlite',
+    host: '127.0.0.1',
+    dialect: 'sqlite',
+    logging: false,
+    migrate: 'drop'
+  }
+}
+
+const web = {
+  express: require('express'),
+  middlewares: {
+    order: [
+      'static',
+      'addMethods',
+      'cookieParser',
+      'session',
+      'bodyParser',
+      'passportInit',
+      'passportSession',
+      'cartInit',
+      'cartSession',
+      'cartSessionCart',
+      'cartSessionCustomer',
+      'methodOverride',
+      'router',
+      'www',
+      '404',
+      '500'
+    ],
+    static: require('express').static('test/static')
   }
 }
 
 const App = {
   api: {
-    services: {
-      FailTransaction: class FailTransaction extends Service {
-        // TODO create some failed transactions
-      },
-      FailFulfillment: class FailFulfillment extends Service {
-        // TODO some failed fulfillments
-      }
-    }
+    // services: {
+    //   FailTransaction: class FailTransaction extends Service {
+    //     // TODO create some failed transactions
+    //   },
+    //   FailFulfillment: class FailFulfillment extends Service {
+    //     // TODO some failed fulfillments
+    //   }
+    // }
   },
   pkg: {
     name: 'spool-cart-test',
-    version: '1.0.0'
+    version: '1.1.0'
   },
   config: {
+    main: {
+      spools: [
+        require('@fabrix/spool-router').RouterSpool,
+        require('@fabrix/spool-express').ExpressSpool,
+        require('@fabrix/spool-sequelize').SequelizeSpool,
+        require('@fabrix/spool-passport').PassportSpool,
+        require('@fabrix/spool-permissions').PermissionsSpool,
+        require('@fabrix/spool-notifications').NotificationsSpool,
+        require('@fabrix/spool-engine').EngineSpool,
+        require('@fabrix/spool-generics').GenericsSpool,
+        require('@fabrix/spool-email').EmailSpool,
+        require('@fabrix/spool-cart-countries').CartCountriesSpool,
+        require('../../dist').CartSpool // spool-cart
+      ]
+    },
     stores: stores,
     models: {
       defaultStore: 'sqlitedev',
       migrate: 'drop'
-    },
-    routes: {},
-    main: {
-      spools: packs
     },
     policies: {
       '*': {
         '*': ['CheckPermissions.checkRoute']
       }
     },
-    log: {
-      logger: new smokesignals.Logger('debug')
-    },
+    // log: {
+    //   logger: new smokesignals.Logger('debug')
+    // },
     web: web,
     session: {
       secret: 'cart'
@@ -395,7 +378,7 @@ const App = {
     generics: {
       payment_processor: {
         adapter: require('./FakePayment'),
-        options: {
+        config: {
           public: '123',
           secret: '123'
         },
@@ -404,39 +387,39 @@ const App = {
       },
       email_provider: {
         adapter: require('./FakeEmail'),
-        options: {
+        config: {
           protocol: 'https',
           host: 'test.com'
         }
       },
       data_store_provider: {
         adapter: require('./FakeDataStore'),
-        options: {}
+        config: {}
       }
       // Moved to Default Generics
       // tax_provider: {
       //   adapter: require('../api/generics').taxProvider,
-      //   options: {}
+      //   config: {}
       // },
       // shipping_provider: {
       //   adapter: require('../api/generics').shippingProvider,
-      //   options: {}
+      //   config: {}
       // },
       // image_provider: {
       //   adapter: require('../api/generics').imageProvider,
-      //   options: {}
+      //   config: {}
       // },
       // geolocation_provider: {
       //   adapter: require('../api/generics').geolocationProvider,
-      //   options: {}
+      //   config: {}
       // },
       // render_service: {
       //   adapter: require('../api/generics').renderService,
-      //   options: {}
+      //   config: {}
       // },
       // fulfillment_provider: {
       //   adapter: require('./fixtures/FakeFulfillment'),
-      //   options: {}
+      //   config: {}
       // }
     },
     engine: {
@@ -466,4 +449,5 @@ if (fs.existsSync(uploadPath)) {
 }
 
 _.defaultsDeep(App, smokesignals.FailsafeConfig)
+// console.log(App)
 module.exports = App

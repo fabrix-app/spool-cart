@@ -1,7 +1,11 @@
-
-
-
 import { clone } from 'lodash'
+import { RenderGeneric } from '@fabrix/generics-render'
+import { DefaultShippingProvider } from './api/generics/shippingProvider/index'
+import { DefaultTaxProvider } from './api/generics/taxProvider/index'
+import { ManualFulfillmentProvider } from './api/generics/fulfillmentProvider/index'
+import { DefaultImageProvider } from './api/generics/imageProvider/index'
+import { DefaultGeolocationProvider } from './api/generics/geolocationProvider/index'
+
 export const Cart = {
 
   /**
@@ -10,10 +14,15 @@ export const Cart = {
    */
   configure: (app) => {
     const cart = app.services.ProxyCartService
-    app.config.web.middlewares.cartInit = cart.initialize(cart)
-    app.config.web.middlewares.cartSession = cart.authenticate(cart)
-    app.config.web.middlewares.cartSessionCart = cart.cart(cart)
-    app.config.web.middlewares.cartSessionCustomer = cart.customer(cart)
+    const webMiddlewares = app.config.get('web.middlewares')
+
+    app.config.set('web.middlewares', Object.assign(webMiddlewares, {
+      cartInit: cart.initialize(cart),
+      cartSession: cart.authenticate(cart),
+      cartSessionCart: cart.cart(cart),
+      cartSessionCustomer: cart.customer(cart)
+    }))
+
     return Promise.resolve()
   },
   /**
@@ -33,19 +42,19 @@ export const Cart = {
   resolveGenerics: (app) => {
     if (!app.config.get('generics.shipping_provider.adapter')) {
       app.config.set('generics.shipping_provider', {
-        adapter: require('../api/generics').shippingProvider,
+        adapter: DefaultShippingProvider,
         config: {}
       })
     }
     if (!app.config.get('generics.fulfillment_provider.adapter')) {
       app.config.set('generics.fulfillment_provider', {
-        adapter: require('../api/generics').fulfillmentProvider,
+        adapter: ManualFulfillmentProvider,
         config: {}
       })
     }
     if (!app.config.get('generics.tax_provider.adapter')) {
       app.config.set('generics.tax_provider', {
-        adapter: require('../api/generics').taxProvider,
+        adapter: DefaultTaxProvider,
         config: {
           app: app
         }
@@ -53,19 +62,19 @@ export const Cart = {
     }
     if (!app.config.get('generics.image_provider.adapter')) {
       app.config.set('generics.image_provider', {
-        adapter: require('../api/generics').imageProvider,
+        adapter: DefaultImageProvider,
         config: {}
       })
     }
     if (!app.config.get('generics.geolocation_provider.adapter')) {
       app.config.set('generics.geolocation_provider', {
-        adapter: require('../api/generics').geolocationProvider,
+        adapter: DefaultGeolocationProvider,
         config: {}
       })
     }
     if (!app.config.get('generics.render_service.adapter')) {
       app.config.set('generics.render_service', {
-        adapter: require('generics-render'),
+        adapter: RenderGeneric,
         config: {
           // Must always be set to true
           html: true

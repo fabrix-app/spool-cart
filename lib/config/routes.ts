@@ -587,7 +587,7 @@ export const routes = {
         }
       }
     },
-    'POST:': {
+    'POST': {
       handler: 'CartController.update',
       config: {
         prefix: 'cart.prefix',
@@ -1143,7 +1143,7 @@ export const routes = {
         },
         app: {
           permissions: {
-            resource_name: 'apiPostCartIdAddItemsRoute',
+            resource_name: 'apiPutCartIdAddItemsRoute',
             roles: ['public', 'registered']
           }
         }
@@ -1939,7 +1939,7 @@ export const routes = {
         },
         app: {
           permissions: {
-            resource_name: 'apiPostCollectionIdRemoveTagTagRoute',
+            resource_name: 'apiPutCollectionIdRemoveTagTagRoute',
             roles: ['admin']
           }
         }
@@ -2758,27 +2758,75 @@ export const routes = {
   },
   // TODO legacy
   '/customer/:id/removeTag/:tag': {
-    'POST': 'CustomerController.removeTag',
-    'PUT': 'CustomerController.removeTag',
-    'DELETE': 'CustomerController.removeTag',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required(),
-          tag: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
+    'POST': {
+      handler: 'CustomerController.removeTag',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            tag: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCustomerIdRemoveTagTagRoute',
+            roles: ['admin']
+          }
         }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostPutDeleteCustomerIdRemoveTagTagRoute',
-          roles: ['admin']
+      }
+    },
+    'PUT': {
+      handler: 'CustomerController.removeTag',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            tag: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutCustomerIdRemoveTagTagRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'DELETE': {
+      handler: 'CustomerController.removeTag',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            tag: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteCustomerIdRemoveTagTagRoute',
+            roles: ['admin']
+          }
         }
       }
     }
@@ -5158,7 +5206,7 @@ export const routes = {
         },
         app: {
           permissions: {
-            resource_name: 'apiPostDiscountIdCustomersRoute',
+            resource_name: 'apiPutDiscountIdCustomersRoute',
             roles: ['admin']
           }
         }

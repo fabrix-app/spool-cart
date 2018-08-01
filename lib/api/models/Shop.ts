@@ -190,7 +190,7 @@ export class ShopResolver extends SequelizeResolver {
 export class Shop extends Model {
 
   static get resolver() {
-    return SequelizeResolver
+    return ShopResolver
   }
 
   static config (app, Sequelize) {

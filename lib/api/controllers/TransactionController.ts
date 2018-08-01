@@ -2,7 +2,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 
 /**
  * @module TransactionController
@@ -90,7 +90,7 @@ export class TransactionController extends Controller {
    */
   authorize(req, res) {
     const TransactionService = this.app.services.TransactionService
-    lib.Validator.validateTransaction.authorize(req.body)
+    Validator.validateTransaction.authorize(req.body)
       .then(values => {
         req.body.id = req.params.id
         return TransactionService.authorize(req.body)
@@ -113,7 +113,7 @@ export class TransactionController extends Controller {
    */
   capture(req, res) {
     const TransactionService = this.app.services.TransactionService
-    lib.Validator.validateTransaction.capture(req.body)
+    Validator.validateTransaction.capture(req.body)
       .then(values => {
         req.body.id = req.params.id
         return TransactionService.capture(req.body)
@@ -136,7 +136,7 @@ export class TransactionController extends Controller {
    */
   sale(req, res) {
     const TransactionService = this.app.services.TransactionService
-    lib.Validator.validateTransaction.sale(req.body)
+    Validator.validateTransaction.sale(req.body)
       .then(values => {
         req.body.id = req.params.id
         return TransactionService.sale(req.body)
@@ -159,7 +159,7 @@ export class TransactionController extends Controller {
    */
   void(req, res) {
     const TransactionService = this.app.services.TransactionService
-    lib.Validator.validateTransaction.void(req.body)
+    Validator.validateTransaction.void(req.body)
       .then(values => {
         req.body.id = req.params.id
         return TransactionService.void(req.body)
@@ -182,7 +182,7 @@ export class TransactionController extends Controller {
    */
   refund(req, res) {
     const TransactionService = this.app.services.TransactionService
-    lib.Validator.validateTransaction.refund(req.body)
+    Validator.validateTransaction.refund(req.body)
       .then(values => {
         req.body.id = req.params.id
         return TransactionService.refund(req.body)
@@ -205,7 +205,7 @@ export class TransactionController extends Controller {
    */
   retry(req, res) {
     const TransactionService = this.app.services.TransactionService
-    lib.Validator.validateTransaction.retry(req.body)
+    Validator.validateTransaction.retry(req.body)
       .then(values => {
         req.body.id = req.params.id
         return TransactionService.retry(req.body)
@@ -228,7 +228,7 @@ export class TransactionController extends Controller {
    */
   cancel(req, res) {
     const TransactionService = this.app.services.TransactionService
-    lib.Validator.validateTransaction.cancel(req.body)
+    Validator.validateTransaction.cancel(req.body)
       .then(values => {
         req.body.id = req.params.id
         return TransactionService.cancel(req.body)

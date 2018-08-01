@@ -69,7 +69,7 @@ export class CartSpool extends Spool {
     // }
 
     return Promise.all([
-      Validator.validateStores.config(this.app.config.get('stores')),
+      // Validator.validateStores.config(Object.values(this.app.config.get('stores'))),
       Validator.validateCartSpool.config(this.app.config.get('cart')),
       Validator.validateMiddleware.config(this.app.config.get('web.middlewares'))
     ])
@@ -89,7 +89,7 @@ export class CartSpool extends Spool {
   /**
    * Loads default shop and country fixtures
    */
-  initialize () {
+  async initialize () {
     return Promise.all([
       Utils.buildShopFixtures(this.app)
         .then(fixtures => {

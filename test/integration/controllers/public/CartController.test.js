@@ -9,8 +9,8 @@ describe('Public User CartController', () => {
   let publicUser, publicUser2, cartToken, orderedCartToken, newCartToken, resetCartToken, shopID, shopProducts, orderID, orderToken
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
     publicUser = supertest.agent(global.app.spools.express.server)
     publicUser2 = supertest.agent(global.app.spools.express.server)
     done()

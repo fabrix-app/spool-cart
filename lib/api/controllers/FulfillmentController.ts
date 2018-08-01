@@ -1,8 +1,6 @@
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 
 /**
  * @module FulfillmentController
@@ -98,7 +96,7 @@ export class FulfillmentController extends Controller {
    */
   create(req, res) {
     const FulfillmentService = this.app.services.FulfillmentService
-    lib.Validator.validateFulfillment.create(req.body)
+    Validator.validateFulfillment.create(req.body)
       .then(values => {
         req.body.id = req.params.id
         return FulfillmentService.create(req.body)
@@ -121,7 +119,7 @@ export class FulfillmentController extends Controller {
    */
   update(req, res) {
     const FulfillmentService = this.app.services.FulfillmentService
-    lib.Validator.validateFulfillment.update(req.body)
+    Validator.validateFulfillment.update(req.body)
       .then(values => {
         req.body.id = req.params.id
         return FulfillmentService.updateFulfillment(req.body)
@@ -144,7 +142,7 @@ export class FulfillmentController extends Controller {
    */
   cancel(req, res) {
     const FulfillmentService = this.app.services.FulfillmentService
-    lib.Validator.validateFulfillment.cancel(req.body)
+    Validator.validateFulfillment.cancel(req.body)
       .then(values => {
         req.body.id = req.params.id
         return FulfillmentService.cancel(req.body)
@@ -167,7 +165,7 @@ export class FulfillmentController extends Controller {
    */
   destroy(req, res) {
     const FulfillmentService = this.app.services.FulfillmentService
-    lib.Validator.validateFulfillment.destroy(req.body)
+    Validator.validateFulfillment.destroy(req.body)
       .then(values => {
         req.body.id = req.params.id
         return FulfillmentService.destroy(req.body)

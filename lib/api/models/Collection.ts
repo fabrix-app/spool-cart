@@ -175,7 +175,7 @@ export class CollectionResolver extends SequelizeResolver {
    * @returns {*}
    */
   resolve(collection, options: {[key: string]: any} = {}) {
-    const CollectionModel =  this
+    const CollectionModel = this
     if (collection instanceof CollectionModel.instance) {
       return Promise.resolve(collection)
     }
@@ -267,50 +267,50 @@ export class CollectionResolver extends SequelizeResolver {
    * @param options
    * @returns {Promise.<T>}
    */
-  transformCollectionModels(collections = [], options: {[key: string]: any} = {}) {
-      const CollectionModel = this.app.models['Collection']
-      const Sequelize = CollectionModel.sequelize
+  transformCollections(collections = [], options: {[key: string]: any} = {}) {
+    const CollectionModel = this
+    const Sequelize = CollectionModel.sequelize
 
-      // Transform if necessary to objects
-      collections = collections.map(collection => {
-        if (collection && isNumber(collection)) {
-          return { id: collection }
+    // Transform if necessary to objects
+    collections = collections.map(collection => {
+      if (collection && isNumber(collection)) {
+        return { id: collection }
+      }
+      else if (collection && isString(collection)) {
+        return {
+          handle: this.app.services.ProxyCartService.handle(collection),
+          title: collection
         }
-        else if (collection && isString(collection)) {
-          return {
-            handle: this.app.services.ProxyCartService.handle(collection),
-            title: collection
-          }
+      }
+      else if (collection && isObject(collection) && (collection.title || collection.handle)) {
+        collection.handle = this.app.services.ProxyCartService.handle(collection.handle)
+          || this.app.services.ProxyCartService.handle(collection.title)
+        return collection
+      }
+    })
+    // Filter out undefined
+    collections = collections.filter(collection => collection)
+
+    return Sequelize.Promise.mapSeries(collections, collection => {
+      return CollectionModel.findOne({
+        where: pick(collection, ['id', 'handle']),
+        attributes: ['id', 'handle', 'title'],
+        transaction: options.transaction || null
+      })
+      .then(foundCollectionModel => {
+        if (foundCollectionModel) {
+          return extend(foundCollectionModel, collection)
         }
-        else if (collection && isObject(collection) && (collection.title || collection.handle)) {
-          collection.handle = this.app.services.ProxyCartService.handle(collection.handle)
-            || this.app.services.ProxyCartService.handle(collection.title)
-          return collection
+        else {
+          return this.app.services.CollectionService.create(collection, {
+            transaction: options.transaction || null
+          })
+            .then(createdCollectionModel => {
+              return extend(createdCollectionModel, collection)
+            })
         }
       })
-      // Filter out undefined
-      collections = collections.filter(collection => collection)
-
-      return Sequelize.Promise.mapSeries(collections, collection => {
-      return CollectionModel.findOne({
-                                  where: pick(collection, ['id', 'handle']),
-      attributes: ['id', 'handle', 'title'],
-      transaction: options.transaction || null
     })
-    .then(foundCollectionModel => {
-      if (foundCollectionModel) {
-        return extend(foundCollectionModel, collection)
-      }
-      else {
-        return this.app.services.CollectionModelService.create(collection, {
-          transaction: options.transaction || null
-        })
-          .then(createdCollectionModel => {
-            return extend(createdCollectionModel, collection)
-          })
-      }
-    })
-  })
   }
   /**
    *
@@ -683,9 +683,9 @@ export class Collection extends Model {
 }
 
 export interface Collection {
-  toJSON(app: FabrixApp): any
-  resolveMetadata(app: FabrixApp, options): any
-  resolveDiscounts(app: FabrixApp, options): any
+  toJSON(): any
+  resolveMetadata(options): any
+  resolveDiscounts(options): any
 }
 
 /**
@@ -694,9 +694,9 @@ export interface Collection {
  * Converts tags to array of strings
  * Returns only metadata data
  */
-Collection.prototype.toJSON = function(app: FabrixApp) {
+Collection.prototype.toJSON = function() {
   // Make JSON
-  const resp = this instanceof app.models['Collection'].instance ? this.get({ plain: true }) : this
+  const resp = this instanceof this.app.models['Collection'].instance ? this.get({ plain: true }) : this
   // Set Defaults
   // resp.calculated_price = resp.price
 
@@ -724,10 +724,10 @@ Collection.prototype.toJSON = function(app: FabrixApp) {
 /**
 *
 */
-Collection.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Collection.prototype.resolveMetadata = function(options: {[key: string]: any} = {}) {
   if (
     this.metadata
-    && this.metadata instanceof app.models['Metadata'].instance
+    && this.metadata instanceof this.app.models['Metadata'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -744,10 +744,10 @@ Collection.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: 
   }
 }
 
-Collection.prototype.resolveDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+Collection.prototype.resolveDiscounts = function(options: {[key: string]: any} = {}) {
   if (
     this.discounts
-    && this.discount.every(d => d instanceof app.models['Discount'].instance)
+    && this.discount.every(d => d instanceof this.app.models['Discount'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)

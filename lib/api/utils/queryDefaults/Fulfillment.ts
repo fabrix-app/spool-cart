@@ -3,7 +3,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['OrderItem'],
+          model: app.models['OrderItem'].instance,
           as: 'order_items',
           attributes: [
             'id',

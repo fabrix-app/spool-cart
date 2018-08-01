@@ -654,42 +654,42 @@ export class Customer extends Model {
 
 
 export interface Customer {
-  getProductHistory(app: FabrixApp, product, options): any
-  hasPurchaseHistory(app: FabrixApp, productId, options): any
-  isSubscribed(app: FabrixApp, productId, options): any
-  getSalutation(app: FabrixApp, options): any
-  getDefaultSource(app: FabrixApp, options): any
-  setLastOrder(app: FabrixApp, order): any
-  setTotalSpent(app: FabrixApp, orderTotalDue): any
-  setTotalOrders(app: FabrixApp): any
-  setAvgSpent(app: FabrixApp): any
-  setAccountBalance(app: FabrixApp, newBalance): any
-  logAccountBalance(app: FabrixApp, type, price, currency, accountId, orderId, options): any
-  notifyUsers(app: FabrixApp, preNotification, options): any
-  resolveCollections(app: FabrixApp, options): any
-  resolveDiscounts(app: FabrixApp, options): any
-  resolveMetadata(app: FabrixApp, options): any
-  resolveUsers(app: FabrixApp, options): any
-  resolveDefaultAddress(app: FabrixApp, options): any
-  resolveShippingAddress(app: FabrixApp, options): any
-  resolveBillingAddress(app: FabrixApp, options): any
-  resolvePaymentDetailsToSources(app: FabrixApp, options): any
-  sendRetargetEmail(app: FabrixApp, options): any
-  updateDefaultAddress(app: FabrixApp, address, options): any
-  updateShippingAddress(app: FabrixApp, address, options): any
-  updateBillingAddress(app: FabrixApp, address, options): any
-  toJSON(app: FabrixApp): any
+  getProductHistory( product, options): any
+  hasPurchaseHistory( productId, options): any
+  isSubscribed( productId, options): any
+  getSalutation( options): any
+  getDefaultSource( options): any
+  setLastOrder( order): any
+  setTotalSpent( orderTotalDue): any
+  setTotalOrders(): any
+  setAvgSpent(): any
+  setAccountBalance( newBalance): any
+  logAccountBalance( type, price, currency, accountId, orderId, options): any
+  notifyUsers( preNotification, options): any
+  resolveCollections( options): any
+  resolveDiscounts( options): any
+  resolveMetadata( options): any
+  resolveUsers( options): any
+  resolveDefaultAddress( options): any
+  resolveShippingAddress( options): any
+  resolveBillingAddress( options): any
+  resolvePaymentDetailsToSources( options): any
+  sendRetargetEmail( options): any
+  updateDefaultAddress( address, options): any
+  updateShippingAddress( address, options): any
+  updateBillingAddress( address, options): any
+  toJSON(): any
 }
 
 /**
  *
  */
-Customer.prototype.getProductHistory = (app: FabrixApp, product, options = {}) => {
+Customer.prototype.getProductHistory = ( product, options = {}) => {
   let hasPurchaseHistory = false, isSubscribed = false
-  return this.hasPurchaseHistory(app, product.id, options)
+  return this.hasPurchaseHistory(product.id, options)
     .then(pHistory => {
       hasPurchaseHistory = pHistory
-      return this.isSubscribed(app, product.id, options)
+      return this.isSubscribed(product.id, options)
     })
     .then(pHistory => {
       isSubscribed = pHistory
@@ -708,8 +708,8 @@ Customer.prototype.getProductHistory = (app: FabrixApp, product, options = {}) =
 /**
  *
  */
-Customer.prototype.hasPurchaseHistory = (app: FabrixApp, productId, options = {}) => {
-  return app.models['OrderItem'].findOne({
+Customer.prototype.hasPurchaseHistory = (productId, options = {}) => {
+  return this.app.models['OrderItem'].findOne({
     where: {
       customer_id: this.id,
       product_id: productId,
@@ -733,9 +733,9 @@ Customer.prototype.hasPurchaseHistory = (app: FabrixApp, productId, options = {}
     })
 }
 
-Customer.prototype.isSubscribed = (app: FabrixApp, productId, options = {}) => {
+Customer.prototype.isSubscribed = (productId, options = {}) => {
 
-  return app.models['Subscription'].findOne({
+  return this.app.models['Subscription'].findOne({
     where: {
       customer_id: this.id,
       active: true,
@@ -766,7 +766,7 @@ Customer.prototype.isSubscribed = (app: FabrixApp, productId, options = {}) => {
  * @param options
  * @returns {string}
  */
-Customer.prototype.getSalutation = (app: FabrixApp, options = {}) => {
+Customer.prototype.getSalutation = (options = {}) => {
   let salutation = 'Customer'
 
   if (this.full_name) {
@@ -780,8 +780,8 @@ Customer.prototype.getSalutation = (app: FabrixApp, options = {}) => {
 /**
  *
  */
-Customer.prototype.getDefaultSource = (app: FabrixApp, options: {[key: string]: any} = {}) => {
-  const Source = app.models['Source']
+Customer.prototype.getDefaultSource = (options: {[key: string]: any} = {}) => {
+  const Source = this.app.models['Source']
   return Source.findOne({
     where: {
       customer_id: this.id,
@@ -811,7 +811,7 @@ Customer.prototype.getDefaultSource = (app: FabrixApp, options: {[key: string]: 
 /**
  *
  */
-Customer.prototype.setLastOrder = (app: FabrixApp, order) => {
+Customer.prototype.setLastOrder = (order) => {
   this.last_order_name = order.name
   this.last_order_id = order.id
   return this
@@ -820,21 +820,21 @@ Customer.prototype.setLastOrder = (app: FabrixApp, order) => {
 /**
  *
  */
-Customer.prototype.setTotalSpent = (app: FabrixApp, orderTotalDue) => {
+Customer.prototype.setTotalSpent = (orderTotalDue) => {
   this.total_spent = this.total_spent + orderTotalDue
   return this
 }
 /**
  *
  */
-Customer.prototype.setTotalOrders = (app: FabrixApp) => {
+Customer.prototype.setTotalOrders = () => {
   this.total_orders = this.total_orders + 1
   return this
 }
 /**
  *
  */
-Customer.prototype.setAvgSpent = (app: FabrixApp) => {
+Customer.prototype.setAvgSpent = () => {
   this.avg_spent = this.total_spent / this.total_orders
   return this
 }
@@ -842,7 +842,7 @@ Customer.prototype.setAvgSpent = (app: FabrixApp) => {
  *
  */
 // TODO Discussion: should this be pulled with each query or set after order?
-Customer.prototype.setAccountBalance = (app: FabrixApp, newBalance) => {
+Customer.prototype.setAccountBalance = (newBalance) => {
   this.account_balance = newBalance
   return this
 }
@@ -869,7 +869,7 @@ Customer.prototype.logAccountBalance = (
     transaction: options.transaction || null
   })
     .then(_event => {
-      const currencySymbol = app.services.ProxyCartService.formatCurrency(price, currency)
+      const currencySymbol = this.app.services.ProxyCartService.formatCurrency(price, currency)
       const event = {
         object_id: this.id,
         object: 'customer',
@@ -880,7 +880,7 @@ Customer.prototype.logAccountBalance = (
         message: `Customer ${ this.email || 'ID ' + this.id } account balance was ${type}ed by ${ currencySymbol } ${currency}`,
         data: this
       }
-      return app.services.EngineService.publish(event.type, event, {
+      return this.app.services.EngineService.publish(event.type, event, {
         save: true,
         transaction: options.transaction || null
       })
@@ -894,18 +894,24 @@ Customer.prototype.logAccountBalance = (
 /**
  *
  */
-Customer.prototype.notifyUsers = (app: FabrixApp, preNotification, options: {[key: string]: any} = {}) => {
+Customer.prototype.notifyUsers = (preNotification, options: {[key: string]: any} = {}) => {
 
-  return this.resolveUsers(app, {
+  return this.resolveUsers({
     attributes: ['id', 'email', 'username'],
     transaction: options.transaction || null,
     reload: options.reload || null,
   })
     .then(() => {
       if (this.users && this.users.length > 0) {
-        return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
+        return this.app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
           .then(notes => {
-            app.log.debug('NOTIFY', this.id, this.email, this.users.map(u => u.id), preNotification.send_email, notes.users.map(u => u.id))
+            this.app.log.debug('NOTIFY',
+              this.id,
+              this.email,
+              this.users.map(u => u.id),
+              preNotification.send_email,
+              notes.users.map(u => u.id)
+            )
             return notes
           })
       }
@@ -917,11 +923,11 @@ Customer.prototype.notifyUsers = (app: FabrixApp, preNotification, options: {[ke
 /**
  *
  */
-Customer.prototype.resolveCollections = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveCollections = (options: {[key: string]: any} = {}) => {
   if (
     this.collections
     && this.collections.length > 0
-    && this.collections.every(d => d instanceof app.models['Collection'].instance)
+    && this.collections.every(d => d instanceof this.app.models['Collection'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -940,11 +946,11 @@ Customer.prototype.resolveCollections = (app: FabrixApp, options: {[key: string]
 /**
  *
  */
-Customer.prototype.resolveDiscounts = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveDiscounts = (options: {[key: string]: any} = {}) => {
   if (
     this.discounts
     && this.discounts.length > 0
-    && this.discounts.every(d => d instanceof app.models['Discount'].instance)
+    && this.discounts.every(d => d instanceof this.app.models['Discount'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -963,10 +969,10 @@ Customer.prototype.resolveDiscounts = (app: FabrixApp, options: {[key: string]: 
 /**
  *
  */
-Customer.prototype.resolveMetadata = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveMetadata = (options: {[key: string]: any} = {}) => {
   if (
     this.metadata
-    && this.metadata instanceof app.models['Metadata'].instance
+    && this.metadata instanceof this.app.models['Metadata'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -985,12 +991,12 @@ Customer.prototype.resolveMetadata = (app: FabrixApp, options: {[key: string]: a
 /**
  *
  */
-Customer.prototype.resolveUsers = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveUsers = (options: {[key: string]: any} = {}) => {
   options = options || {}
   if (
     this.users
     && this.users.length > 0
-    && this.users.every(u => u instanceof app.models['User'].instance)
+    && this.users.every(u => u instanceof this.app.models['User'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -1009,17 +1015,17 @@ Customer.prototype.resolveUsers = (app: FabrixApp, options: {[key: string]: any}
 /**
  *
  */
-Customer.prototype.resolveDefaultAddress = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveDefaultAddress = (options: {[key: string]: any} = {}) => {
   if (
     this.default_address
-    && this.default_address instanceof app.models['Address'].instance
+    && this.default_address instanceof this.app.models['Address'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
   }
   // Some carts may not have a default address Id
   else if (!this.default_address_id) {
-    this.default_address = app.models['Address'].build({})
+    this.default_address = this.app.models['Address'].build({})
     return Promise.resolve(this)
   }
   else {
@@ -1036,17 +1042,17 @@ Customer.prototype.resolveDefaultAddress = (app: FabrixApp, options: {[key: stri
 /**
  *
  */
-Customer.prototype.resolveShippingAddress = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveShippingAddress = (options: {[key: string]: any} = {}) => {
   if (
     this.shipping_address
-    && this.shipping_address instanceof app.models['Address'].instance
+    && this.shipping_address instanceof this.app.models['Address'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
   }
   // Some carts may not have a shipping address Id
   else if (!this.shipping_address_id) {
-    this.shipping_address = app.models['Address'].build({})
+    this.shipping_address = this.app.models['Address'].build({})
     return Promise.resolve(this)
   }
   else {
@@ -1063,17 +1069,17 @@ Customer.prototype.resolveShippingAddress = (app: FabrixApp, options: {[key: str
 /**
  *
  */
-Customer.prototype.resolveBillingAddress = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveBillingAddress = (options: {[key: string]: any} = {}) => {
   if (
     this.billing_address
-    && this.billing_address instanceof app.models['Address'].instance
+    && this.billing_address instanceof this.app.models['Address'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
   }
   // Some carts may not have a billing address Id
   else if (!this.billing_address_id) {
-    this.billing_address = app.models['Address'].build({})
+    this.billing_address = this.app.models['Address'].build({})
     return Promise.resolve(this)
   }
   else {
@@ -1089,17 +1095,17 @@ Customer.prototype.resolveBillingAddress = (app: FabrixApp, options: {[key: stri
 }
 
 // TODO
-Customer.prototype.resolvePaymentDetailsToSources = (app: FabrixApp, options = {}) => {
+Customer.prototype.resolvePaymentDetailsToSources = (options = {}) => {
   return this
 }
 
 /**
  * Email to notify user's that there are pending items in cart
  */
-Customer.prototype.sendRetargetEmail = (app: FabrixApp, options: {[key: string]: any} = {}) => {
+Customer.prototype.sendRetargetEmail = (options: {[key: string]: any} = {}) => {
 
-  return app.emails.Customer.retarget(this, {
-    send_email: app.config.get('cart.emails.customerRetarget')
+  return this.app.emails.Customer.retarget(this, {
+    send_email: this.app.config.get('cart.emails.customerRetarget')
   }, {
     transaction: options.transaction || null
   })
@@ -1107,7 +1113,7 @@ Customer.prototype.sendRetargetEmail = (app: FabrixApp, options: {[key: string]:
       return this.notifyUsers(email, {transaction: options.transaction || null})
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
@@ -1115,8 +1121,8 @@ Customer.prototype.sendRetargetEmail = (app: FabrixApp, options: {[key: string]:
 /**
  *
  */
-Customer.prototype.updateDefaultAddress = (app: FabrixApp, address, options: {[key: string]: any } = {}) => {
-  const Address = app.models['Address']
+Customer.prototype.updateDefaultAddress = (address, options: {[key: string]: any } = {}) => {
+  const Address = this.app.models['Address']
   const defaultUpdate = Address.cleanAddress(address)
 
   return this.resolveDefaultAddress({transaction: options.transaction || null})
@@ -1148,8 +1154,8 @@ Customer.prototype.updateDefaultAddress = (app: FabrixApp, address, options: {[k
 /**
  *
  */
-Customer.prototype.updateShippingAddress = (app: FabrixApp, address, options: {[key: string]: any} = {}) => {
-  const Address = app.models['Address']
+Customer.prototype.updateShippingAddress = (address, options: {[key: string]: any} = {}) => {
+  const Address = this.app.models['Address']
   const shippingUpdate = Address.cleanAddress(address)
 
   return this.resolveShippingAddress({transaction: options.transaction || null})
@@ -1181,8 +1187,8 @@ Customer.prototype.updateShippingAddress = (app: FabrixApp, address, options: {[
 /**
  *
  */
-Customer.prototype.updateBillingAddress = (app: FabrixApp, address, options: {[key: string]: any} = {}) => {
-  const Address = app.models['Address']
+Customer.prototype.updateBillingAddress = (address, options: {[key: string]: any} = {}) => {
+  const Address = this.app.models['Address']
   const billingUpdate = Address.cleanAddress(address)
 
   return this.resolveBillingAddress({transaction: options.transaction || null})
@@ -1215,8 +1221,8 @@ Customer.prototype.updateBillingAddress = (app: FabrixApp, address, options: {[k
 /**
  *
  */
-Customer.prototype.toJSON = function(app: FabrixApp) {
-  const resp = this instanceof app.models['Customer'].instance ? this.get({ plain: true }) : this
+Customer.prototype.toJSON = function() {
+  const resp = this instanceof this.app.models['Customer'].instance ? this.get({ plain: true }) : this
   // Transform Tags to array on toJSON
   if (resp.tags) {
     resp.tags = resp.tags.map(tag => {

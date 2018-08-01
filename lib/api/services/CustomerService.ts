@@ -59,27 +59,27 @@ export class CustomerService extends Service {
     }, {
       include: [
         {
-          model: Address,
+          model: Address.instance,
           as: 'shipping_address'
         },
         {
-          model: Address,
+          model: Address.instance,
           as: 'billing_address'
         },
         {
-          model: Address,
+          model: Address.instance,
           as: 'default_address'
         },
         {
-          model: Cart,
+          model: Cart.instance,
           as: 'default_cart'
         },
         {
-          model: Tag,
+          model: Tag.instance,
           as: 'tags'
         },
         {
-          model: Metadata,
+          model: Metadata.instance,
           as: 'metadata'
         },
         // {
@@ -243,7 +243,7 @@ export class CustomerService extends Service {
             return User.create(user, {
               include: [
                 {
-                  model: this.app.models['Passport'],
+                  model: this.app.models['Passport'].instance,
                   as: 'passports'
                 }
               ],

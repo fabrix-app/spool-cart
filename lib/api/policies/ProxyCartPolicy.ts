@@ -1,5 +1,3 @@
-
-
 import { FabrixPolicy as Policy } from '@fabrix/fabrix/dist/common'
 
 /**
@@ -25,7 +23,7 @@ export class ProxyCartPolicy extends Policy {
     req.body.client_details = clientDetails
     // TODO enable Multi Tenant
     // req.body.host = req.params.host
-    this.app.log.silly('ProxyCartPolicy.clientDetails', clientDetails)
+    this.app.log.silly('CartPolicy.clientDetails', clientDetails)
     next()
   }
 }

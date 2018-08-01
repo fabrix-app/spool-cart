@@ -8,8 +8,8 @@ describe('Admin User Pricing Override', () => {
   let adminUser, userID, customerID, cartID, orderedCartID, newCartID, resetCartID, shopID, shopProducts, orderID
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
 
     adminUser = supertest.agent(global.app.spools.express.server)
     // Login as Admin

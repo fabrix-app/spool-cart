@@ -7,8 +7,8 @@ describe('Admin User Edit Order Split Fulfillment', () => {
   let createdProduct1, createdProduct2, createdProductVariant1, createdProductVariant2
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
     adminUser = supertest.agent(global.app.spools.express.server)
     // Login as Admin
     adminUser

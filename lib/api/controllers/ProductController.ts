@@ -2,7 +2,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 /**
@@ -422,25 +422,25 @@ export class ProductController extends Controller {
       },
       include: [
         {
-          model: this.app.models['Collection'],
+          model: this.app.models['Collection'].instance,
           as: 'collections',
           where: {
             handle: req.params.handle
           }
         },
         {
-          model: this.app.models['ProductImage'],
+          model: this.app.models['ProductImage'].instance,
           as: 'images',
           order: [['position', 'ASC']]
         },
         {
-          model: this.app.models['Tag'],
+          model: this.app.models['Tag'].instance,
           as: 'tags',
           attributes: ['name', 'id'],
           order: [['name', 'ASC']]
         },
         {
-          model: this.app.models['Vendor'],
+          model: this.app.models['Vendor'].instance,
           as: 'vendors',
           attributes: [
             'id',
@@ -511,12 +511,12 @@ export class ProductController extends Controller {
    */
   addProduct(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateProduct.add(req.body)
+    Validator.validateProduct.add(req.body)
       .then(values => {
         return ProductService.addProduct(req.body)
       })
       .then(product => {
-        this.app.log.silly('ProductController.addProduct created:', product)
+        this.app.log.silly('ProductController.addProduct created:', product.handle)
         return this.app.services.PermissionsService.sanitizeResult(req, product)
       })
       .then(result => {
@@ -533,12 +533,12 @@ export class ProductController extends Controller {
    */
   addProducts(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateProduct.addProducts(req.body)
+    Validator.validateProduct.addProducts(req.body)
       .then(values => {
         return ProductService.addProducts(req.body)
       })
       .then(products => {
-        this.app.log.silly('ProductController.addProducts created:', products)
+        this.app.log.silly('ProductController.addProducts created:', products.map(p => p.handle))
         return this.app.services.PermissionsService.sanitizeResult(req, products)
       })
       .then(result => {
@@ -556,7 +556,7 @@ export class ProductController extends Controller {
    */
   updateProduct(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateProduct.update(req.body)
+    Validator.validateProduct.update(req.body)
       .then(values => {
         req.body.id = req.params.id
         return ProductService.updateProduct(req.body)
@@ -579,7 +579,7 @@ export class ProductController extends Controller {
    */
   updateProducts(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateProduct.updateProducts(req.body)
+    Validator.validateProduct.updateProducts(req.body)
       .then(values => {
         return ProductService.updateProducts(req.body)
       })
@@ -600,7 +600,7 @@ export class ProductController extends Controller {
    */
   removeProduct(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateProduct.removeProduct(req.body)
+    Validator.validateProduct.removeProduct(req.body)
       .then(values => {
         return ProductService.removeProduct(req.body)
       })
@@ -621,7 +621,7 @@ export class ProductController extends Controller {
    */
   removeProducts(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateProduct.removeProducts(req.body)
+    Validator.validateProduct.removeProducts(req.body)
       .then(values => {
         return ProductService.removeProducts(req.body)
       })
@@ -643,7 +643,7 @@ export class ProductController extends Controller {
    */
   removeVariants(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateVariant.removeVariants(req.body)
+    Validator.validateVariant.removeVariants(req.body)
       .then(values => {
         return ProductService.removeVariants(req.body)
       })
@@ -684,7 +684,7 @@ export class ProductController extends Controller {
    */
   createVariant(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateVariant.create(req.body)
+    Validator.validateVariant.create(req.body)
       .then(values => {
         return ProductService.createVariant(req.params.id, req.body)
       })
@@ -713,7 +713,7 @@ export class ProductController extends Controller {
       req.body.id = req.params.variant
     }
 
-    lib.Validator.validateVariant.update(req.body)
+    Validator.validateVariant.update(req.body)
       .then(values => {
         return ProductService.updateVariant(req.params.id, req.body)
       })
@@ -792,7 +792,7 @@ export class ProductController extends Controller {
    */
   removeImages(req, res) {
     const ProductService = this.app.services.ProductService
-    lib.Validator.validateImage.removeImages(req.body)
+    Validator.validateImage.removeImages(req.body)
       .then(values => {
         return ProductService.removeImages(req.body)
       })
@@ -941,7 +941,7 @@ export class ProductController extends Controller {
       order: sort,
       include: [
         {
-          model: this.app.models['Product'],
+          model: this.app.models['Product'].instance,
           as: 'products',
           where: {
             id: productId
@@ -1216,7 +1216,7 @@ export class ProductController extends Controller {
       limit: limit,
       include: [
         {
-          model: this.app.models['Product'],
+          model: this.app.models['Product'].instance,
           as: 'products',
           attributes: ['id'],
           duplicating: false
@@ -1376,7 +1376,7 @@ export class ProductController extends Controller {
       limit: limit,
       include: [
         {
-          model: this.app.models['Product'],
+          model: this.app.models['Product'].instance,
           as: 'products',
           attributes: ['id'],
           where: {

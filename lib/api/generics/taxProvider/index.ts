@@ -29,7 +29,7 @@ export class DefaultTaxProvider extends Generic {
             attributes: ['id', 'code', 'tax_name', 'tax_type', 'tax_rate', 'tax_percentage'],
             include: [
               {
-                model: Country,
+                model: Country.instance,
                 attributes: ['id', 'code', 'tax_name', 'tax_rate', 'tax_percentage'],
                 where: {
                   code: nexus.country_code

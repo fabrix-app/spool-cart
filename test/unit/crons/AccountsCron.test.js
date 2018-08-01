@@ -37,7 +37,7 @@ describe('Cron', () => {
   })
   it('should get expired nextInvocation and it should be the first of the month at 10 past', done => {
     const job = global.app.crons.AccountsCron.nextInvocation('AccountsCron.expired')
-    console.log('CRON JOB',job)
+    // console.log('CRON JOB', job)
     assert.ok(job)
     done()
   })

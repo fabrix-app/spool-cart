@@ -1,6 +1,6 @@
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 const _ = require('lodash')
 /**
  * @module CollectionController
@@ -177,7 +177,7 @@ export class CollectionController extends Controller {
    */
   create(req, res) {
     const CollectionService = this.app.services.CollectionService
-    lib.Validator.validateCollection.create(req.body)
+    Validator.validateCollection.create(req.body)
       .then(values => {
         return CollectionService.create(req.body)
       })
@@ -203,7 +203,7 @@ export class CollectionController extends Controller {
    */
   update(req, res) {
     const CollectionService = this.app.services.CollectionService
-    lib.Validator.validateCollection.update(req.body)
+    Validator.validateCollection.update(req.body)
       .then(values => {
         req.body.id = req.params.id
         return CollectionService.update(req.body)
@@ -580,7 +580,7 @@ export class CollectionController extends Controller {
       order: sort,
       include: [
         {
-          model: this.app.models['Collection'],
+          model: this.app.models['Collection'].instance,
           as: 'collections',
           where: {
             id: collectionId
@@ -682,7 +682,7 @@ export class CollectionController extends Controller {
     Customer.findAndCountAll({
       include: [
         {
-          model: this.app.models['Collection'],
+          model: this.app.models['Collection'].instance,
           as: 'collections',
           where: {
             id: collectionId
@@ -726,7 +726,7 @@ export class CollectionController extends Controller {
     Discount.findAndCountAll({
       include: [
         {
-          model: this.app.models['Collection'],
+          model: this.app.models['Collection'].instance,
           as: 'collections',
           where: {
             id: collectionId

@@ -176,7 +176,7 @@ export class FulfillmentService extends Service {
 
         resFulfillment = _fulfillment
 
-        return resFulfillment.resolveOrderItems(this.app, {transaction: options.transaction || null})
+        return resFulfillment.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
         if ([FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.PENDING].indexOf(resFulfillment.status) > -1) {
@@ -226,7 +226,7 @@ export class FulfillmentService extends Service {
           },
           include: [
             {
-              model: OrderItem,
+              model: OrderItem.instance,
               as: 'order_items'
             }
           ],
@@ -245,7 +245,7 @@ export class FulfillmentService extends Service {
             .then(() => {
               return resFulfillment.reload({transaction: options.transaction || null})
                 .then(() => {
-                  return resFulfillment.saveFulfillmentStatus(this.app, {transaction: options.transaction || null})
+                  return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
                 })
             })
             .then(() => {
@@ -262,7 +262,7 @@ export class FulfillmentService extends Service {
           }, {
             include: [
               {
-                model: OrderItem,
+                model: OrderItem.instance,
                 as: 'order_items'
               }
             ]})
@@ -278,7 +278,7 @@ export class FulfillmentService extends Service {
                 .then(() => {
                   return resFulfillment.reload({transaction: options.transaction || null})
                     .then(() => {
-                      return resFulfillment.saveFulfillmentStatus(this.app, {transaction: options.transaction || null})
+                      return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
                     })
                 })
                 .then(() => {
@@ -322,7 +322,7 @@ export class FulfillmentService extends Service {
           },
           include: [
             {
-              model: OrderItem,
+              model: OrderItem.instance,
               as: 'order_items'
             }
           ],
@@ -387,7 +387,7 @@ export class FulfillmentService extends Service {
           },
           include: [
             {
-              model: OrderItem,
+              model: OrderItem.instance,
               as: 'order_items'
             }
           ],

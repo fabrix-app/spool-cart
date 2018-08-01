@@ -69,7 +69,7 @@ export class UserController extends PermissionsController {
         '$users.id$': userId
       },
       include: [{
-        model: this.app.models['User'],
+        model: this.app.models['User'].instance,
         as: 'users',
         attributes: ['id']
       }],

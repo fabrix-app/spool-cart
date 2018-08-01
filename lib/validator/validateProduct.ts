@@ -16,6 +16,17 @@ export const validateProduct = {
       })
     })
   },
+  // Validate Add Product
+  addProduct(data) {
+    return new Promise((resolve, reject) => {
+      joi.validate(data, Schemas.product.add, (err, value) => {
+        if (err) {
+          return reject(new TypeError(err))
+        }
+        return resolve(value)
+      })
+    })
+  },
   // Validate Add Products
   addProducts(data) {
     return new Promise((resolve, reject) => {
@@ -51,6 +62,17 @@ export const validateProduct = {
   },
   // Validate Remove Product
   remove(data) {
+    return new Promise((resolve, reject) => {
+      joi.validate(data, Schemas.product.product, (err, value) => {
+        if (err) {
+          return reject(new TypeError(err))
+        }
+        return resolve(value)
+      })
+    })
+  },
+  // Validate Remove Product
+  removeProduct(data) {
     return new Promise((resolve, reject) => {
       joi.validate(data, Schemas.product.product, (err, value) => {
         if (err) {

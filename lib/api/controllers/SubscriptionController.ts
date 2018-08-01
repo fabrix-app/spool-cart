@@ -2,7 +2,7 @@
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 const _ = require('lodash')
 
 /**
@@ -208,7 +208,7 @@ export class SubscriptionController extends Controller {
       req.body = {}
     }
 
-    lib.Validator.validateSubscription.update(req.body)
+    Validator.validateSubscription.update(req.body)
       .then(values => {
         return SubscriptionService.update(req.body, id)
       })
@@ -227,7 +227,7 @@ export class SubscriptionController extends Controller {
     const SubscriptionService = this.app.services.SubscriptionService
     const id = req.params.id
 
-    lib.Validator.validateSubscription.activate(req.body)
+    Validator.validateSubscription.activate(req.body)
       .then(values => {
         req.body.id = id
         return SubscriptionService.activate(req.body, id)
@@ -247,7 +247,7 @@ export class SubscriptionController extends Controller {
     const SubscriptionService = this.app.services.SubscriptionService
     const id = req.params.id
 
-    lib.Validator.validateSubscription.deactivate(req.body)
+    Validator.validateSubscription.deactivate(req.body)
       .then(values => {
         req.body.id = id
         return SubscriptionService.deactivate(req.body, id)
@@ -286,7 +286,7 @@ export class SubscriptionController extends Controller {
     const SubscriptionService = this.app.services.SubscriptionService
     const id = req.params.id
 
-    lib.Validator.validateSubscription.cancel(req.body)
+    Validator.validateSubscription.cancel(req.body)
       .then(values => {
         req.body.id = id
         return SubscriptionService.cancel(req.body, id)
@@ -314,7 +314,7 @@ export class SubscriptionController extends Controller {
     const SubscriptionService = this.app.services.SubscriptionService
     const id = req.params.id
 
-    lib.Validator.validateSubscription.addItems(req.body)
+    Validator.validateSubscription.addItems(req.body)
       .then(values => {
         return SubscriptionService.addItems(req.body, id)
       })
@@ -343,7 +343,7 @@ export class SubscriptionController extends Controller {
     if (!id && req.subscription) {
       id = req.subscription.id
     }
-    lib.Validator.validateSubscription.removeItems(req.body)
+    Validator.validateSubscription.removeItems(req.body)
       .then(values => {
         return SubscriptionService.removeItems(req.body, id)
       })

@@ -3,14 +3,14 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Collection'],
+          model: app.models['Collection'].instance,
           as: 'collections',
           attributes: {
             exclude: ['created_at', 'updated_at']
           },
           include: [
             {
-              model: app.models['Image'],
+              model: app.models['Image'].instance,
               as: 'images',
               attributes: {
                 exclude: ['src', 'created_at', 'updated_at']
@@ -19,14 +19,14 @@ module.exports = {
           ]
         },
         {
-          model: app.models['Image'],
+          model: app.models['Image'].instance,
           as: 'images',
           attributes: {
             exclude: ['src', 'created_at', 'updated_at']
           }
         },
         {
-          model: app.models['Tag'],
+          model: app.models['Tag'].instance,
           as: 'tags',
           attributes: ['name', 'id'],
           order: [['name', 'ASC']]
@@ -49,14 +49,14 @@ module.exports = {
       distinct: true,
       include: [
         {
-          model: app.models['Collection'],
+          model: app.models['Collection'].instance,
           as: 'collections',
           attributes: {
             exclude: ['created_at', 'updated_at']
           },
           include: [
             {
-              model: app.models['Image'],
+              model: app.models['Image'].instance,
               as: 'images',
               attributes: {
                 exclude: ['src', 'created_at', 'updated_at']
@@ -65,14 +65,14 @@ module.exports = {
           ]
         },
         {
-          model: app.models['Image'],
+          model: app.models['Image'].instance,
           as: 'images',
           attributes: {
             exclude: ['src', 'created_at', 'updated_at']
           }
         },
         {
-          model: app.models['Tag'],
+          model: app.models['Tag'].instance,
           as: 'tags',
           attributes: ['name', 'id'],
           order: [['name', 'ASC']]

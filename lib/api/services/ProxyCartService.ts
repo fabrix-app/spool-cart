@@ -1,18 +1,22 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { ValidationError } from '@fabrix/fabrix/dist/errors'
+import * as Schemas from '../../schemas'
+
 const joi = require('joi')
 const sharp = require('sharp')
-const lib = require('../../lib')
+
 const geolib = require('geolib')
 const currencyFormatter = require('currency-formatter')
 const removeMd = require('remove-markdown')
 const stripTags = require('striptags')
 const request = require('request')
+
+import { initialize as initializeMiddleware } from '../../middleware/initialize'
+import { authenticate as authenticateMiddleware } from '../../middleware/authenticate'
+import { cart as cartMiddleware } from '../../middleware/cart'
+import { customer as customerMiddleware } from '../../middleware/customer'
 
 /**
  * @module ProxyCartService
@@ -29,14 +33,13 @@ export class ProxyCartService extends Service {
     super(app)
     // Middleware exports
     this._key = 'cart'
-    this.initialize = require('../../lib/middleware/initialize')
-    this.authenticate = require('../../lib/middleware/authenticate')
-    this.cart = require('../../lib/middleware/cart')
-    this.customer = require('../../lib/middleware/customer')
+    this.initialize = initializeMiddleware
+    this.authenticate = authenticateMiddleware
+    this.cart = cartMiddleware
+    this.customer = customerMiddleware
   }
 
-  notifyAdmins(preNotification, options) {
-    options = options || {}
+  notifyAdmins(preNotification, options: {[key: string]: any} = {}) {
     const User = this.app.models.User
 
     if (!preNotification) {
@@ -46,7 +49,7 @@ export class ProxyCartService extends Service {
     return User.findAll({
       include: [
         {
-          model: this.app.models['Role'],
+          model: this.app.models['Role'].instance,
           as: 'roles',
           where: {
             name: 'admin'
@@ -332,7 +335,7 @@ export class ProxyCartService extends Service {
    */
   validateAddress(address) {
     try {
-      joi.validate(address, lib.Schemas.address.address)
+      joi.validate(address, Schemas.address.address)
     }
     catch (err) {
       throw new ValidationError(err)
@@ -352,7 +355,7 @@ export class ProxyCartService extends Service {
    * @returns {*}
    */
   normalizeAddress(address) {
-    const ProxyCountryService = this.app.services.ProxyCountryService
+    const CartCountryService = this.app.services.CartCountryService
     const Address = this.app.models['Address']
     const countryNorm = address.country_code || address.country || address.country_name
     const provinceNorm = address.province_code || address.province
@@ -363,7 +366,7 @@ export class ProxyCartService extends Service {
       return address
     }
 
-    normalizedProvince  = ProxyCountryService.province(countryNorm, provinceNorm)
+    normalizedProvince  = CartCountryService.province(countryNorm, provinceNorm)
 
     if (!normalizedProvince) {
       throw new Error(`Unable to normalize ${provinceNorm}, ${countryNorm}`)
@@ -428,7 +431,7 @@ export class ProxyCartService extends Service {
       Shop.findById(obj.shop_id, {
         include: [
           {
-            model: Address,
+            model: Address.instance,
             as: 'address'
           },
         ],
@@ -478,11 +481,11 @@ export class ProxyCartService extends Service {
               attributes: ['id'],
               include: [
                 {
-                  model: Address,
+                  model: Address.instance,
                   as: 'default_address'
                 },
                 {
-                  model: Address,
+                  model: Address.instance,
                   as: 'shipping_address'
                 }
               ],
@@ -558,11 +561,11 @@ export class ProxyCartService extends Service {
             attributes: ['id'],
             include: [
               {
-                model: Address,
+                model: Address.instance,
                 as: 'default_address'
               },
               {
-                model: Address,
+                model: Address.instance,
                 as: 'shipping_address'
               }
             ],
@@ -604,7 +607,7 @@ export class ProxyCartService extends Service {
             attributes: ['id', 'name', 'address_id'],
             include: [
               {
-                model: Address,
+                model: Address.instance,
                 as: 'address'
               },
             ],
@@ -675,7 +678,7 @@ export class ProxyCartService extends Service {
     return Shop.findById(item.shop_id, {
       include: [
         {
-          model: Address,
+          model: Address.instance,
           as: 'address'
         }
       ],

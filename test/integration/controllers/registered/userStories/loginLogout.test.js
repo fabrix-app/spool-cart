@@ -9,8 +9,8 @@ describe('Registered User Login, Logout, recover, and log back in', () => {
     shopProducts, recovery
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
 
     registeredUser = supertest.agent(global.app.spools.express.server)
 

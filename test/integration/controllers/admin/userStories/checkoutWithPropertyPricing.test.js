@@ -7,8 +7,8 @@ describe('Admin User Checkout with Product Property Pricing', () => {
   let discountService, discountID
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
     adminUser = supertest.agent(global.app.spools.express.server)
     // Login as Admin
     adminUser

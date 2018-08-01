@@ -69,7 +69,7 @@ export class TagResolver extends SequelizeResolver {
    * @returns {Promise.<*>}
    */
   transformTags (tags = [], options: {[key: string]: any} = {}) {
-    const TagModel = this.app.models['TagModel']
+    const TagModel = this
     const Sequelize = TagModel.sequelize
 
     // Transform tag to object if necessary.

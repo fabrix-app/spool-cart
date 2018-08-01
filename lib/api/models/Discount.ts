@@ -562,39 +562,39 @@ export class Discount extends Model {
 }
 
 export interface Discount {
-  start(app: FabrixApp): any
-  stop(app: FabrixApp): any
-  depleted(app: FabrixApp): any
-  logUsage(app: FabrixApp, orderId, customerId, price, options): any
-  eligibleCustomer(app: FabrixApp, customerId, options): any
-  discountItem(app: FabrixApp, item, criteria): any
+  start(): any
+  stop(): any
+  depleted(): any
+  logUsage(orderId, customerId, price, options): any
+  eligibleCustomer(customerId, options): any
+  discountItem(item, criteria): any
 }
 
 /**
  *
  */
-Discount.prototype.start = (app: FabrixApp) => {
+Discount.prototype.start = () => {
   this.status = DISCOUNT_STATUS.ENABLED
   return this
 }
 /**
  *
  */
-Discount.prototype.stop = (app: FabrixApp) => {
+Discount.prototype.stop = () => {
   this.status = DISCOUNT_STATUS.DISABLED
   return this
 }
 /**
  *
  */
-Discount.prototype.depleted = (app: FabrixApp) => {
+Discount.prototype.depleted = () => {
   this.status = DISCOUNT_STATUS.DEPLETED
   return this
 }
 /**
  *
  */
-Discount.prototype.logUsage = (app: FabrixApp, orderId, customerId, price, options) => {
+Discount.prototype.logUsage = (orderId, customerId, price, options) => {
   this.times_used++
   if (this.usage_limit > 0 && this.times_used >= this.usage_limit) {
     this.depleted()
@@ -613,7 +613,7 @@ Discount.prototype.logUsage = (app: FabrixApp, orderId, customerId, price, optio
 /**
  *
  */
-Discount.prototype.eligibleCustomer = (app: FabrixApp, customerId, options: {[key: string]: any} = {}) => {
+Discount.prototype.eligibleCustomer = (customerId, options: {[key: string]: any} = {}) => {
   return this.getDiscount_events({
     where: {
       customer_id: customerId
@@ -632,15 +632,15 @@ Discount.prototype.eligibleCustomer = (app: FabrixApp, customerId, options: {[ke
       }
     })
     .catch(err => {
-      app.log.error(err)
+      this.app.log.error(err)
       return
     })
 }
 /**
  *
  */
-Discount.prototype.discountItem = (app: FabrixApp, item, criteria: any[] = []) => {
-  app.log.debug('Discount.discountItem CRITERIA', criteria)
+Discount.prototype.discountItem = (item, criteria: any[] = []) => {
+  this.app.log.debug('Discount.discountItem CRITERIA', criteria)
 
   // Set item defaults
   item.discounted_lines = item.discounted_lines || []

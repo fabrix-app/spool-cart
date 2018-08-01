@@ -85,7 +85,7 @@ export class AccountService extends Service {
         }
         resCustomer = _customer
 
-        return resCustomer.getDefaultSource(this.app, {transaction: options.transaction || null})
+        return resCustomer.getDefaultSource({transaction: options.transaction || null})
       })
   }
   // TODO

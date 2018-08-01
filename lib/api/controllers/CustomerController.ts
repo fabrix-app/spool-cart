@@ -2,7 +2,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 const _ = require('lodash')
 /**
@@ -210,7 +210,7 @@ export class CustomerController extends Controller {
       req: req,
       include: [
         {
-          model: this.app.models['Tag'],
+          model: this.app.models['Tag'].instance,
           as: 'tags'
         }
       ]
@@ -246,7 +246,7 @@ export class CustomerController extends Controller {
       },
       include: [
         {
-          model: this.app.models['Collection'],
+          model: this.app.models['Collection'].instance,
           as: 'collections'
         }
       ],
@@ -280,7 +280,7 @@ export class CustomerController extends Controller {
     // }
 
     const CustomerService = this.app.services.CustomerService
-    lib.Validator.validateCustomer.create(req.body)
+    Validator.validateCustomer.create(req.body)
       .then(values => {
         return CustomerService.create(req.body)
       })
@@ -303,7 +303,7 @@ export class CustomerController extends Controller {
     // }
 
     const CustomerService = this.app.services.CustomerService
-    lib.Validator.validateCustomer.create(req.body)
+    Validator.validateCustomer.create(req.body)
       .then(values => {
         return CustomerService.create(req.body)
       })
@@ -347,7 +347,7 @@ export class CustomerController extends Controller {
     if (!req.body.id) {
       req.body.id = id
     }
-    lib.Validator.validateCustomer.update(req.body)
+    Validator.validateCustomer.update(req.body)
       .then(values => {
         return CustomerService.update(req.body)
       })
@@ -371,7 +371,7 @@ export class CustomerController extends Controller {
     if (!req.body.id) {
       req.body.id = id
     }
-    lib.Validator.validateCustomer.accountBalance(req.body)
+    Validator.validateCustomer.accountBalance(req.body)
       .then(values => {
         return CustomerService.accountBalance(req.body)
       })
@@ -793,7 +793,7 @@ export class CustomerController extends Controller {
       req.body = {}
     }
 
-    lib.Validator.validateSubscription.update(req.body)
+    Validator.validateSubscription.update(req.body)
       .then(values => {
         return SubscriptionService.update(req.body, subscriptionId)
       })
@@ -827,7 +827,7 @@ export class CustomerController extends Controller {
       return res.forbidden(err)
     }
 
-    lib.Validator.validateSubscription.activate(req.body)
+    Validator.validateSubscription.activate(req.body)
       .then(values => {
         req.body.id = subscriptionId
         return SubscriptionService.activate(req.body, subscriptionId)
@@ -862,7 +862,7 @@ export class CustomerController extends Controller {
       return res.forbidden(err)
     }
 
-    lib.Validator.validateSubscription.deactivate(req.body)
+    Validator.validateSubscription.deactivate(req.body)
       .then(values => {
         req.body.id = subscriptionId
         return SubscriptionService.deactivate(req.body, subscriptionId)
@@ -933,7 +933,7 @@ export class CustomerController extends Controller {
       return res.forbidden(err)
     }
 
-    lib.Validator.validateSubscription.cancel(req.body)
+    Validator.validateSubscription.cancel(req.body)
       .then(values => {
         return SubscriptionService.cancel(req.body, subscriptionId)
       })
@@ -971,7 +971,7 @@ export class CustomerController extends Controller {
     }
 
 
-    lib.Validator.validateSubscription.addItems(req.body)
+    Validator.validateSubscription.addItems(req.body)
       .then(values => {
         return SubscriptionService.addItems(req.body, subscriptionId)
       })
@@ -1007,7 +1007,7 @@ export class CustomerController extends Controller {
       return res.forbidden(err)
     }
 
-    lib.Validator.validateSubscription.removeItems(req.body)
+    Validator.validateSubscription.removeItems(req.body)
       .then(values => {
         return SubscriptionService.removeItems(req.body, subscriptionId)
       })
@@ -1122,7 +1122,7 @@ export class CustomerController extends Controller {
     Address.findAndCountAll({
       order: sort,
       include: [{
-        model: this.app.models['Customer'],
+        model: this.app.models['Customer'].instance,
         attributes: [
           'id',
           'shipping_address_id',
@@ -1199,7 +1199,7 @@ export class CustomerController extends Controller {
     // Set body variables just in case
     req.body.customer.id = customerId
 
-    lib.Validator.validateAddress.add(req.body.address)
+    Validator.validateAddress.add(req.body.address)
       .then(values => {
         return CustomerService.addAddress(req.body.customer, req.body.address, type)
       })
@@ -1266,7 +1266,7 @@ export class CustomerController extends Controller {
       req.body.address.id = addressId
     }
 
-    lib.Validator.validateAddress.update(req.body.address)
+    Validator.validateAddress.update(req.body.address)
       .then(values => {
         return CustomerService.updateAddress(req.body.customer, req.body.address, type)
       })
@@ -1312,7 +1312,7 @@ export class CustomerController extends Controller {
       req.body.address.id = addressId
     }
 
-    lib.Validator.validateAddress.remove(req.body.address)
+    Validator.validateAddress.remove(req.body.address)
       .then(values => {
         return CustomerService.removeAddress(req.body.customer, req.body.address)
       })
@@ -1419,7 +1419,7 @@ export class CustomerController extends Controller {
     req.body.customer.id = customerId
     // req.body.source.id = source
 
-    lib.Validator.validateSource.add(req.body.source)
+    Validator.validateSource.add(req.body.source)
       .then(values => {
         return CustomerService.createCustomerSource(req.body.customer, req.body.source)
       })
@@ -1462,7 +1462,7 @@ export class CustomerController extends Controller {
     req.body.customer.id = customerId
     req.body.source.id = sourceId
 
-    lib.Validator.validateSource.add(req.body.source)
+    Validator.validateSource.add(req.body.source)
       .then(values => {
         return CustomerService.updateCustomerSource(req.body.customer, req.body.source, req.body.source)
       })
@@ -1504,7 +1504,7 @@ export class CustomerController extends Controller {
     req.body.customer.id = customerId
     req.body.source.id = sourceId
 
-    lib.Validator.validateSource.remove(req.body.source)
+    Validator.validateSource.remove(req.body.source)
       .then(values => {
         return CustomerService.removeCustomerSource(req.body.customer, req.body.source)
       })
@@ -1575,7 +1575,7 @@ export class CustomerController extends Controller {
         '$customers.id$': customerId
       },
       include: [{
-        model: this.app.models['Customer'],
+        model: this.app.models['Customer'].instance,
         as: 'customers',
         attributes: ['id']
       }],
@@ -1691,7 +1691,7 @@ export class CustomerController extends Controller {
     Tag.findAndCountAll({
       // TODO fix for sqlite
       include: [{
-        model: this.app.models['Customer'],
+        model: this.app.models['Customer'].instance,
         as: 'customers',
         attributes: ['id'],
         where: {
@@ -1794,7 +1794,7 @@ export class CustomerController extends Controller {
     Collection.findAndCountAll({
       // TODO fix for sqlite
       include: [{
-        model: this.app.models['Customer'],
+        model: this.app.models['Customer'].instance,
         as: 'customers',
         attributes: ['id'],
         where: {
@@ -1857,7 +1857,7 @@ export class CustomerController extends Controller {
     Discount.findAndCountAll({
       include: [
         {
-          model: this.app.models['Customer'],
+          model: this.app.models['Customer'].instance,
           as: 'customers',
           where: {
             id: customerId

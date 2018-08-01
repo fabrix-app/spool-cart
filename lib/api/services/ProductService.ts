@@ -31,17 +31,17 @@ export class ProductService extends Service {
         transaction: options.transaction || null,
         include: [
           {
-            model: Product,
+            model: Product.instance,
             include: [
               {
-                model: Image,
+                model: Image.instance,
                 as: 'images',
                 attributes: ['src', 'full', 'thumbnail', 'small', 'medium', 'large', 'alt', 'position']
               }
             ]
           },
           {
-            model: Image,
+            model: Image.instance,
             as: 'images',
             attributes: ['src', 'full', 'thumbnail', 'small', 'medium', 'large', 'alt', 'position']
           }
@@ -57,17 +57,17 @@ export class ProductService extends Service {
         transaction: options.transaction || null,
         include: [
           {
-            model: Product,
+            model: Product.instance,
             include: [
               {
-                model: Image,
+                model: Image.instance,
                 as: 'images',
                 attributes: ['src', 'full', 'thumbnail', 'small', 'medium', 'large', 'alt', 'position']
               }
             ]
           },
           {
-            model: Image,
+            model: Image.instance,
             as: 'images',
             attributes: ['src', 'full', 'thumbnail', 'small', 'medium', 'large', 'alt', 'position']
           }
@@ -314,17 +314,17 @@ export class ProductService extends Service {
     return Product.create(create, {
       include: [
         {
-          model: Variant,
+          model: Variant.instance,
           as: 'variants',
           include: [
             {
-              model: Metadata,
+              model: Metadata.instance,
               as: 'metadata'
             }
           ]
         },
         {
-          model: Metadata,
+          model: Metadata.instance,
           as: 'metadata',
         }
       ],
@@ -784,7 +784,7 @@ export class ProductService extends Service {
               transaction: options.transaction || null
             })
                 .catch(err => {
-                  console.log(err)
+                  this.app.log.error(err)
                   return variant
                 })
           }

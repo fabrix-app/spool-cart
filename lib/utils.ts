@@ -1,15 +1,14 @@
+import { FabrixApp } from '@fabrix/fabrix'
 
 export const Utils = {
   /**
    *
-   * @param app
-   * @returns {Promise.<{shops: Array}>}
    */
-  buildShopFixtures: (app) => {
+  buildShopFixtures: (app: FabrixApp) => {
     const fixtures = {
       shops: []
     }
-    fixtures.shops.push(app.config.cart.nexus)
+    fixtures.shops.push(app.config.get('cart.nexus'))
     // console.log('utils.buildShopFixtures', fixtures)
     return Promise.resolve(fixtures)
   },
@@ -18,8 +17,8 @@ export const Utils = {
    * @param app
    * @returns {*|Promise.<TResult>}
    */
-  loadShopFixtures: (app) => {
-    return app.models.Shop.find({limit: 1})
+  loadShopFixtures: (app: FabrixApp) => {
+    return app.models.Shop.findAll({limit: 1})
       .then(shops => {
         if (!shops || shops.length === 0) {
           app.log.debug('utils.loadShopFixtures: Shops empty, loadShops...')
@@ -35,7 +34,7 @@ export const Utils = {
    * @param app
    * @returns {Promise.<*>}
    */
-  loadShops: (app) => {
+  loadShops: (app: FabrixApp) => {
     const shops = app.spools['cart'].shopFixtures.shops
     if (shops.length > 0) {
       app.log.debug('utils.loadShops Promise All()')
@@ -43,7 +42,7 @@ export const Utils = {
         return app.models['Shop'].create(shop, {
           include: [
             {
-              model: app.models['Address'],
+              model: app.models['Address'].instance,
               as: 'address'
             }
           ]
@@ -58,14 +57,14 @@ export const Utils = {
    *
    * @param app
    */
-  buildCountryFixtures: (app) => {
+  buildCountryFixtures: (app: FabrixApp) => {
     const fixtures = {
       countries: []
     }
-    if (!app.config.cart.default_countries || app.config.cart.default_countries.length === 0) {
-      app.config.cart.default_countries = ['USA']
+    if (!app.config.get('cart.default_countries') || app.config.get('cart.default_countries').length === 0) {
+      app.config.set('cart.default_countries', ['USA'])
     }
-    app.config.cart.default_countries.forEach(country => {
+    app.config.get('cart.default_countries').forEach(country => {
       fixtures.countries.push(country)
     })
     // console.log('utils.buildShopFixtures', fixtures)
@@ -76,8 +75,8 @@ export const Utils = {
    * @param app
    * @returns {*|Promise.<TResult>}
    */
-  loadCountryFixtures: (app) => {
-    return app.models.Country.find({limit: 1})
+  loadCountryFixtures: (app: FabrixApp) => {
+    return app.models.Country.findAll({limit: 1})
       .then(countries => {
         if (!countries || countries.length === 0) {
           app.log.debug('utils.loadCountriesFixtures: Countries empty, loadCountries...')
@@ -93,12 +92,12 @@ export const Utils = {
    * @param app
    * @returns {Promise.<*>}
    */
-  loadCountries: (app) => {
+  loadCountries: (app: FabrixApp) => {
     const countries = app.spools['cart'].countryFixtures.countries
     if (countries.length > 0) {
       app.log.debug('utils.loadCountries Promise All()')
       return Promise.all(countries.map((country, index) => {
-        const resCountry = app.services.ProxyCountryService.info(country)
+        const resCountry = app.services.CartCountryService.info(country)
         if (!resCountry) {
           return Promise.resolve()
         }
@@ -136,7 +135,7 @@ export const Utils = {
         return app.models['Country'].create(create, {
           include: [
             {
-              model: app.models['Province'],
+              model: app.models['Province'].instance,
               as: 'provinces'
             }
           ]

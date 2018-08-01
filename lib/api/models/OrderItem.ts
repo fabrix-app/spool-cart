@@ -462,23 +462,23 @@ export class OrderItem extends Model {
 
 export interface OrderItem {
   resetDefaults(app: FabrixApp): any
-  addShipping(app: FabrixApp, shipping, options): any
-  removeShipping(app: FabrixApp, shipping, options): any
-  setItemsShippingLines(app: FabrixApp, shippingLine): any
-  setShippingLines(app: FabrixApp, lines): any
-  setItemsTaxLines(app: FabrixApp, taxedLine): any
-  setTaxLines(app: FabrixApp, lines): any
-  setProperties(app: FabrixApp, prev): any
+  addShipping(shipping, options): any
+  removeShipping(shipping, options): any
+  setItemsShippingLines(shippingLine): any
+  setShippingLines(lines): any
+  setItemsTaxLines(taxedLine): any
+  setTaxLines(lines): any
+  setProperties(prev): any
   setTotals(app: FabrixApp): any
-  recalculate(app: FabrixApp, options): any
-  reconcileFulfillment(app: FabrixApp, options): any
+  recalculate(options): any
+  reconcileFulfillment(options): any
 }
 
 /**
  * Resets the defaults so they can be recalculated
  * @returns {*}
  */
-OrderItem.prototype.resetDefaults = function(app: FabrixApp) {
+OrderItem.prototype.resetDefaults = function() {
   this.calculated_price = 0
   this.total_discounts = 0
   this.total_shipping = 0
@@ -490,20 +490,20 @@ OrderItem.prototype.resetDefaults = function(app: FabrixApp) {
 /**
  *
  */
-OrderItem.prototype.addShipping = function(app: FabrixApp, shipping, options: {[key: string]: any} = {}) {
+OrderItem.prototype.addShipping = function(shipping, options: {[key: string]: any} = {}) {
  return this
 }
 /**
  *
  */
-OrderItem.prototype.removeShipping = function(app: FabrixApp, shipping, options: {[key: string]: any} = {}) {
+OrderItem.prototype.removeShipping = function(shipping, options: {[key: string]: any} = {}) {
   return this
 }
 
 /**
  *
  */
-OrderItem.prototype.setItemsShippingLines = function (app: FabrixApp, shippingedLine) {
+OrderItem.prototype.setItemsShippingLines = function (shippingedLine) {
   // console.log('INCOMING ITEM', shippingedLine)
   // this.shipping_lines = []
   let shippingesLines = []
@@ -528,13 +528,13 @@ OrderItem.prototype.setItemsShippingLines = function (app: FabrixApp, shippinged
   this.shipping_lines = shippingesLines
   // console.log('FINAL SHIPPING LINES', this.shipping_lines)
 
-  return this.setShippingLines(app, shippingesLines)
+  return this.setShippingLines(shippingesLines)
 }
 
 /**
  *
  */
-OrderItem.prototype.setShippingLines = function(app: FabrixApp, lines) {
+OrderItem.prototype.setShippingLines = function(lines) {
   this.total_shipping = 0
   this.shipping_lines = lines || []
   this.shipping_lines.forEach(line => {
@@ -547,7 +547,7 @@ OrderItem.prototype.setShippingLines = function(app: FabrixApp, lines) {
 /**
  *
  */
-OrderItem.prototype.setItemsTaxLines = function (app: FabrixApp, taxedLine) {
+OrderItem.prototype.setItemsTaxLines = function (taxedLine) {
   // console.log('INCOMING ITEM', taxedLine)
   // this.tax_lines = []
   let taxesLines = []
@@ -572,14 +572,14 @@ OrderItem.prototype.setItemsTaxLines = function (app: FabrixApp, taxedLine) {
   this.tax_lines = taxesLines
   // console.log('FINAL TAX LINES', this.tax_lines)
 
-  return this.setTaxLines(app, taxesLines)
+  return this.setTaxLines(taxesLines)
 }
 
 /**
  *
  * @param lines
  */
-OrderItem.prototype.setTaxLines = function(app: FabrixApp, lines) {
+OrderItem.prototype.setTaxLines = function(lines) {
   this.total_tax = 0
   this.tax_lines = lines || []
   this.tax_lines.forEach(line => {
@@ -589,7 +589,7 @@ OrderItem.prototype.setTaxLines = function(app: FabrixApp, lines) {
   // return this.setTotals()
 },
 
-OrderItem.prototype.setProperties = (app: FabrixApp, prev) => {
+OrderItem.prototype.setProperties = (prev) => {
   if (this.properties) {
     // Remove any old property pricing
     for (const l in prev.properties) {
@@ -612,7 +612,7 @@ OrderItem.prototype.setProperties = (app: FabrixApp, prev) => {
 /**
  *
  */
-OrderItem.prototype.setTotals = function(app: FabrixApp) {
+OrderItem.prototype.setTotals = function() {
   // Set Cart values
   // this.total_price = Math.max(0,
   //   this.total_tax
@@ -626,7 +626,7 @@ OrderItem.prototype.setTotals = function(app: FabrixApp) {
 /**
  *
  */
-OrderItem.prototype.recalculate = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+OrderItem.prototype.recalculate = function(options: {[key: string]: any} = {}) {
   if (
     this.changed('price')
     || this.changed('quantity')
@@ -636,7 +636,7 @@ OrderItem.prototype.recalculate = function(app: FabrixApp, options: {[key: strin
     || this.changed('tax_lines')
     || this.changed('coupon_lines')
   ) {
-    app.log.debug('ORDER ITEM CHANGED')
+    this.app.log.debug('ORDER ITEM CHANGED')
 
     let totalDiscounts = 0 // this.total_discounts
     let totalShipping = 0
@@ -699,12 +699,12 @@ OrderItem.prototype.recalculate = function(app: FabrixApp, options: {[key: strin
 /**
  *
  */
-OrderItem.prototype.reconcileFulfillment = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+OrderItem.prototype.reconcileFulfillment = function(options: {[key: string]: any} = {}) {
   if (this.isNewRecord && !this.fulfillment_id) {
     // console.log('reconcileFulfillment: RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
-        return app.services.FulfillmentService.addOrCreateFulfillmentItem(
+        return this.app.services.FulfillmentService.addOrCreateFulfillmentItem(
           this,
           { transaction: options.transaction || null }
         )
@@ -717,7 +717,7 @@ OrderItem.prototype.reconcileFulfillment = function(app: FabrixApp, options: {[k
     // console.log('reconcileFulfillment: RECONCILE WILL REMOVE', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
-        return app.services.FulfillmentService.removeFulfillmentItem(
+        return this.app.services.FulfillmentService.removeFulfillmentItem(
           this,
           { transaction: options.transaction || null }
         )
@@ -730,7 +730,7 @@ OrderItem.prototype.reconcileFulfillment = function(app: FabrixApp, options: {[k
     // console.log('reconcileFulfillment: RECONCILE WILL UPDATE UP QUANTITY', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
-        return app.services.FulfillmentService.updateFulfillmentItem(
+        return this.app.services.FulfillmentService.updateFulfillmentItem(
           this,
           {transaction: options.transaction || null}
         )
@@ -743,7 +743,7 @@ OrderItem.prototype.reconcileFulfillment = function(app: FabrixApp, options: {[k
     // console.log('reconcileFulfillment: RECONCILE WILL UPDATE DOWN QUANTITY', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
-        return app.services.FulfillmentService.removeFulfillmentItem(
+        return this.app.services.FulfillmentService.removeFulfillmentItem(
           this,
           { transaction: options.transaction || null }
         )

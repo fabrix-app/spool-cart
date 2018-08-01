@@ -9,8 +9,8 @@ describe('Registered User Checkout With Subscription', () => {
     shopProducts, orderID, orderToken, subscriptionID
 
   before((done) => {
-    shopID = global.app.shopID
-    shopProducts = global.app.shopProducts
+    shopID = global.shopID
+    shopProducts = global.shopProducts
 
     registeredUser = supertest.agent(global.app.spools.express.server)
 

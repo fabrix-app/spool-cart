@@ -1,7 +1,7 @@
 
 
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const lib = require('../../lib')
+import * as Validator from '../../validator'
 // import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
 /**
@@ -71,7 +71,7 @@ export class ShopController extends Controller {
    */
   create(req, res) {
     const ShopService = this.app.services.ShopService
-    lib.Validator.validateShop.create(req.body)
+    Validator.validateShop.create(req.body)
       .then(values => {
         return ShopService.create(req.body)
       })

@@ -3,15 +3,15 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Address'],
+          model: app.models['Address'].instance,
           as: 'default_address'
         },
         {
-          model: app.models['Address'],
+          model: app.models['Address'].instance,
           as: 'shipping_address'
         },
         {
-          model: app.models['Address'],
+          model: app.models['Address'].instance,
           as: 'billing_address'
         },
         // {
@@ -19,17 +19,17 @@ module.exports = {
         //   as: 'addresses'
         // },
         {
-          model: app.models['Tag'],
+          model: app.models['Tag'].instance,
           as: 'tags',
           attributes: ['name', 'id']
         },
         {
-          model: app.models['Metadata'],
+          model: app.models['Metadata'].instance,
           as: 'metadata',
           attributes: ['data', 'id']
         },
         {
-          model: app.models['Cart'],
+          model: app.models['Cart'].instance,
           as: 'default_cart'
         },
         // {
@@ -62,7 +62,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Address'],
+          model: app.models['Address'].instance,
           as: 'default_address'
         }
       ]
@@ -72,7 +72,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Address'],
+          model: app.models['Address'].instance,
           as: 'shipping_address'
         }
       ]
@@ -82,7 +82,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Address'],
+          model: app.models['Address'].instance,
           as: 'billing_address'
         }
       ]
@@ -92,7 +92,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Tag'],
+          model: app.models['Tag'].instance,
           as: 'tags',
           attributes: ['name', 'id']
         }
@@ -103,7 +103,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Metadata'],
+          model: app.models['Metadata'].instance,
           as: 'metadata',
           attributes: ['data', 'id']
         }
@@ -114,7 +114,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Cart'],
+          model: app.models['Cart'].instance,
           as: 'default_cart'
         }
       ]
@@ -124,7 +124,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Collection'],
+          model: app.models['Collection'].instance,
           as: 'collections'
         }
       ]
@@ -134,7 +134,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Account'],
+          model: app.models['Account'].instance,
           as: 'accounts'
         }
       ]
@@ -144,14 +144,14 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Event'],
+          model: app.models['Event'].instance,
           as: 'events'
         }
       ],
       order: [
         [
           {
-            model: app.models['Event'],
+            model: app.models['Event'].instance,
             as: 'events'
           },
           'created_at', 'DESC'

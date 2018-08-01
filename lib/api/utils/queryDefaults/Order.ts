@@ -7,26 +7,26 @@ module.exports = {
         //   // as: 'customer'
         // },
         {
-          model: app.models['OrderItem'],
+          model: app.models['OrderItem'].instance,
           as: 'order_items'
         },
         {
-          model: app.models['Transaction'],
+          model: app.models['Transaction'].instance,
           as: 'transactions'
         },
         {
-          model: app.models['Fulfillment'],
+          model: app.models['Fulfillment'].instance,
           as: 'fulfillments',
           include: [
             {
-              model: app.models['OrderItem'],
+              model: app.models['OrderItem'].instance,
               as: 'order_items',
               attributes: ['id', 'quantity', 'fulfillment_status', 'fulfillment_service']
             }
           ]
         },
         {
-          model: app.models['Refund'],
+          model: app.models['Refund'].instance,
           as: 'refunds'
         },
         // {
@@ -34,21 +34,21 @@ module.exports = {
         //   as: 'events'
         // },
         {
-          model: app.models['Tag'],
+          model: app.models['Tag'].instance,
           as: 'tags'
         }
       ],
       order: [
         [
           {
-            model: app.models['OrderItem'],
+            model: app.models['OrderItem'].instance,
             as: 'order_items'
           },
           'calculated_price'
         ],
         [
           {
-            model: app.models['Transaction'],
+            model: app.models['Transaction'].instance,
             as: 'transactions'
           },
           'amount', 'DESC'
@@ -67,7 +67,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Customer']
+          model: app.models['Customer'].instance
         }
       ]
     }
@@ -76,13 +76,13 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Event'],
+          model: app.models['Event'].instance,
           as: 'events'
         }
       ],
       order: [
         {
-          model: app.models['Event'],
+          model: app.models['Event'].instance,
           as: 'events'
         },
         'created_at', 'DESC'
@@ -93,11 +93,11 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Fulfillment'],
+          model: app.models['Fulfillment'].instance,
           as: 'fulfillments',
           include: [
             {
-              model: app.models['OrderItem'],
+              model: app.models['OrderItem'].instance,
               as: 'order_items',
               attributes: ['id', 'quantity', 'fulfillment_status', 'fulfillment_service']
             }
@@ -110,13 +110,13 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['OrderItem'],
+          model: app.models['OrderItem'].instance,
           as: 'order_items'
         }
       ],
       order: [
         {
-          model: app.models['OrderItem'],
+          model: app.models['OrderItem'].instance,
           as: 'order_items'
         },
         'calculated_price'
@@ -127,7 +127,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Refund'],
+          model: app.models['Refund'].instance,
           as: 'refunds'
         }
       ]
@@ -137,7 +137,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Subscription']
+          model: app.models['Subscription'].instance
         }
       ]
     }
@@ -146,7 +146,7 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Tag'],
+          model: app.models['Tag'].instance,
           as: 'tags'
         }
       ]
@@ -156,13 +156,13 @@ module.exports = {
     return {
       include: [
         {
-          model: app.models['Transaction'],
+          model: app.models['Transaction'].instance,
           as: 'transactions'
         }
       ],
       order: [
         {
-          model: app.models['Transaction'],
+          model: app.models['Transaction'].instance,
           as: 'transactions'
         },
         'amount', 'DESC'

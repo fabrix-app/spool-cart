@@ -70,15 +70,15 @@ export class OrderService extends Service {
     return Customer.resolve(obj.customer_id || obj.customer, {
       include: [
         {
-          model: Address,
+          model: Address.instance,
           as: 'shipping_address'
         },
         {
-          model: Address,
+          model: Address.instance,
           as: 'billing_address'
         },
         {
-          model: Address,
+          model: Address.instance,
           as: 'default_address'
         }
       ]
@@ -278,21 +278,21 @@ export class OrderService extends Service {
               //   model: this.app.models['Customer']
               // },
               {
-                model: OrderItem,
+                model: OrderItem.instance,
                 as: 'order_items'
               },
               {
-                model: this.app.models['Fulfillment'],
+                model: this.app.models['Fulfillment'].instance,
                 as: 'fulfillments',
                 include: [
                   {
-                    model: OrderItem,
+                    model: OrderItem.instance,
                     as: 'order_items'
                   }
                 ]
               },
               {
-                model: this.app.models['Transaction'],
+                model: this.app.models['Transaction'].instance,
                 as: 'transactions'
               }
             ]
@@ -584,7 +584,7 @@ export class OrderService extends Service {
         // Bind DAO
         resOrder = order
         // Resolve transactions in case they aren't added yet
-        return resOrder.resolveTransactions(this.app, {transaction: options.transaction || null})
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
 
@@ -660,10 +660,10 @@ export class OrderService extends Service {
       })
       .then(_order => {
         resOrder = _order
-        return resOrder.resolveTransactions(this.app, {transaction: options.transaction || null})
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
-        return resOrder.resolveRefunds(this.app, {transaction: options.transaction || null})
+        return resOrder.resolveRefunds({transaction: options.transaction || null})
       })
       .then(() => {
         // Partially Refund because refunds was sent to method
@@ -1022,14 +1022,14 @@ export class OrderService extends Service {
         }
       })
       .then(_retries => {
-        return resOrder.saveFinancialStatus(this.app, {transaction: options.transaction || null})
+        return resOrder.saveFinancialStatus({transaction: options.transaction || null})
       })
       .then(() => {
         if (resOrder.financial_status === ORDER_FINANCIAL.PAID) {
-          return resOrder.sendPaidEmail(this.app, {transaction: options.transaction || null})
+          return resOrder.sendPaidEmail({transaction: options.transaction || null})
         }
         else if (resOrder.financial_status === ORDER_FINANCIAL.PARTIALLY_PAID) {
-          return resOrder.sendPartiallyPaidEmail(this.app, {transaction: options.transaction || null})
+          return resOrder.sendPartiallyPaidEmail({transaction: options.transaction || null})
         }
         return
       })
@@ -1064,7 +1064,7 @@ export class OrderService extends Service {
           throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}', '${ORDER_FULFILLMENT.PENDING}', '${ORDER_FULFILLMENT.SENT}'`)
         }
 
-        return resOrder.resolveTransactions(this.app, { transaction: options.transaction || null })
+        return resOrder.resolveTransactions({ transaction: options.transaction || null })
       })
       .then(() => {
         // Transactions that can be refunded
@@ -1281,7 +1281,7 @@ export class OrderService extends Service {
         return resOrder.save({transaction: options.transaction || null})
       })
       .then(createdItem => {
-        return resOrder.recalculate(this.app, { transaction: options.transaction || null })
+        return resOrder.recalculate({ transaction: options.transaction || null })
       })
       .then(() => {
         // Track Event
@@ -1400,7 +1400,7 @@ export class OrderService extends Service {
         }
         // bind the dao
         resOrder = _order
-        return resOrder.resolveOrderItems(this.app, { transaction: options.transaction || null })
+        return resOrder.resolveOrderItems({ transaction: options.transaction || null })
       })
       .then(() => {
         // Resolve the item of the new order item
@@ -1487,7 +1487,7 @@ export class OrderService extends Service {
         }
         // bind the dao
         resOrder = _order
-        return resOrder.resolveOrderItems(this.app, {transaction: options.transaction || null})
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
         // Resolve the item
@@ -1498,13 +1498,13 @@ export class OrderService extends Service {
           throw new Error('Could not resolve product and variant')
         }
         // Build the item
-        resItem = resOrder.buildOrderItem(this.app, _item, item.quantity, item.properties)
+        resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
         // Update the item
-        return resOrder.updateItem(this.app, resItem)
+        return resOrder.updateItem(resItem)
       })
       .then((updatedItem) => {
        // recalculate
-        return resOrder.recalculate(this.app, {transaction: options.transaction || null})
+        return resOrder.recalculate({transaction: options.transaction || null})
       })
       .then(() => {
         // Track Event
@@ -1558,7 +1558,7 @@ export class OrderService extends Service {
         }
         // bind the dao
         resOrder = _order
-        return resOrder.resolveOrderItems(this.app, {transaction: options.transaction || null})
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
       }).
       then(() => {
         // Resolve the item
@@ -1569,13 +1569,13 @@ export class OrderService extends Service {
           throw new Error('Could not resolve product and variant')
         }
         // Build the item
-        resItem = resOrder.buildOrderItem(this.app, _item, item.quantity, item.properties)
+        resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
         // Remove the item
-        return resOrder.removeItem(this.app, resItem)
+        return resOrder.removeItem(resItem)
       })
       .then(() => {
         // recalculate
-        return resOrder.recalculate(this.app, {transaction: options.transaction || null})
+        return resOrder.recalculate({transaction: options.transaction || null})
       })
       .then(() => {
         // Track Event
@@ -1628,7 +1628,7 @@ export class OrderService extends Service {
           throw new Error(`Order is already ${_order.status}`)
         }
         resOrder = _order
-        return resOrder.addShipping(this.app, shipping, {transaction: options.transaction || null})
+        return resOrder.addShipping(shipping, {transaction: options.transaction || null})
       })
   }
 
@@ -1655,7 +1655,7 @@ export class OrderService extends Service {
           throw new Error(`Order is already ${_order.status}`)
         }
         resOrder = _order
-        return resOrder.removeShipping(this.app, shipping, {transaction: options.transaction || null})
+        return resOrder.removeShipping(shipping, {transaction: options.transaction || null})
       })
   }
 
@@ -1682,7 +1682,7 @@ export class OrderService extends Service {
           throw new Error(`Order is already ${_order.status}`)
         }
         resOrder = _order
-        return resOrder.addTaxes(this.app, taxes, {transaction: options.transaction || null})
+        return resOrder.addTaxes(taxes, {transaction: options.transaction || null})
       })
   }
 
@@ -1709,7 +1709,7 @@ export class OrderService extends Service {
           throw new Error(`Order is already ${_order.status}`)
         }
         resOrder = _order
-        return resOrder.removeTaxes(this.app, taxes, {transaction: options.transaction || null})
+        return resOrder.removeTaxes(taxes, {transaction: options.transaction || null})
       })
   }
 
@@ -1742,7 +1742,7 @@ export class OrderService extends Service {
         resOrder = _order
         // if this is missing id, this means we will be updating all fulfillment on the order.
         if (fulfillments.every(f => !f.id) && fulfillments.length === 1) {
-          return resOrder.getFulfillments(this.app, {transaction: options.transaciton || null})
+          return resOrder.getFulfillments({transaction: options.transaciton || null})
         }
         else {
           return []
@@ -1761,7 +1761,7 @@ export class OrderService extends Service {
 
         // console.log('BROKE',fulfillments)
 
-        return resOrder.fulfill(this.app, fulfillments, {transaction: options.transaction || null})
+        return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
       })
       .then(() => {
         return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)

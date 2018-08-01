@@ -521,20 +521,20 @@ export class ProductVariant extends Model {
 }
 
 export interface ProductVariant {
-  checkRestrictions(app: FabrixApp, customer, shippingAddress): any
-  checkAvailability(app: FabrixApp, qty): any
-  resolveImages(app: FabrixApp, options): any
-  resolveDiscounts(app: FabrixApp, options): any
-  resolveMetadata(app: FabrixApp, options): any
+  checkRestrictions(customer, shippingAddress): any
+  checkAvailability(qty): any
+  resolveImages(options): any
+  resolveDiscounts(options): any
+  resolveMetadata(options): any
 }
 
 
 // TODO Resolve customer address and see if product is allowed to be sent there
-ProductVariant.prototype.checkRestrictions = function(app: FabrixApp, customer, shippingAddress) {
+ProductVariant.prototype.checkRestrictions = function(customer, shippingAddress) {
   return Promise.resolve(false)
 }
 // TODO check fulfillment policies
-ProductVariant.prototype.checkAvailability = function(app: FabrixApp, qty) {
+ProductVariant.prototype.checkAvailability = function(qty) {
   let allowed = true
   if (qty > this.inventory_quantity && this.inventory_policy === INVENTORY_POLICY.DENY) {
     allowed = false
@@ -554,17 +554,17 @@ ProductVariant.prototype.checkAvailability = function(app: FabrixApp, qty) {
 /**
  *
  */
-ProductVariant.prototype.resolveImages = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+ProductVariant.prototype.resolveImages = function(options: {[key: string]: any} = {}) {
   return this
 }
 /**
  *
  */
-ProductVariant.prototype.resolveDiscounts = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+ProductVariant.prototype.resolveDiscounts = function(options: {[key: string]: any} = {}) {
   if (
     this.discounts
     && this.discounts.length > 0
-    && this.discounts.every(d => d instanceof app.models['Discount'].instance)
+    && this.discounts.every(d => d instanceof this.app.models['Discount'].instance)
     && options.reload !== true
   ) {
     return Promise.resolve(this)
@@ -583,10 +583,10 @@ ProductVariant.prototype.resolveDiscounts = function(app: FabrixApp, options: {[
 /**
  *
  */
-ProductVariant.prototype.resolveMetadata = function(app: FabrixApp, options: {[key: string]: any} = {}) {
+ProductVariant.prototype.resolveMetadata = function(options: {[key: string]: any} = {}) {
   if (
     this.metadata
-    && this.metadata instanceof app.models['Metadata'].instance
+    && this.metadata instanceof this.app.models['Metadata'].instance
     && options.reload !== true
   ) {
     return Promise.resolve(this)
