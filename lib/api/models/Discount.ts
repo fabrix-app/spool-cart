@@ -272,23 +272,29 @@ export class Discount extends Model {
           }
         },
         hooks: {
-          beforeValidate(discount, options) {
-            if (!discount.handle && discount.name) {
-              discount.handle = discount.name
+          beforeValidate: [
+            (discount, options) => {
+              if (!discount.handle && discount.name) {
+                discount.handle = discount.name
+              }
             }
-          },
-          beforeCreate: function(discount, options) {
-            if (discount.body) {
-              const bodyDoc = this.app.services.RenderGenericService.renderSync(discount.body)
-              discount.body_html = bodyDoc.document
+          ],
+          beforeCreate: [
+            (discount, options) => {
+              if (discount.body) {
+                const bodyDoc = app.services.RenderGenericService.renderSync(discount.body)
+                discount.body_html = bodyDoc.document
+              }
             }
-          },
-          beforeUpdate: function(discount, options) {
-            if (discount.body) {
-              const bodyDoc = this.app.services.RenderGenericService.renderSync(discount.body)
-              discount.body_html = bodyDoc.document
+          ],
+          beforeUpdate: [
+            (discount, options) => {
+              if (discount.body) {
+                const bodyDoc = app.services.RenderGenericService.renderSync(discount.body)
+                discount.body_html = bodyDoc.document
+              }
             }
-          }
+          ]
         }
       }
     }
@@ -573,28 +579,28 @@ export interface Discount {
 /**
  *
  */
-Discount.prototype.start = () => {
+Discount.prototype.start = function() {
   this.status = DISCOUNT_STATUS.ENABLED
   return this
 }
 /**
  *
  */
-Discount.prototype.stop = () => {
+Discount.prototype.stop = function() {
   this.status = DISCOUNT_STATUS.DISABLED
   return this
 }
 /**
  *
  */
-Discount.prototype.depleted = () => {
+Discount.prototype.depleted = function() {
   this.status = DISCOUNT_STATUS.DEPLETED
   return this
 }
 /**
  *
  */
-Discount.prototype.logUsage = (orderId, customerId, price, options) => {
+Discount.prototype.logUsage = function(orderId, customerId, price, options) {
   this.times_used++
   if (this.usage_limit > 0 && this.times_used >= this.usage_limit) {
     this.depleted()
@@ -613,7 +619,7 @@ Discount.prototype.logUsage = (orderId, customerId, price, options) => {
 /**
  *
  */
-Discount.prototype.eligibleCustomer = (customerId, options: {[key: string]: any} = {}) => {
+Discount.prototype.eligibleCustomer = function(customerId, options: {[key: string]: any} = {}) {
   return this.getDiscount_events({
     where: {
       customer_id: customerId
@@ -639,8 +645,8 @@ Discount.prototype.eligibleCustomer = (customerId, options: {[key: string]: any}
 /**
  *
  */
-Discount.prototype.discountItem = (item, criteria: any[] = []) => {
-  this.app.log.debug('Discount.discountItem CRITERIA', criteria)
+Discount.prototype.discountItem = function(item, criteria: any[] = []) {
+  // this.app.log.debug('Discount.discountItem CRITERIA', criteria)
 
   // Set item defaults
   item.discounted_lines = item.discounted_lines || []

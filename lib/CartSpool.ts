@@ -59,6 +59,14 @@ export class CartSpool extends Spool {
       return Promise.reject(new Error('No configuration found at config.passport!'))
     }
 
+    if (!this.app.config.get('web.middlewares.order').some(a => a === 'cartInit')) {
+      return Promise.reject(new Error('cartInit middleware missing in web.middlewares.order!'))
+    }
+
+    if (!this.app.config.get('web.middlewares.order').some(a => a === 'cartSession')) {
+      return Promise.reject(new Error('cartSession middleware missing in web.middlewares.order!'))
+    }
+
     // TODO Refactor
     // if (
     //   this.app.config.policies

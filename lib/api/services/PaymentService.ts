@@ -23,7 +23,7 @@ export class PaymentService extends Service {
     const paymentProcessor = this.app.config.get(`generics.${transaction.gateway}`)
       || this.app.config.get('generics.payment_processor')
 
-    if (!(transaction instanceof Transaction)) {
+    if (!(transaction instanceof Transaction.instance)) {
       throw new Error('Transaction must be an instance')
     }
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -34,7 +34,7 @@ export class PaymentService extends Service {
     let resTransaction
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('PaymentGenericService.authorize did not return Transaction instance')
         }
         return _transaction.save({transaction: options.transaction || null})
@@ -87,7 +87,7 @@ export class PaymentService extends Service {
     // Resolve the authorized transaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Did not resolve a Transaction instance')
         }
         if (_transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
@@ -99,7 +99,7 @@ export class PaymentService extends Service {
         return this.app.services.PaymentGenericService.capture(_transaction, paymentProcessor)
       })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('PaymentGenericService.capture did not return Transaction instance')
         }
         return _transaction.save({transaction: options.transaction || null})
@@ -152,13 +152,13 @@ export class PaymentService extends Service {
     // Resolve the authorized transaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Did not resolve a Transaction instance')
         }
         return this.app.services.PaymentGenericService.sale(_transaction, paymentProcessor)
       })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('PaymentGenericService.sale did not return Transaction instance')
         }
         return _transaction.save({transaction: options.transaction || null})
@@ -199,7 +199,7 @@ export class PaymentService extends Service {
 
     const Transaction = this.app.models.Transaction
 
-    if (!(transaction instanceof Transaction)) {
+    if (!(transaction instanceof Transaction.instance)) {
       throw new Error('Transaction must be an instance')
     }
 
@@ -255,7 +255,7 @@ export class PaymentService extends Service {
         if (!_transaction) {
           throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Did not resolve a Transaction instance')
         }
         if (_transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
@@ -267,7 +267,7 @@ export class PaymentService extends Service {
         return this.app.services.PaymentGenericService.void(_transaction, paymentProcessor)
       })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('PaymentGenericService.void did not return Transaction instance')
         }
         return _transaction.save({transaction: options.transaction || null})
@@ -323,7 +323,7 @@ export class PaymentService extends Service {
           throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
 
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Did not resolve a Transaction instance')
         }
 
@@ -336,7 +336,7 @@ export class PaymentService extends Service {
         return this.app.services.PaymentGenericService.refund(_transaction, paymentProcessor)
       })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('PaymentGenericService.refund did not return Transaction instance')
         }
         return _transaction.save({transaction: options.transaction || null})
@@ -381,7 +381,7 @@ export class PaymentService extends Service {
         if (!_transaction) {
           throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Did not resolve a Transaction instance')
         }
         if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
@@ -398,7 +398,7 @@ export class PaymentService extends Service {
         return this.app.services.PaymentGenericService[_transaction.kind](_transaction, paymentProcessor)
       })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('PaymentGenericService.retry did not return Transaction instance')
         }
         return _transaction.save({transaction: options.transaction || null})
@@ -442,7 +442,7 @@ export class PaymentService extends Service {
         if (!_transaction) {
           throw new ModelError('E_NOT_FOUND', 'Transaction Not Found')
         }
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Did not resolve Transaction instance')
         }
         if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
@@ -452,7 +452,7 @@ export class PaymentService extends Service {
         return _transaction.cancel().save({transaction: options.transaction || null})
       })
       .then(_transaction => {
-        if (!(_transaction instanceof Transaction)) {
+        if (!(_transaction instanceof Transaction.instance)) {
           throw new Error('Did not return Transaction instance')
         }
         resTransaction = _transaction

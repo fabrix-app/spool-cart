@@ -115,7 +115,7 @@ export class CollectionService extends Service {
       })
       .then(images => {
         if (images && images.length > 0) {
-          return Collection.datastore.Promise.mapSeries(images, (image, index) => {
+          return Collection.sequelize.Promise.mapSeries(images, (image, index) => {
             return resCollection.addImage(image.id, {through: {position: index + 1 }, transaction: options.transaction || null})
           })
         }
@@ -206,7 +206,7 @@ export class CollectionService extends Service {
       })
       .then(images => {
         if (images && images.length > 0) {
-          return Collection.datastore.Promise.mapSeries(images, (image, index) => {
+          return Collection.sequelize.Promise.mapSeries(images, (image, index) => {
             return resCollection.addImage(image.id, {
               through: {position: index + 1},
               transaction: options.transaction || null

@@ -156,7 +156,7 @@ export class OrderCsvService extends Service {
             billing_address: {}
           }
 
-          order = order instanceof this.app.models['OrderUpload'] ? order.get({plain: true}) : order
+          order = order instanceof this.app.models['OrderUpload'].instance ? order.get({plain: true}) : order
 
           _.each(order, (value, key) => {
             if (key.indexOf('shipping_') > -1) {
@@ -204,8 +204,7 @@ export class OrderCsvService extends Service {
     })
   }
 
-  transformFromRow(obj, options) {
-    options = options || {}
+  transformFromRow(obj, options: {[key: string]: any} = {}) {
     const resOrder = this.app.models['Order'].build()
     const Customer = this.app.models['Customer']
     const Product = this.app.models['Product']
@@ -223,12 +222,12 @@ export class OrderCsvService extends Service {
       })
       .then(products => {
         resProducts = products
-        return Product.datastore.Promise.mapSeries(resProducts, item => {
+        return Product.sequelize.Promise.mapSeries(resProducts, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
       })
       .then(resolvedItems => {
-        return Product.datastore.Promise.mapSeries(resolvedItems, (item) => {
+        return Product.sequelize.Promise.mapSeries(resolvedItems, (item) => {
           // item = _.omit(item.get({plain: true}), [
           //   'requires_order',
           //   'order_unit',

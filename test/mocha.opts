@@ -4,6 +4,6 @@
 --no-exit
 --check-leaks
 --timeout 1200000
---globals app,shopID,shopProducts,__core-js_shared__,__coverage__
+--globals app,shopID,shopProducts,__core-js_shared__,__coverage__,$$bole
 
 test/index.js test/**/*.test.js

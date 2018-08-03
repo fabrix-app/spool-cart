@@ -8,6 +8,6 @@ describe('OrderService', () => {
   it('should exist', () => {
     assert(global.app.api.services['OrderService'])
     // OrderService = global.app.services['OrderService']
-    // Order = global.app.services.ProxyEngineService.getModel('Order')
+    // Order = global.app.models['Order']
   })
 })

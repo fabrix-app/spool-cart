@@ -1,14 +1,18 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
-
+import {
+  subscription,
+  cancel,
+  activate,
+  deactivate,
+  addItems,
+  removeItems
+} from '../schemas/subscription'
 
 export const validateSubscription = {
   // Validate Creating a subscription
   create(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.subscription.subscription, (err, value) => {
+      joi.validate(data, subscription, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +23,7 @@ export const validateSubscription = {
   // Validate Update Subscription
   update(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.subscription.subscription, (err, value) => {
+      joi.validate(data, subscription, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +34,7 @@ export const validateSubscription = {
   // Validate Cancelling a subscription
   cancel(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.subscription.cancel, (err, value) => {
+      joi.validate(data, cancel, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -41,7 +45,7 @@ export const validateSubscription = {
   // Validate activating a subscription
   activate(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.subscription.activate, (err, value) => {
+      joi.validate(data, activate, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -52,7 +56,7 @@ export const validateSubscription = {
   // Validate activating a subscription
   deactivate(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.subscription.deactivate, (err, value) => {
+      joi.validate(data, deactivate, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -63,7 +67,7 @@ export const validateSubscription = {
   // Validate Items to add to subscription
   addItems(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.subscription.addItems, (err, value) => {
+      joi.validate(data, addItems, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -74,7 +78,7 @@ export const validateSubscription = {
   // Validate Items to remove from subscription
   removeItems(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.subscription.removeItems, (err, value) => {
+      joi.validate(data, removeItems, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

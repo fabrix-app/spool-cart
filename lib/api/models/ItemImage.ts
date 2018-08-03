@@ -20,9 +20,6 @@ export class ItemImage extends Model {
         underscored: true,
         enums: {
           IMAGE_MODELS: IMAGE_MODELS
-        },
-        classMethods: {
-
         }
       }
     }

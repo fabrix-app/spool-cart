@@ -111,24 +111,24 @@ export class SubscriptionResolver extends SequelizeResolver {
         return resUser
       })
   }
-  /**
-   * Resolve by email Function
-   * @param subscription
-   * @param options
-   */
-  resolveByEmail (subscription, options: {[key: string]: any} = {}) {
-    return this.findOne(defaultsDeep({
-      where: {
-        email: subscription.email
-      }
-    }, options))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
-          throw new ModelError('E_NOT_FOUND', `Subscription email ${subscription.email} not found`)
-        }
-        return resUser
-      })
-  }
+  // /**
+  //  * Resolve by email Function (can't do this, emails are not unique)
+  //  * @param subscription
+  //  * @param options
+  //  */
+  // resolveByEmail (subscription, options: {[key: string]: any} = {}) {
+  //   return this.findOne(defaultsDeep({
+  //     where: {
+  //       email: subscription.email
+  //     }
+  //   }, options))
+  //     .then(resUser => {
+  //       if (!resUser && options.reject !== false) {
+  //         throw new ModelError('E_NOT_FOUND', `Subscription email ${subscription.email} not found`)
+  //       }
+  //       return resUser
+  //     })
+  // }
   /**
    * Resolve by number Function
    * @param subscription
@@ -171,7 +171,7 @@ export class SubscriptionResolver extends SequelizeResolver {
       'instance': subscription instanceof this.instance,
       'id': !!(subscription && isObject(subscription) && subscription.id),
       'token': !!(subscription && isObject(subscription) && subscription.token),
-      'email': !!(subscription && isObject(subscription) && subscription.email),
+      // 'email': !!(subscription && isObject(subscription) && subscription.email),
       'number': !!(subscription && isNumber(subscription)),
       'string': !!(subscription && isString(subscription))
     }
@@ -187,9 +187,9 @@ export class SubscriptionResolver extends SequelizeResolver {
       case 'token': {
         return this.resolveByToken(subscription, options)
       }
-      case 'email': {
-        return this.resolveByEmail(subscription, options)
-      }
+      // case 'email': {
+      //   return this.resolveByEmail(subscription, options)
+      // }
       case 'number': {
         return this.resolveByNumber(subscription, options)
       }
@@ -260,33 +260,41 @@ export class Subscription extends Model {
           }
         ],
         hooks: {
-          beforeCreate: (subscription, options) => {
-            return app.services.SubscriptionService.beforeCreate(subscription)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeUpdate: (subscription, options) => {
-            return app.services.SubscriptionService.beforeUpdate(subscription)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterCreate: (subscription, options) => {
-            return app.services.SubscriptionService.afterCreate(subscription, options)
-              .then(subscription => {
-                return subscription.save({transaction: options.transaction || null})
-              })
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterUpdate: (subscription, options) => {
-            return app.services.SubscriptionService.afterCreate(subscription, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          beforeCreate: [
+            (subscription, options) => {
+              return app.services.SubscriptionService.beforeCreate(subscription)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeUpdate: [
+            (subscription, options) => {
+              return app.services.SubscriptionService.beforeUpdate(subscription)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterCreate: [
+            (subscription, options) => {
+              return app.services.SubscriptionService.afterCreate(subscription, options)
+                .then(subscription => {
+                  return subscription.save({transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterUpdate: [
+            (subscription, options) => {
+              return app.services.SubscriptionService.afterCreate(subscription, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         }
       }
     }

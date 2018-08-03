@@ -173,24 +173,30 @@ export class Source extends Model {
           }
         },
         hooks: {
-          beforeCreate: (values, options) => {
-            // If not token was already created, create it
-            if (!values.token) {
-              values.token = `source_${shortId.generate()}`
+          beforeCreate: [
+            (values, options) => {
+              // If not token was already created, create it
+              if (!values.token) {
+                values.token = `source_${shortId.generate()}`
+              }
             }
-          },
-          afterCreate: (values, options) => {
-            return app.services.AccountService.afterSourceCreate(values)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterDestroy: (values, options) => {
-            return app.services.AccountService.afterSourceDestroy(values)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          ],
+          afterCreate: [
+            (values, options) => {
+              return app.services.AccountService.afterSourceCreate(values)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterDestroy: [
+            (values, options) => {
+              return app.services.AccountService.afterSourceDestroy(values)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         }
       }
     }

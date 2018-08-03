@@ -20,9 +20,7 @@ export class CartService extends Service {
    * @param cart
    * @param options
    */
-  create(cart, options) {
-    options = options || {}
-
+  create(cart, options: {[key: string]: any} = {}) {
     const Cart = this.app.models['Cart']
 
     // If line items is empty
@@ -42,7 +40,9 @@ export class CartService extends Service {
       cart.shipping_address = cart.billing_address
     }
 
-    const resCart = Cart.build({
+    let resCart
+
+    return Cart.create({
       email: cart.email,
       shop_id: cart.shop_id,
       customer_id: cart.customer_id,
@@ -65,8 +65,12 @@ export class CartService extends Service {
         }
       ]
     })
-    return resCart.save({transaction: options.transaction || null})
-      .then(() => {
+      .then(_cart => {
+        if (!_cart) {
+          throw new Error('Cart was not created')
+        }
+        resCart = _cart
+
         if (cart.shipping_address && !_.isEmpty(cart.shipping_address)) {
           return resCart.updateShippingAddress(
             cart.shipping_address,
@@ -115,21 +119,21 @@ export class CartService extends Service {
         return
       })
       .then(() => {
-        return Cart.datastore.Promise.mapSeries(items, item => {
+        return Cart.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
       })
       .then(resolvedItems => {
-        return Cart.datastore.Promise.mapSeries(resolvedItems, (item, index) => {
+        return Cart.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
           return resCart.addLine(item, items[index].quantity, items[index].properties)
         })
       })
       .then(() => {
         return resCart.save({transaction: options.transaction || null})
       })
-      .then(() => {
-        return resCart.reload({transaction: options.transaction || null})
-      })
+      // .then(() => {
+      //   return resCart.reload({transaction: options.transaction || null})
+      // })
   }
 
   /**
@@ -277,8 +281,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  prepareForOrder(req, options) {
-    options = options || {}
+  prepareForOrder(req, options: {[key: string]: any} = {}) {
     const AccountService = this.app.services.AccountService
     const Cart = this.app.models['Cart']
     const Customer = this.app.models['Customer']
@@ -526,8 +529,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise}
    */
-  addItemsToCart(items, cart, options) {
-    options = options || {}
+  addItemsToCart(items, cart, options: {[key: string]: any} = {}) {
     const Cart = this.app.models['Cart']
     if (items.line_items) {
       items = items.line_items
@@ -544,12 +546,12 @@ export class CartService extends Service {
 
         resCart = _cart
         // const minimize = _.unionBy(items, 'product_id')
-        return Cart.datastore.Promise.mapSeries(items, item => {
+        return Cart.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
       })
       .then(resolvedItems => {
-        return Cart.datastore.Promise.mapSeries(resolvedItems, (item, index) => {
+        return Cart.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
           return resCart.addLine(
             item,
             items[index].quantity,
@@ -570,8 +572,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise}
    */
-  removeItemsFromCart(items, cart, options) {
-    options = options || {}
+  removeItemsFromCart(items, cart, options: {[key: string]: any} = {}) {
     const Cart = this.app.models['Cart']
     if (items.line_items) {
       items = items.line_items
@@ -587,12 +588,12 @@ export class CartService extends Service {
         }
 
         resCart = _cart
-        return Cart.datastore.Promise.mapSeries(items, item => {
+        return Cart.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
       })
       .then(resolvedItems => {
-        return Cart.datastore.Promise.mapSeries(resolvedItems, (item, index) => {
+        return Cart.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
           return resCart.removeLine(
             item,
             items[index].quantity,
@@ -611,8 +612,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<TResult>|*}
    */
-  clearCart(cart, options) {
-    options = options || {}
+  clearCart(cart, options: {[key: string]: any} = {}) {
     const Cart = this.app.models['Cart']
     let resCart
     return Cart.resolve(cart, {transaction: options.transaction || null})
@@ -634,8 +634,7 @@ export class CartService extends Service {
    * @param req
    * @param options
    */
-  createAndSwitch(req, options) {
-    options = options || {}
+  createAndSwitch(req, options: {[key: string]: any} = {}) {
     const User = this.app.models['User']
     const cart: {[key: string]: any} = {}
     const owners = []
@@ -691,8 +690,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addShipping(cart, shipping, options) {
-    options = options || {}
+  addShipping(cart, shipping, options: {[key: string]: any} = {}) {
     if (!shipping) {
       throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
     }
@@ -718,10 +716,9 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeShipping(cart, shipping, options) {
-    options = options || {}
+  removeShipping(cart, shipping, options: {[key: string]: any} = {}) {
     if (!shipping) {
-      throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
+      throw new ModelError('E_BAD_REQUEST', 'Shipping is not defined')
     }
     let resCart
     const Cart = this.app.models['Cart']
@@ -745,10 +742,9 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addTaxes(cart, taxes, options) {
-    options = options || {}
+  addTaxes(cart, taxes, options: {[key: string]: any} = {}) {
     if (!taxes) {
-      throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
+      throw new ModelError('E_BAD_REQUEST', 'Taxes is not defined')
     }
     let resCart
     const Cart = this.app.models['Cart']
@@ -772,10 +768,9 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeTaxes(cart, taxes, options) {
-    options = options || {}
+  removeTaxes(cart, taxes, options: {[key: string]: any} = {}) {
     if (!taxes) {
-      throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
+      throw new ModelError('E_BAD_REQUEST', 'Taxes is not defined')
     }
     let resCart
     const Cart = this.app.models['Cart']
@@ -820,7 +815,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  beforeCreate(cart, options) {
+  beforeCreate(cart, options: {[key: string]: any} = {}) {
     if (cart.ip) {
       cart.create_ip = cart.ip
     }
@@ -845,7 +840,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  beforeUpdate(cart, options) {
+  beforeUpdate(cart, options: {[key: string]: any} = {}) {
     if (cart.ip) {
       cart.update_ip = cart.ip
     }
@@ -863,7 +858,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  beforeSave(cart, options) {
+  beforeSave(cart, options: {[key: string]: any} = {}) {
     if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) > -1) {
       return cart.recalculate({transaction: options.transaction || null})
     }

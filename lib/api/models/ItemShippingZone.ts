@@ -17,10 +17,10 @@ export class ItemShippingZone extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
-      },
-      classMethods: {
-        SHIPPING_MODELS: SHIPPING_MODELS
+        underscored: true,
+        enums: {
+          SHIPPING_MODELS: SHIPPING_MODELS
+        }
       }
     }
   }

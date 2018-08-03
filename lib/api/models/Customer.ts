@@ -4,6 +4,7 @@ import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { isObject, isString, isNumber, defaultsDeep, pick, extend, values } from 'lodash'
 import * as shortId from 'shortid'
+import { Op } from 'sequelize'
 
 const queryDefaults = require('../utils/queryDefaults')
 import { CUSTOMER_STATE } from '../../enums'
@@ -149,6 +150,7 @@ export class CustomerResolver extends SequelizeResolver {
   //     'instance': cart instanceof this.instance,
   //     'id': !!(cart && isObject(cart) && cart.id),
   //     'token': !!(cart && isObject(cart) && cart.token),
+  //     'create': !!(cart && isObject(cart) && options.create !== false)
   //     'number': !!(cart && isNumber(cart)),
   //     'string': !!(cart && isString(cart))
   //   }
@@ -166,6 +168,9 @@ export class CustomerResolver extends SequelizeResolver {
   //     }
   //     case 'email': {
   //       return this.resolveByEmail(cart, options)
+  //     }
+  //     case 'create': {
+  //       return this.create(cart, options)
   //     }
   //     case 'number': {
   //       return this.resolveByNumber(cart, options)
@@ -276,32 +281,40 @@ export class Customer extends Model {
           }
         },
         hooks: {
-          beforeCreate: (customer, options) => {
-            if (customer.ip) {
-              customer.create_ip = customer.ip
+          beforeCreate: [
+            (customer, options) => {
+              if (customer.ip) {
+                customer.create_ip = customer.ip
+              }
+              // If not token was already created, create it
+              if (!customer.token) {
+                customer.token = `customer_${shortId.generate()}`
+              }
             }
-            // If not token was already created, create it
-            if (!customer.token) {
-              customer.token = `customer_${shortId.generate()}`
+          ],
+          beforeUpdate: [
+            (customer, options) => {
+              if (customer.ip) {
+                customer.update_ip = customer.ip
+              }
             }
-          },
-          beforeUpdate: (customer, options) => {
-            if (customer.ip) {
-              customer.update_ip = customer.ip
+          ],
+          afterCreate: [
+            (customer, options) => {
+              return app.services.CustomerService.afterCreate(customer, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
             }
-          },
-          afterCreate: (customer, options) => {
-            return app.services.CustomerService.afterCreate(customer, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterUpdate: (customer, options) => {
-            return app.services.CustomerService.afterUpdate(customer, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          ],
+          afterUpdate: [
+            (customer, options) => {
+              return app.services.CustomerService.afterUpdate(customer, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         },
         getterMethods: {
           full_name: function()  {
@@ -315,9 +328,6 @@ export class Customer extends Model {
               return null
             }
           }
-        },
-        instanceMethods: {
-
         }
       }
     }
@@ -654,37 +664,37 @@ export class Customer extends Model {
 
 
 export interface Customer {
-  getProductHistory( product, options): any
-  hasPurchaseHistory( productId, options): any
-  isSubscribed( productId, options): any
-  getSalutation( options): any
-  getDefaultSource( options): any
-  setLastOrder( order): any
-  setTotalSpent( orderTotalDue): any
+  getProductHistory(product, options): any
+  hasPurchaseHistory(productId, options): any
+  isSubscribed(productId, options): any
+  getSalutation(options): any
+  getDefaultSource(options): any
+  setLastOrder(order): any
+  setTotalSpent(orderTotalDue): any
   setTotalOrders(): any
   setAvgSpent(): any
-  setAccountBalance( newBalance): any
-  logAccountBalance( type, price, currency, accountId, orderId, options): any
-  notifyUsers( preNotification, options): any
-  resolveCollections( options): any
-  resolveDiscounts( options): any
-  resolveMetadata( options): any
-  resolveUsers( options): any
-  resolveDefaultAddress( options): any
-  resolveShippingAddress( options): any
-  resolveBillingAddress( options): any
-  resolvePaymentDetailsToSources( options): any
-  sendRetargetEmail( options): any
-  updateDefaultAddress( address, options): any
-  updateShippingAddress( address, options): any
-  updateBillingAddress( address, options): any
+  setAccountBalance(newBalance): any
+  logAccountBalance(type, price, currency, accountId, orderId, options): any
+  notifyUsers(preNotification, options): any
+  resolveCollections(options): any
+  resolveDiscounts(options): any
+  resolveMetadata(options): any
+  resolveUsers(options): any
+  resolveDefaultAddress(options): any
+  resolveShippingAddress(options): any
+  resolveBillingAddress(options): any
+  resolvePaymentDetailsToSources(options): any
+  sendRetargetEmail(options): any
+  updateDefaultAddress(address, options): any
+  updateShippingAddress(address, options): any
+  updateBillingAddress(address, options): any
   toJSON(): any
 }
 
 /**
  *
  */
-Customer.prototype.getProductHistory = ( product, options = {}) => {
+Customer.prototype.getProductHistory = function( product, options = {}) {
   let hasPurchaseHistory = false, isSubscribed = false
   return this.hasPurchaseHistory(product.id, options)
     .then(pHistory => {
@@ -708,19 +718,21 @@ Customer.prototype.getProductHistory = ( product, options = {}) => {
 /**
  *
  */
-Customer.prototype.hasPurchaseHistory = (productId, options = {}) => {
+Customer.prototype.hasPurchaseHistory = function(productId, options = {}) {
+  const $not = Op.not
   return this.app.models['OrderItem'].findOne({
     where: {
       customer_id: this.id,
       product_id: productId,
       fulfillment_status: {
-        $not: ['cancelled', 'pending', 'none']
+        [$not]: ['cancelled', 'pending', 'none']
       }
     },
     attributes: ['id'],
     transaction: options.transaction || null
   })
     .then(pHistory => {
+      console.log('BROKE History 2', pHistory)
       if (pHistory) {
         return true
       }
@@ -733,7 +745,7 @@ Customer.prototype.hasPurchaseHistory = (productId, options = {}) => {
     })
 }
 
-Customer.prototype.isSubscribed = (productId, options = {}) => {
+Customer.prototype.isSubscribed = function(productId, options = {}) {
 
   return this.app.models['Subscription'].findOne({
     where: {
@@ -766,7 +778,7 @@ Customer.prototype.isSubscribed = (productId, options = {}) => {
  * @param options
  * @returns {string}
  */
-Customer.prototype.getSalutation = (options = {}) => {
+Customer.prototype.getSalutation = function(options = {}) {
   let salutation = 'Customer'
 
   if (this.full_name) {
@@ -780,7 +792,7 @@ Customer.prototype.getSalutation = (options = {}) => {
 /**
  *
  */
-Customer.prototype.getDefaultSource = (options: {[key: string]: any} = {}) => {
+Customer.prototype.getDefaultSource = function(options: {[key: string]: any} = {}) {
   const Source = this.app.models['Source']
   return Source.findOne({
     where: {
@@ -811,7 +823,7 @@ Customer.prototype.getDefaultSource = (options: {[key: string]: any} = {}) => {
 /**
  *
  */
-Customer.prototype.setLastOrder = (order) => {
+Customer.prototype.setLastOrder = function(order) {
   this.last_order_name = order.name
   this.last_order_id = order.id
   return this
@@ -820,21 +832,21 @@ Customer.prototype.setLastOrder = (order) => {
 /**
  *
  */
-Customer.prototype.setTotalSpent = (orderTotalDue) => {
+Customer.prototype.setTotalSpent = function(orderTotalDue) {
   this.total_spent = this.total_spent + orderTotalDue
   return this
 }
 /**
  *
  */
-Customer.prototype.setTotalOrders = () => {
+Customer.prototype.setTotalOrders = function() {
   this.total_orders = this.total_orders + 1
   return this
 }
 /**
  *
  */
-Customer.prototype.setAvgSpent = () => {
+Customer.prototype.setAvgSpent = function() {
   this.avg_spent = this.total_spent / this.total_orders
   return this
 }
@@ -842,7 +854,7 @@ Customer.prototype.setAvgSpent = () => {
  *
  */
 // TODO Discussion: should this be pulled with each query or set after order?
-Customer.prototype.setAccountBalance = (newBalance) => {
+Customer.prototype.setAccountBalance = function(newBalance) {
   this.account_balance = newBalance
   return this
 }
@@ -850,15 +862,14 @@ Customer.prototype.setAccountBalance = (newBalance) => {
 /**
  *
  */
-Customer.prototype.logAccountBalance = (
-  app: FabrixApp,
+Customer.prototype.logAccountBalance = function(
   type = 'debit',
   price = 0,
   currency = 'USD',
   accountId,
   orderId,
   options: {[key: string]: any} = {}
-) => {
+) {
 
   return this.createAccount_event({
     type: type,
@@ -894,7 +905,7 @@ Customer.prototype.logAccountBalance = (
 /**
  *
  */
-Customer.prototype.notifyUsers = (preNotification, options: {[key: string]: any} = {}) => {
+Customer.prototype.notifyUsers = function(preNotification, options: {[key: string]: any} = {}) {
 
   return this.resolveUsers({
     attributes: ['id', 'email', 'username'],
@@ -923,7 +934,7 @@ Customer.prototype.notifyUsers = (preNotification, options: {[key: string]: any}
 /**
  *
  */
-Customer.prototype.resolveCollections = (options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveCollections = function(options: {[key: string]: any} = {}) {
   if (
     this.collections
     && this.collections.length > 0
@@ -946,7 +957,7 @@ Customer.prototype.resolveCollections = (options: {[key: string]: any} = {}) => 
 /**
  *
  */
-Customer.prototype.resolveDiscounts = (options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveDiscounts = function(options: {[key: string]: any} = {}) {
   if (
     this.discounts
     && this.discounts.length > 0
@@ -969,7 +980,7 @@ Customer.prototype.resolveDiscounts = (options: {[key: string]: any} = {}) => {
 /**
  *
  */
-Customer.prototype.resolveMetadata = (options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveMetadata = function(options: {[key: string]: any} = {}) {
   if (
     this.metadata
     && this.metadata instanceof this.app.models['Metadata'].instance
@@ -991,8 +1002,7 @@ Customer.prototype.resolveMetadata = (options: {[key: string]: any} = {}) => {
 /**
  *
  */
-Customer.prototype.resolveUsers = (options: {[key: string]: any} = {}) => {
-  options = options || {}
+Customer.prototype.resolveUsers = function(options: {[key: string]: any} = {}) {
   if (
     this.users
     && this.users.length > 0
@@ -1015,7 +1025,7 @@ Customer.prototype.resolveUsers = (options: {[key: string]: any} = {}) => {
 /**
  *
  */
-Customer.prototype.resolveDefaultAddress = (options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveDefaultAddress = function(options: {[key: string]: any} = {}) {
   if (
     this.default_address
     && this.default_address instanceof this.app.models['Address'].instance
@@ -1042,7 +1052,7 @@ Customer.prototype.resolveDefaultAddress = (options: {[key: string]: any} = {}) 
 /**
  *
  */
-Customer.prototype.resolveShippingAddress = (options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveShippingAddress = function(options: {[key: string]: any} = {}) {
   if (
     this.shipping_address
     && this.shipping_address instanceof this.app.models['Address'].instance
@@ -1069,7 +1079,7 @@ Customer.prototype.resolveShippingAddress = (options: {[key: string]: any} = {})
 /**
  *
  */
-Customer.prototype.resolveBillingAddress = (options: {[key: string]: any} = {}) => {
+Customer.prototype.resolveBillingAddress = function(options: {[key: string]: any} = {}) {
   if (
     this.billing_address
     && this.billing_address instanceof this.app.models['Address'].instance
@@ -1102,7 +1112,7 @@ Customer.prototype.resolvePaymentDetailsToSources = (options = {}) => {
 /**
  * Email to notify user's that there are pending items in cart
  */
-Customer.prototype.sendRetargetEmail = (options: {[key: string]: any} = {}) => {
+Customer.prototype.sendRetargetEmail = function(options: {[key: string]: any} = {}) {
 
   return this.app.emails.Customer.retarget(this, {
     send_email: this.app.config.get('cart.emails.customerRetarget')
@@ -1121,7 +1131,7 @@ Customer.prototype.sendRetargetEmail = (options: {[key: string]: any} = {}) => {
 /**
  *
  */
-Customer.prototype.updateDefaultAddress = (address, options: {[key: string]: any } = {}) => {
+Customer.prototype.updateDefaultAddress = function(address, options: {[key: string]: any } = {}) {
   const Address = this.app.models['Address']
   const defaultUpdate = Address.cleanAddress(address)
 
@@ -1154,7 +1164,7 @@ Customer.prototype.updateDefaultAddress = (address, options: {[key: string]: any
 /**
  *
  */
-Customer.prototype.updateShippingAddress = (address, options: {[key: string]: any} = {}) => {
+Customer.prototype.updateShippingAddress = function(address, options: {[key: string]: any} = {}) {
   const Address = this.app.models['Address']
   const shippingUpdate = Address.cleanAddress(address)
 
@@ -1187,7 +1197,7 @@ Customer.prototype.updateShippingAddress = (address, options: {[key: string]: an
 /**
  *
  */
-Customer.prototype.updateBillingAddress = (address, options: {[key: string]: any} = {}) => {
+Customer.prototype.updateBillingAddress = function(address, options: {[key: string]: any} = {}) {
   const Address = this.app.models['Address']
   const billingUpdate = Address.cleanAddress(address)
 

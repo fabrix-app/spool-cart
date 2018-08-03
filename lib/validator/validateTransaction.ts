@@ -1,14 +1,12 @@
-
-
 import * as joi from 'joi'
 import * as Schemas from '../schemas'
-
+import { transaction } from '../schemas/transaction'
 
 export const validateTransaction = {
   // Validate Authorize Transaction
   authorize(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.transaction.transaction, (err, value) => {
+      joi.validate(data, transaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +17,7 @@ export const validateTransaction = {
   // Validate Capture Transaction
   capture(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.transaction.transaction, (err, value) => {
+      joi.validate(data, transaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +28,7 @@ export const validateTransaction = {
   // Validate Sale Transaction
   sale(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.transaction.transaction, (err, value) => {
+      joi.validate(data, transaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -41,7 +39,7 @@ export const validateTransaction = {
   // Validate Void Transaction
   void(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.transaction.transaction, (err, value) => {
+      joi.validate(data, transaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -52,7 +50,7 @@ export const validateTransaction = {
   // Validate Refund Transaction
   refund(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.transaction.transaction, (err, value) => {
+      joi.validate(data, transaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -62,7 +60,7 @@ export const validateTransaction = {
   },
   retry(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.transaction.transaction, (err, value) => {
+      joi.validate(data, transaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -72,7 +70,7 @@ export const validateTransaction = {
   },
   cancel(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.transaction.transaction, (err, value) => {
+      joi.validate(data, transaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

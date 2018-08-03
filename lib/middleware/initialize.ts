@@ -60,7 +60,6 @@ export const initialize = function(cart) {
       // load data from existing session
       req._cart.session = req.session[cart._key]
     }
-
     next()
   }
 }

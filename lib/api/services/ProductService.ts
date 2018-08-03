@@ -19,8 +19,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {*}
    */
-  resolveItem(item, options) {
-    options = options || {}
+  resolveItem(item, options: {[key: string]: any} = {}) {
     const Product = this.app.models.Product
     const ProductVariant = this.app.models.ProductVariant
     const Image = this.app.models.ProductImage
@@ -49,7 +48,7 @@ export class ProductService extends Service {
       })
     }
     else if (item.product_id) {
-      return ProductVariant.find({
+      return ProductVariant.findOne({
         where: {
           product_id: item.product_id,
           position: 1
@@ -372,7 +371,7 @@ export class ProductService extends Service {
       })
       .then(collections => {
         if (collections && collections.length > 0) {
-          return Product.datastore.Promise.mapSeries(collections, collection => {
+          return Product.sequelize.Promise.mapSeries(collections, collection => {
             // console.log('WORKING ON ADDING', collection)
             const through = collection.product_position ? {position: collection.product_position} : {}
             return resProduct.addCollection(collection.id, {
@@ -406,7 +405,7 @@ export class ProductService extends Service {
         return
       })
       .then(vendors => {
-        return Product.datastore.Promise.mapSeries(images, image => {
+        return Product.sequelize.Promise.mapSeries(images, image => {
           // If variant index, set the variant image
           if (typeof image.variant !== 'undefined') {
             if (resProduct.variants && resProduct.variants[image.variant] && resProduct.variants[image.variant].id) {
@@ -432,7 +431,7 @@ export class ProductService extends Service {
     }
     const Product = this.app.models.Product
     return Product.datastore.transaction(t => {
-      return Product.datastore.Promise.mapSeries(products, product => {
+      return Product.sequelize.Promise.mapSeries(products, product => {
         return this.updateProduct(product, {
           transaction: t
         })
@@ -740,7 +739,7 @@ export class ProductService extends Service {
       .then(collections => {
         // Set the collections
         if (collections && collections.length > 0) {
-          return Product.datastore.Promise.mapSeries(collections, collection => {
+          return Product.sequelize.Promise.mapSeries(collections, collection => {
             // console.log('WORKING ON ADDING', collection)
             const through = collection.product_position ? {position: collection.product_position} : {}
             return resProduct.addCollection(collection.id, {
@@ -777,7 +776,7 @@ export class ProductService extends Service {
         return
       })
       .then(vendors => {
-        return Product.datastore.Promise.mapSeries(resProduct.variants, variant => {
+        return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
           if (variant instanceof Variant.instance) {
             // console.log('broke saving', variant.id, variant.sku)
             return variant.save({
@@ -797,7 +796,7 @@ export class ProductService extends Service {
         })
       })
       .then(variants => {
-        return Product.datastore.Promise.mapSeries(resProduct.images, image => {
+        return Product.sequelize.Promise.mapSeries(resProduct.images, image => {
           if (typeof image.variant !== 'undefined') {
             image.product_variant_id = resProduct.variants[image.variant].id
             delete image.variant
@@ -828,7 +827,7 @@ export class ProductService extends Service {
       products = [products]
     }
     const Product = this.app.models['Product']
-    return Product.datastore.Promise.mapSeries(products, product => {
+    return Product.sequelize.Promise.mapSeries(products, product => {
       return this.removeProduct(product)
     })
   }
@@ -861,7 +860,7 @@ export class ProductService extends Service {
       variants = [variants]
     }
     const Product = this.app.models['Product']
-    return Product.datastore.Promise.mapSeries(variants, variant => {
+    return Product.sequelize.Promise.mapSeries(variants, variant => {
       return this.removeVariant(variant)
     })
   }
@@ -910,7 +909,7 @@ export class ProductService extends Service {
           const keys = Object.keys(_variant.option)
           productOptions = _.union(productOptions, keys)
         })
-        return Product.datastore.Promise.mapSeries(updates, _variant => {
+        return Product.sequelize.Promise.mapSeries(updates, _variant => {
           return _variant.save({
             transaction: options.transaction || null
           })
@@ -935,7 +934,7 @@ export class ProductService extends Service {
    */
   createVariants(product, variants, options) {
     const Product = this.app.models['Product']
-    return Product.datastore.Promise.mapSeries(variants, variant => {
+    return Product.sequelize.Promise.mapSeries(variants, variant => {
       return this.createVariant(product, variant, options)
     })
   }
@@ -983,7 +982,7 @@ export class ProductService extends Service {
           const keys = Object.keys(_variant.option)
           productOptions = _.union(productOptions, keys)
         })
-        return Product.datastore.Promise.mapSeries(updates, _variant => {
+        return Product.sequelize.Promise.mapSeries(updates, _variant => {
           return _variant.save({transaction: options.transaction || null})
         })
       })
@@ -1002,7 +1001,7 @@ export class ProductService extends Service {
    */
   updateVariants(product, variants, options) {
     const Product = this.app.models['Product']
-    return Product.datastore.Promise.mapSeries(variants, variant => {
+    return Product.sequelize.Promise.mapSeries(variants, variant => {
       return this.updateVariant(product, variant, options)
     })
   }
@@ -1044,7 +1043,7 @@ export class ProductService extends Service {
           const keys = Object.keys(variant.option)
           productOptions = _.union(productOptions, keys)
         })
-        return Variant.datastore.Promise.mapSeries(updates, variant => {
+        return Variant.sequelize.Promise.mapSeries(updates, variant => {
           return variant.save({transaction: options.transaction || null})
         })
       })
@@ -1070,7 +1069,7 @@ export class ProductService extends Service {
       images = [images]
     }
     const Product = this.app.models['Product']
-    return Product.datastore.Promise.mapSeries(images, image => {
+    return Product.sequelize.Promise.mapSeries(images, image => {
       const id = typeof image.id !== 'undefined' ? image.id : image
       return this.removeImage(id)
     })
@@ -1110,7 +1109,7 @@ export class ProductService extends Service {
           image.position = index + 1
           return image
         })
-        return Image.datastore.Promise.mapSeries(foundImages, image => {
+        return Image.sequelize.Promise.mapSeries(foundImages, image => {
           return image.save({
             transaction: options.transaction || null
           })
@@ -1181,7 +1180,7 @@ export class ProductService extends Service {
           _image.position = index + 1
           return _image
         })
-        return Image.datastore.Promise.mapSeries(foundImages, _image => {
+        return Image.sequelize.Promise.mapSeries(foundImages, _image => {
           return _image.save({
             transaction: options.transaction || null
           })
@@ -1243,7 +1242,7 @@ export class ProductService extends Service {
           _image.position = index + 1
           return _image
         })
-        return Image.datastore.Promise.mapSeries(foundImages, _image => {
+        return Image.sequelize.Promise.mapSeries(foundImages, _image => {
           return _image.save({
             transaction: options.transaction || null
           })

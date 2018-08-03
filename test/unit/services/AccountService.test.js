@@ -19,7 +19,7 @@ describe('AccountService', () => {
   it('should resolve a account instance', (done) => {
     Account.resolve(Account.build({}))
       .then(account => {
-        assert.ok(account instanceof Account)
+        assert.ok(account instanceof Account.instance)
         done()
       })
       .catch(err => {

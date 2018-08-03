@@ -1,14 +1,11 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
-
+import { collection } from '../schemas/collection'
 
 export const validateCollection = {
   // Validate Collection Create
   create(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.collection.collection, (err, value) => {
+      joi.validate(data, collection, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +16,7 @@ export const validateCollection = {
   // Validate Collection Update
   update(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.collection.collection, (err, value) => {
+      joi.validate(data, collection, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

@@ -224,7 +224,7 @@ export class CollectionCsvService extends Service {
       transaction: options.transaction || null
     }, collections => {
 
-      return this.app.models.Collection.datastore.Promise.mapSeries(collections, collection => {
+      return this.app.models.Collection.sequelize.Promise.mapSeries(collections, collection => {
 
         let create = {
           handle: collection.handle,

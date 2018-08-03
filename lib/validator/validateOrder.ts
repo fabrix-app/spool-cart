@@ -1,14 +1,33 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
 
+import {
+  order,
+  update,
+  cancel,
+  pay,
+  refund,
+  retry,
+  authorize,
+  capture,
+  voidTransaction,
+  addItem,
+  addItems,
+  updateItem,
+  removeItem,
+  addShipping,
+  addTaxes,
+  removeShipping,
+  removeTaxes,
+  pricingOverrides,
+  send,
+  fulfill
+} from '../schemas/order'
 
 export const validateOrder = {
   // Validate Order Create
   create(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.order, (err, value) => {
+      joi.validate(data, order, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +38,7 @@ export const validateOrder = {
   // Validate Order Update
   update(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.update, (err, value) => {
+      joi.validate(data, update, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +49,7 @@ export const validateOrder = {
   // Validate Order Cancel
   cancel(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.cancel, (err, value) => {
+      joi.validate(data, cancel, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -41,7 +60,7 @@ export const validateOrder = {
   // Validate Order Pay
   pay(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.pay, (err, value) => {
+      joi.validate(data, pay, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -52,7 +71,7 @@ export const validateOrder = {
   // Validate Order Refund
   refund(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.refund, (err, value) => {
+      joi.validate(data, refund, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -63,7 +82,7 @@ export const validateOrder = {
   // Validate Order Refund
   retry(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.retry, (err, value) => {
+      joi.validate(data, retry, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -74,7 +93,7 @@ export const validateOrder = {
   // Validate Order transaction capture
   authorize(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.authorize, (err, value) => {
+      joi.validate(data, authorize, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -85,7 +104,7 @@ export const validateOrder = {
   // Validate Order transaction capture
   capture(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.capture, (err, value) => {
+      joi.validate(data, capture, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -96,7 +115,7 @@ export const validateOrder = {
   // Validate Order transaction void
   void(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.void, (err, value) => {
+      joi.validate(data, voidTransaction, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -106,7 +125,7 @@ export const validateOrder = {
   },
   addItem(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.addItem, (err, value) => {
+      joi.validate(data, addItem, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -116,7 +135,7 @@ export const validateOrder = {
   },
   addItems(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.addItems, (err, value) => {
+      joi.validate(data, addItems, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -126,7 +145,7 @@ export const validateOrder = {
   },
   updateItem(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.updateItem, (err, value) => {
+      joi.validate(data, updateItem, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -136,7 +155,7 @@ export const validateOrder = {
   },
   removeItem(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.removeItem, (err, value) => {
+      joi.validate(data, removeItem, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -146,7 +165,7 @@ export const validateOrder = {
   },
   addShipping(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.addShipping, (err, value) => {
+      joi.validate(data, addShipping, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -156,7 +175,7 @@ export const validateOrder = {
   },
   removeShipping(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.removeShipping, (err, value) => {
+      joi.validate(data, removeShipping, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -166,7 +185,7 @@ export const validateOrder = {
   },
   addTaxes(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.addTaxes, (err, value) => {
+      joi.validate(data, addTaxes, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -176,7 +195,7 @@ export const validateOrder = {
   },
   removeTaxes(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.removeTaxes, (err, value) => {
+      joi.validate(data, removeTaxes, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -186,7 +205,7 @@ export const validateOrder = {
   },
   fulfill(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.fulfill, (err, value) => {
+      joi.validate(data, fulfill, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -196,7 +215,7 @@ export const validateOrder = {
   },
   send(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.send, (err, value) => {
+      joi.validate(data, send, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -207,7 +226,7 @@ export const validateOrder = {
   // Validate Pricing Overrides
   pricingOverrides(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.order.pricingOverrides, (err, value) => {
+      joi.validate(data, pricingOverrides, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

@@ -23,7 +23,7 @@ export class AccountService extends Service {
   resolvePaymentDetailsToSources(customer, paymentDetails, options) {
     options = options || {}
     const Source = this.app.models['Source']
-    return Source.datastore.Promise.mapSeries(paymentDetails, detail => {
+    return Source.sequelize.Promise.mapSeries(paymentDetails, detail => {
       if (detail.gateway_token) {
         const account = {
           customer_id: customer.id,
@@ -173,7 +173,7 @@ export class AccountService extends Service {
             return this.app.services.PaymentGenericService.getCustomerSources(resAccount)
           })
           .then(accountWithSources => {
-            return Source.datastore.Promise.mapSeries(accountWithSources.sources, (source, index) => {
+            return Source.sequelize.Promise.mapSeries(accountWithSources.sources, (source, index) => {
               source.customer_id = resAccount.customer_id
               source.is_default = index === 0 ? true : false
 
@@ -516,7 +516,7 @@ export class AccountService extends Service {
         return this.app.services.PaymentGenericService.findCustomerSources(_account)
       })
       .then(serviceCustomerSources => {
-        return Source.datastore.Promise.mapSeries(serviceCustomerSources, (source, index) => {
+        return Source.sequelize.Promise.mapSeries(serviceCustomerSources, (source, index) => {
           source.gateway = resAccount.gateway
           source.account_id = resAccount.id
           source.customer_id = resAccount.customer_id
@@ -559,7 +559,7 @@ export class AccountService extends Service {
         })
       })
       .then(transactions => {
-        return Source.datastore.Promise.mapSeries(transactions, transaction => {
+        return Source.sequelize.Promise.mapSeries(transactions, transaction => {
           transaction.payment_details.source = resSource
           return this.app.services.TransactionService.retry(transaction, {transaction: options.transaction || null})
         })

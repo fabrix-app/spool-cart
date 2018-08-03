@@ -11,7 +11,7 @@ describe('Fulfillment Model', () => {
   it('should resolve a fulfillment instance', (done) => {
     Fulfillment.resolve(Fulfillment.build({}))
       .then(fulfillment => {
-        assert.ok(fulfillment instanceof Fulfillment)
+        assert.ok(fulfillment instanceof Fulfillment.instance)
         done()
       })
       .catch(err => {

@@ -20,9 +20,6 @@ export class ItemTag extends Model {
         underscored: true,
         enums: {
           TAG_MODELS: TAG_MODELS
-        },
-        classMethods: {
-
         }
       }
     }

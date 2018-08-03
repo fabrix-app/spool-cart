@@ -49,7 +49,7 @@ export class Metadata extends Model {
             fields: ['data'],
             using: 'gin',
             operator: 'jsonb_path_ops'
-          },
+          }
         ]
       }
     }

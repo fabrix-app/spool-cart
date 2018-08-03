@@ -17,6 +17,7 @@ export const cart = function(cart, options, callback) {
     if (!req._cart) {
       return this.error(new Error('cart.initialize() middleware not in use'))
     }
+    // console.log('BROKE', req.session)
 
     if (req.session && req.session[req._cart.instance._key]) {
       const property = req._cart.instance._cartProperty || 'cart'

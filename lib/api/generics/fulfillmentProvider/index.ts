@@ -1,11 +1,14 @@
-
-
 import { Generic } from '@fabrix/spool-generics'
 
 const _ = require('lodash')
-export class ManualFulfillmentProvider extends Generic {
+export class ManualFulfillmentProvider  { // extends Generic {
+  // constructor(config) {
+  //   super(config)
+  // }
+  public config: {[key: string]: any} = {}
+
   constructor(config) {
-    super(config)
+    this.config = config
   }
 
   /**

@@ -139,7 +139,7 @@ export class SubscriptionService extends Service {
 
     return resSubscription.save({transaction: options.transaction || null})
       .then(() => {
-        return Subscription.datastore.Promise.mapSeries(items, item => {
+        return Subscription.sequelize.Promise.mapSeries(items, item => {
           item.subscription_id = resSubscription.id
           return item.save({transaction: options.transaction || null})
         })
@@ -268,7 +268,7 @@ export class SubscriptionService extends Service {
             transaction: options.transaction || null
           })
             .then(orders => {
-              return Order.datastore.Promise.mapSeries(orders, order => {
+              return Order.sequelize.Promise.mapSeries(orders, order => {
                 return this.app.services.OrderService.cancel(
                   order,
                   {transaction: options.transaction || null}
@@ -404,12 +404,12 @@ export class SubscriptionService extends Service {
 
         resSubscription = _subscription
 
-        return Subscription.datastore.Promise.mapSeries(items, item => {
+        return Subscription.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
       })
       .then(resolvedItems => {
-        return Subscription.datastore.Promise.mapSeries(resolvedItems, (item, index) => {
+        return Subscription.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
           return resSubscription.addLine(
             item,
             items[index].quantity,
@@ -464,12 +464,12 @@ export class SubscriptionService extends Service {
           throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
         }
         resSubscription = _subscription
-        return Subscription.datastore.Promise.mapSeries(items, item => {
+        return Subscription.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
       })
       .then(resolvedItems => {
-        return Subscription.datastore.Promise.mapSeries(resolvedItems, (item, index) => {
+        return Subscription.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
           resSubscription.removeLine(item, items[index].quantity)
         })
       })
@@ -529,7 +529,7 @@ export class SubscriptionService extends Service {
           if (!_order) {
             throw new Error(`Unexpected error during subscription ${resSubscription.id} renewal`)
           }
-          if (!(_order instanceof this.app.models['Order'])) {
+          if (!(_order instanceof this.app.models['Order'].instance)) {
             throw new Error('Did not return an instance of Order')
           }
           resOrder = _order
@@ -758,8 +758,7 @@ export class SubscriptionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  willRenew(subscription, options) {
-    options = options || {}
+  willRenew(subscription, options: {[key: string]: any} = {}) {
     const Subscription = this.app.models['Subscription']
 
     let resSubscription
@@ -770,7 +769,7 @@ export class SubscriptionService extends Service {
           if (!_subscription) {
             throw new ModelError('E_NOT_FOUND', 'Subscription Not Found')
           }
-          if (!(_subscription instanceof Subscription)) {
+          if (!(_subscription instanceof Subscription.instance)) {
             throw new Error('Subscription did not resolve instance of Subscription')
           }
           resSubscription = _subscription
@@ -789,8 +788,7 @@ export class SubscriptionService extends Service {
    *
    * @returns {*|Promise.<TResult>}
    */
-  renewThisHour(options) {
-    options = options || {}
+  renewThisHour(options: {[key: string]: any} = {}) {
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Subscription = this.app.models['Subscription']

@@ -51,7 +51,7 @@ export class DiscountService extends Service {
         }
         resDiscount = _discount
 
-        return Discount.datastore.Promise.mapSeries(appliesTo, applicant => {
+        return Discount.sequelize.Promise.mapSeries(appliesTo, applicant => {
 
           if (this.app.models[applicant.model]) {
             return this.app.models[applicant.model].findById(applicant.id, {transaction: options.transaction || null})
@@ -350,7 +350,7 @@ export class DiscountService extends Service {
       regressive: true,
       transaction: options.transaction || null
     }, discounts => {
-      return Discount.datastore.Promise.mapSeries(discounts, discount => {
+      return Discount.sequelize.Promise.mapSeries(discounts, discount => {
         return this.expire(discount, {transaction: options.transaction || null})
       })
         .then(results => {

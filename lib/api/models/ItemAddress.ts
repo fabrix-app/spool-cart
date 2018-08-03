@@ -19,10 +19,7 @@ export class ItemAddress extends Model {
           {
             fields: ['address_id', 'model', 'model_id', 'address']
           }
-        ],
-        classMethods: {
-
-        }
+        ]
       }
     }
   }

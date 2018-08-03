@@ -94,7 +94,7 @@ export class ProductController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['title', 'DESC']]
     const term = req.query.term
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
     const defaults = _.defaultsDeep(where, {
       $or: [
         {
@@ -147,7 +147,7 @@ export class ProductController extends Controller {
   findOne(req, res) {
     const orm = this.app.models
     const Product = orm['Product']
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
 
     Product.findOneDefault({
       where: where,
@@ -177,7 +177,7 @@ export class ProductController extends Controller {
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
 
     Product.findAndCountDefault({
       where: where,
@@ -1628,7 +1628,7 @@ export class ProductController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['sku', 'DESC']]
     const term = req.query.term
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
 
     if (!productId) {
       const err = new Error('A product id is required')

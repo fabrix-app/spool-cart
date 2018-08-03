@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-const req: {[key: string]: any} = module.exports = {}
+export const req: {[key: string]: any} = {}
 
 /**
  * Initiate a login session for `cart`.

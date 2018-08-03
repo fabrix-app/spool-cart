@@ -69,24 +69,6 @@ export class AddressResolver extends SequelizeResolver {
       })
   }
   /**
-   * Resolve by email Function
-   * @param address
-   * @param options
-   */
-  resolveByEmail (address, options: {[key: string]: any} = {}) {
-    return this.findOne(defaultsDeep({
-      where: {
-        email: address.email
-      }
-    }, options))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
-          throw new ModelError('E_NOT_FOUND', `Address email ${address.email} not found`)
-        }
-        return resUser
-      })
-  }
-  /**
    * Resolve by number Function
    * @param address
    * @param options
@@ -142,9 +124,6 @@ export class AddressResolver extends SequelizeResolver {
       }
       case 'token': {
         return this.resolveByToken(address, options)
-      }
-      case 'email': {
-        return this.resolveByEmail(address, options)
       }
       case 'number': {
         return this.resolveByNumber(address, options)
@@ -214,18 +193,20 @@ export class Address extends Model {
                 })
             }
           ],
-          beforeUpdate: (values, options) => {
-            return app.services.GeolocationGenericService.locate(values)
-              .then(latLng => {
-                values = defaults(values, latLng)
-                // return fn(null, values)
-              })
-              .catch(err => {
-                // Don't break over Geolocation failure
-                app.log.error(err)
-                return values
-              })
-          }
+          beforeUpdate: [
+            (values, options) => {
+              return app.services.GeolocationGenericService.locate(values)
+                .then(latLng => {
+                  values = defaults(values, latLng)
+                  // return fn(null, values)
+                })
+                .catch(err => {
+                  // Don't break over Geolocation failure
+                  app.log.error(err)
+                  return values
+                })
+            }
+          ]
         }
       }
     }

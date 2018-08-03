@@ -1,14 +1,11 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
-
+import { address } from '../schemas/address'
 
 export const validateAddress = {
   // Validate Add Address
   add(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.address.address, (err, value) => {
+      joi.validate(data, address, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +16,7 @@ export const validateAddress = {
   // Validate Update Address
   update(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.address.address, (err, value) => {
+      joi.validate(data, address, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +27,7 @@ export const validateAddress = {
   // Validate Remove Address
   remove(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.address.address, (err, value) => {
+      joi.validate(data, address, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

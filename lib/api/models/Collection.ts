@@ -358,31 +358,37 @@ export class Collection extends Model {
           }
         },
         hooks: {
-          beforeValidate(collection, options) {
-            if (!collection.handle && collection.title) {
-              collection.handle = collection.title
+          beforeValidate: [
+            (collection, options) => {
+              if (!collection.handle && collection.title) {
+                collection.handle = collection.title
+              }
             }
-          },
-          beforeCreate(collection, options) {
-            if (collection.body) {
-              const bodyDoc = app.services.RenderGenericService.renderSync(collection.body)
-              collection.body_html = bodyDoc.document
+          ],
+          beforeCreate: [
+            (collection, options) => {
+              if (collection.body) {
+                const bodyDoc = app.services.RenderGenericService.renderSync(collection.body)
+                collection.body_html = bodyDoc.document
+              }
+              if (collection.excerpt) {
+                const excerptDoc = app.services.RenderGenericService.renderSync(collection.excerpt)
+                collection.excerpt_html = excerptDoc.document
+              }
             }
-            if (collection.excerpt) {
-              const excerptDoc = app.services.RenderGenericService.renderSync(collection.excerpt)
-              collection.excerpt_html = excerptDoc.document
+          ],
+          beforeUpdate: [
+            (collection, options) => {
+              if (collection.body) {
+                const bodyDoc = app.services.RenderGenericService.renderSync(collection.body)
+                collection.body_html = bodyDoc.document
+              }
+              if (collection.excerpt) {
+                const excerptDoc = app.services.RenderGenericService.renderSync(collection.excerpt)
+                collection.excerpt_html = excerptDoc.document
+              }
             }
-          },
-          beforeUpdate(collection, options) {
-            if (collection.body) {
-              const bodyDoc = app.services.RenderGenericService.renderSync(collection.body)
-              collection.body_html = bodyDoc.document
-            }
-            if (collection.excerpt) {
-              const excerptDoc = app.services.RenderGenericService.renderSync(collection.excerpt)
-              collection.excerpt_html = excerptDoc.document
-            }
-          }
+          ]
         }
       }
     }

@@ -14,7 +14,7 @@ describe('Order Model', () => {
   it('should resolve an order instance', (done) => {
     Order.resolve(Order.build({}))
       .then(order => {
-        assert.ok(order instanceof Order)
+        assert.ok(order instanceof Order.instance)
         done()
       })
       .catch(err => {

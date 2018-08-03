@@ -8,7 +8,7 @@ describe('CartService', () => {
   it('should exist', () => {
     assert(global.app.api.services['CartService'])
     CartService = global.app.services['CartService']
-    Cart = global.app.services.ProxyEngineService.getModel('Cart')
+    Cart = global.app.models['Cart']
   })
   it('should not allow a closed cart to checkout', (done) => {
     let resCart

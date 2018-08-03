@@ -9,13 +9,13 @@ describe('ProductService', () => {
   it('should exist', () => {
     assert(global.app.api.services['ProductService'])
     ProductService = global.app.services['ProductService']
-    Product = global.app.services.ProxyEngineService.getModel('Product')
-    Variant = global.app.services.ProxyEngineService.getModel('ProductVariant')
+    Product = global.app.models['Product']
+    Variant = global.app.models['ProductVariant']
   })
   it('should resolve a product instance', (done) => {
     Product.resolve(Product.build({}))
       .then(product => {
-        assert.ok(product instanceof Product)
+        assert.ok(product instanceof Product.instance)
         done()
       })
       .catch(err => {
@@ -25,7 +25,7 @@ describe('ProductService', () => {
   it('should resolve a variant instance', (done) => {
     Variant.resolve(Variant.build({}))
       .then(variant => {
-        assert.ok(variant instanceof Variant)
+        assert.ok(variant instanceof Variant.instance)
         done()
       })
       .catch(err => {

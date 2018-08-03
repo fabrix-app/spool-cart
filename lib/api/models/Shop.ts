@@ -213,11 +213,13 @@ export class Shop extends Model {
           }
         },
         hooks: {
-          beforeValidate(shop, options) {
-            if (!shop.handle && shop.name) {
-              shop.handle = shop.name
+          beforeValidate: [
+            (shop, options) => {
+              if (!shop.handle && shop.name) {
+                shop.handle = shop.name
+              }
             }
-          }
+          ]
         }
       }
     }

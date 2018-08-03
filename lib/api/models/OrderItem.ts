@@ -67,42 +67,54 @@ export class OrderItem extends Model {
           }
         },
         hooks: {
-          beforeCreate(orderItem, options) {
-            return app.services.OrderService.itemBeforeCreate(orderItem, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeSave(orderItem, options) {
-            return app.services.OrderService.itemBeforeSave(orderItem, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeUpdate(orderItem, options) {
-            return app.services.OrderService.itemBeforeUpdate(orderItem, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterCreate(orderItem, options) {
-            return app.services.OrderService.itemAfterCreate(orderItem, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterUpdate(orderItem, options) {
-            return app.services.OrderService.itemAfterUpdate(orderItem, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterDestroy(orderItem, options) {
-            return app.services.OrderService.itemAfterDestroy(orderItem, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          beforeCreate: [
+            (orderItem, options) => {
+              return app.services.OrderService.itemBeforeCreate(orderItem, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeSave: [
+            (orderItem, options) => {
+              return app.services.OrderService.itemBeforeSave(orderItem, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeUpdate: [
+            (orderItem, options) => {
+              return app.services.OrderService.itemBeforeUpdate(orderItem, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterCreate: [
+            (orderItem, options) => {
+              return app.services.OrderService.itemAfterCreate(orderItem, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterUpdate: [
+            (orderItem, options) => {
+              return app.services.OrderService.itemAfterUpdate(orderItem, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterDestroy: [
+            (orderItem, options) => {
+              return app.services.OrderService.itemAfterDestroy(orderItem, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         }
       }
     }
@@ -503,7 +515,7 @@ OrderItem.prototype.removeShipping = function(shipping, options: {[key: string]:
 /**
  *
  */
-OrderItem.prototype.setItemsShippingLines = function (shippingedLine) {
+OrderItem.prototype.setItemsShippingLines = function(shippingedLine) {
   // console.log('INCOMING ITEM', shippingedLine)
   // this.shipping_lines = []
   let shippingesLines = []
@@ -534,9 +546,9 @@ OrderItem.prototype.setItemsShippingLines = function (shippingedLine) {
 /**
  *
  */
-OrderItem.prototype.setShippingLines = function(lines) {
+OrderItem.prototype.setShippingLines = function(lines = []) {
   this.total_shipping = 0
-  this.shipping_lines = lines || []
+  this.shipping_lines = lines
   this.shipping_lines.forEach(line => {
     this.total_shipping = this.total_shipping + line.price
   })
@@ -547,7 +559,7 @@ OrderItem.prototype.setShippingLines = function(lines) {
 /**
  *
  */
-OrderItem.prototype.setItemsTaxLines = function (taxedLine) {
+OrderItem.prototype.setItemsTaxLines = function(taxedLine) {
   // console.log('INCOMING ITEM', taxedLine)
   // this.tax_lines = []
   let taxesLines = []
@@ -579,9 +591,9 @@ OrderItem.prototype.setItemsTaxLines = function (taxedLine) {
  *
  * @param lines
  */
-OrderItem.prototype.setTaxLines = function(lines) {
+OrderItem.prototype.setTaxLines = function(lines = []) {
   this.total_tax = 0
-  this.tax_lines = lines || []
+  this.tax_lines = lines
   this.tax_lines.forEach(line => {
     this.total_tax = this.total_tax + line.price
   })
@@ -589,8 +601,11 @@ OrderItem.prototype.setTaxLines = function(lines) {
   // return this.setTotals()
 },
 
-OrderItem.prototype.setProperties = (prev) => {
-  if (this.properties) {
+OrderItem.prototype.setProperties = function(prev) {
+
+  this.price_per_unit = this.price_per_unit || this.price
+
+  if (this.properties && prev) {
     // Remove any old property pricing
     for (const l in prev.properties) {
       if (prev.properties.hasOwnProperty(l)) {
@@ -683,6 +698,8 @@ OrderItem.prototype.recalculate = function(options: {[key: string]: any} = {}) {
     })
 
     const calculatedPrice = Math.max(0, (this.price_per_unit * this.quantity) - totalDiscounts - totalCoupons)
+
+    console.log('BROKE HERE', calculatedPrice, this.price_per_unit, this.quantity, totalDiscounts, totalCoupons)
 
     this.calculated_price = calculatedPrice
     this.total_discounts = totalDiscounts

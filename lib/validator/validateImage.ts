@@ -1,14 +1,11 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
-
+import { image, removeImages } from '../schemas/product'
 
 export const validateImage = {
   // Validate remove Product Image
   remove(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.image, (err, value) => {
+      joi.validate(data, image, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +16,7 @@ export const validateImage = {
   // Validate remove Product Images
   removeImages(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.removeImages, (err, value) => {
+      joi.validate(data, removeImages, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

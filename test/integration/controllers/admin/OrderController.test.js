@@ -97,6 +97,7 @@ describe('Admin User OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
+        console.log('BROKE HERE', err, res.body)
         orderID = res.body.id
         assert.ok(res.body.id)
         assert.equal(res.body.cart_token, cartToken)

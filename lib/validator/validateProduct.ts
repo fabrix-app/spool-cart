@@ -1,14 +1,16 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
-
+import {
+  product,
+  add as addP,
+  update as updateP,
+  remove as removeP
+} from '../schemas/product'
 
 export const validateProduct = {
   // Validate Add Product
   add(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.product, (err, value) => {
+      joi.validate(data, product, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +21,7 @@ export const validateProduct = {
   // Validate Add Product
   addProduct(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.add, (err, value) => {
+      joi.validate(data, addP, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +32,7 @@ export const validateProduct = {
   // Validate Add Products
   addProducts(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.add, (err, value) => {
+      joi.validate(data, addP, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -41,7 +43,7 @@ export const validateProduct = {
   // Validate Update Product
   update(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.product, (err, value) => {
+      joi.validate(data, product, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -52,7 +54,7 @@ export const validateProduct = {
   // Validate Update Products
   updateProducts(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.update, (err, value) => {
+      joi.validate(data, updateP, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -63,7 +65,7 @@ export const validateProduct = {
   // Validate Remove Product
   remove(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.product, (err, value) => {
+      joi.validate(data, product, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -74,7 +76,7 @@ export const validateProduct = {
   // Validate Remove Product
   removeProduct(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.product, (err, value) => {
+      joi.validate(data, product, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -85,7 +87,7 @@ export const validateProduct = {
   // Validate Remove Products
   removeProducts(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.product.remove, (err, value) => {
+      joi.validate(data, removeP, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

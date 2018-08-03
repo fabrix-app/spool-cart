@@ -77,7 +77,7 @@ export class CollectionController extends Controller {
   findOne(req, res) {
     const orm = this.app.models
     const Collection = orm['Collection']
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
 
     Collection.findOneDefault({
       where: where
@@ -107,7 +107,7 @@ export class CollectionController extends Controller {
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
     Collection.findAndCountDefault({
       where: where,
       order: sort,
@@ -139,7 +139,7 @@ export class CollectionController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
     const defaults = _.defaultsDeep(where, {
       $or: [
         {

@@ -11,8 +11,8 @@ describe('Admin User CartController', () => {
   before((done) => {
     shopID = global.shopID
     shopProducts = global.shopProducts
-
     adminUser = supertest.agent(global.app.spools.express.server)
+    // console.log('BROKE', global.app.models.User.config(app).options.hooks)
     // Login as Admin
     adminUser
       .post('/auth/local')
@@ -39,9 +39,12 @@ describe('Admin User CartController', () => {
           })
       })
   })
+
   it('should exist', () => {
     assert(global.app.api.controllers['CartController'])
+    assert(global.app.controllers['CartController'])
   })
+
   it('should create a cart with no items and a shipping address', (done) => {
     adminUser
       .post('/cart')

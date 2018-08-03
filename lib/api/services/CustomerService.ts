@@ -42,8 +42,10 @@ export class CustomerService extends Service {
       customer.billing_address = customer.default_address
     }
 
-    let resCustomer: {[key: string]: any} = {}
-    const create = Customer.build({
+    let resCustomer
+
+    return Customer.create({
+      // const create = Customer.build({
       first_name: customer.first_name,
       last_name: customer.last_name,
       email: customer.email,
@@ -89,9 +91,10 @@ export class CustomerService extends Service {
       ],
       transaction: options.transaction || null
     })
+    .then(_customer => {
 
-    return create.save({transaction: options.transaction || null})
-      .then(_customer => {
+    // return create.save({transaction: options.transaction || null})
+    //   .then(_customer => {
         if (!_customer) {
           throw new Error('Customer could not be created')
         }
@@ -100,7 +103,6 @@ export class CustomerService extends Service {
         // Shipping Address
         if (customer.shipping_address && !_.isEmpty(customer.shipping_address)) {
           return resCustomer.updateShippingAddress(
-            this.app,
             customer.shipping_address,
             {transaction: options.transaction || null}
           )
@@ -111,7 +113,6 @@ export class CustomerService extends Service {
         // Billing Address
         if (customer.billing_address && !_.isEmpty(customer.billing_address)) {
           return resCustomer.updateBillingAddress(
-            this.app,
             customer.billing_address,
             {transaction: options.transaction || null}
           )
@@ -158,7 +159,7 @@ export class CustomerService extends Service {
       })
       .then(cart => {
         if (customer.accounts && customer.accounts.length > 0) {
-          return Customer.datastore.Promise.mapSeries(customer.accounts, account => {
+          return Customer.sequelize.Promise.mapSeries(customer.accounts, account => {
             account.customer_id = resCustomer.id
             account.email = resCustomer.email
             return this.app.services.AccountService.findAndCreate(
@@ -226,7 +227,7 @@ export class CustomerService extends Service {
       .then(accounts => {
 
         if (customer.users && customer.users.length > 0) {
-          return Customer.datastore.Promise.mapSeries(customer.users, user => {
+          return Customer.sequelize.Promise.mapSeries(customer.users, user => {
             // Setup some defaults
             user.current_customer_id = resCustomer.id
 
@@ -386,8 +387,7 @@ export class CustomerService extends Service {
    * @param options
    * @returns {*}
    */
-  accountBalance(customer, options) {
-    options = options || {}
+  accountBalance(customer, options: {[key: string]: any} = {}) {
     const Customer = this.app.models.Customer
     let price = 0
     let type = 'credit'
@@ -706,8 +706,7 @@ export class CustomerService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addAddress(customer, address, type, options) {
-    options = options || {}
+  addAddress(customer, address, type, options: {[key: string]: any} = {}) {
     const Customer = this.app.models['Customer']
     const Address = this.app.models['Address']
 
@@ -777,8 +776,7 @@ export class CustomerService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addUsers(customer, users, options) {
-    options = options || {}
+  addUsers(customer, users, options: {[key: string]: any} = {}) {
     if (!Array.isArray(users)) {
       users = [users]
     }
@@ -801,9 +799,7 @@ export class CustomerService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addUser(customer, user, options) {
-    options = options || {}
-
+  addUser(customer, user, options: {[key: string]: any} = {}) {
     let resCustomer, resUser
     return this.app.models['Customer'].resolve(customer, {transaction: options.transaction || null})
       .then(_customer => {

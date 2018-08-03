@@ -2245,6 +2245,7 @@ export const routes = {
     'POST': 'CollectionController.uploadCSV',
     config: {
       prefix: 'cart.prefix',
+      pre: ['CollectionPolicy.csv'],
       app: {
         permissions: {
           resource_name: 'apiPostCollectionUploadCsvRoute',
@@ -4701,6 +4702,7 @@ export const routes = {
       handler: 'CustomerController.uploadCSV',
       config: {
         prefix: 'cart.prefix',
+        pre: ['CustomerPolicy.csv'],
         app: {
           permissions: {
             resource_name: 'apiPostCustomerUploadCsvRoute',
@@ -7376,6 +7378,7 @@ export const routes = {
       handler: 'ProductController.createImage',
       config: {
         prefix: 'cart.prefix',
+        pre: ['ProductPolicy.image'],
         validate: {
           params: {
             id: joi.alternatives().try(
@@ -7398,6 +7401,7 @@ export const routes = {
       handler: 'ProductController.createImage',
       config: {
         prefix: 'cart.prefix',
+        pre: ['ProductPolicy.image'],
         validate: {
           params: {
             id: joi.alternatives().try(
@@ -7773,6 +7777,7 @@ export const routes = {
       handler: 'ProductController.uploadCSV',
       config: {
         prefix: 'cart.prefix',
+        pre: ['ProductPolicy.csv'],
         app: {
           permissions: {
             resource_name: 'apiPostProductUploadCsvRoute',
@@ -7821,6 +7826,7 @@ export const routes = {
       handler: 'ProductController.uploadMetaCSV',
       config: {
         prefix: 'cart.prefix',
+        pre: ['ProductPolicy.csv'],
         app: {
           permissions: {
             resource_name: 'apiPostProductUploadMetaCsvRoute',
@@ -7886,6 +7892,19 @@ export const routes = {
   },
 
   // Orders
+  '/order': {
+    'POST': {
+      handler: 'OrderController.create',
+      config: {
+        app: {
+          permissions: {
+            resource_name: 'apiPostOrderRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
   '/orders': {
     'GET': {
       handler: 'OrderController.findAll',
@@ -7914,7 +7933,7 @@ export const routes = {
         prefix: 'cart.prefix',
         app: {
           permissions: {
-            resource_name: 'apiPostOrderRoute',
+            resource_name: 'apiPostOrdersRoute',
             roles: ['admin']
           }
         }
@@ -9382,6 +9401,7 @@ export const routes = {
       handler: 'OrderController.uploadCSV',
       config: {
         prefix: 'cart.prefix',
+        pre: ['OrderPolicy.csv'],
         app: {
           permissions: {
             resource_name: 'apiPostOrderUploadCsvRoute',
@@ -10113,6 +10133,7 @@ export const routes = {
       handler: 'SubscriptionController.uploadCSV',
       config: {
         prefix: 'cart.prefix',
+        pre: ['SubscriptionPolicy.csv'],
         app: {
           permissions: {
             resource_name: 'apiPostSubscriptionUploadCsvRoute',
@@ -10866,6 +10887,7 @@ export const routes = {
       handler: 'VendorController.uploadCSV',
       config: {
         prefix: 'cart.prefix',
+        pre: ['VendorPolicy.csv'],
         app: {
           permissions: {
             resource_name: 'apiPostVendorUploadCsvRoute',

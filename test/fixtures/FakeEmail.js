@@ -1,10 +1,10 @@
 'use strict'
 // const _ = require('lodash')
 const Generic = require('@fabrix/spool-generics').Generic
-module.exports = class FakeEmailProvider extends Generic {
-  constructor(options) {
-    super()
-    this.options = options
+module.exports = class FakeEmailProvider { // extends Generic {
+  constructor(config) {
+    // super()
+    this.config = config
   }
   send(data) {
     const results = data.to.map(receiver => {

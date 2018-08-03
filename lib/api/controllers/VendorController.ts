@@ -45,7 +45,7 @@ export class VendorController extends Controller {
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
 
     Vendor.findAndCountAll({
       where: where,
@@ -79,7 +79,7 @@ export class VendorController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['name', 'ASC']]
     const term = req.query.term
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
     const defaults = _.defaults(where, {
       $or: [
         {

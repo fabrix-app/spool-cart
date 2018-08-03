@@ -1,14 +1,11 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
-
+import { create, update, destroy } from '../schemas/discount'
 
 export const validateDiscount = {
   // Validate Create Discount
   create(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.discount.create, (err, value) => {
+      joi.validate(data, create, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +16,7 @@ export const validateDiscount = {
   // Validate update discount
   update(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.discount.update, (err, value) => {
+      joi.validate(data, update, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +27,7 @@ export const validateDiscount = {
   // Validate destroy discount
   destroy(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.discount.destroy, (err, value) => {
+      joi.validate(data, destroy, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

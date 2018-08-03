@@ -19,7 +19,7 @@ export const spool = {
       crons: [],
       tasks: []
     },
-    config: ['cart', 'routes']
+    config: ['cart', 'routes', 'policies']
   },
   /**
    * Configure the lifecycle of this pack; that is, how it boots up, and which

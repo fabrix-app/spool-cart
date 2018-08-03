@@ -1,9 +1,10 @@
-/* eslint no-underscore-dangle: [0]*/
 /**
  * Module dependencies.
  */
-const initialize = require('../middleware/initialize')
-const authenticate = require('../middleware/authenticate')
+import * as http from 'http'
+import { initialize } from '../middleware/initialize'
+import { authenticate } from '../middleware/authenticate'
+import { req as IncomingMessageExt } from '../http/request'
 
 /**
  * Framework support for Connect/Express.
@@ -28,23 +29,23 @@ exports = module.exports = function() {
 }
 
 exports.__monkeypatchNode = function() {
-  const http = require('http')
-  const IncomingMessageExt = require('../http/request')
+  // const http = require('http')
+  // const IncomingMessageExt = require('../http/request')
 
-  http.IncomingMessage.prototype.loginCart =
-    http.IncomingMessage.prototype.logInCart = IncomingMessageExt.logInCart
+  http.IncomingMessage.prototype['loginCart'] =
+    http.IncomingMessage.prototype['logInCart'] = IncomingMessageExt.logInCart
 
-  http.IncomingMessage.prototype.loginCustomer =
-    http.IncomingMessage.prototype.logInCustomer = IncomingMessageExt.logInCustomer
+  http.IncomingMessage.prototype['loginCustomer'] =
+    http.IncomingMessage.prototype['logInCustomer'] = IncomingMessageExt.logInCustomer
 
-  http.IncomingMessage.prototype.logoutCart =
-    http.IncomingMessage.prototype.logOutCart = IncomingMessageExt.logOutCart
-  http.IncomingMessage.prototype.logoutCustomer =
-    http.IncomingMessage.prototype.logOutCustomer = IncomingMessageExt.logOutCustomer
+  http.IncomingMessage.prototype['logoutCart'] =
+    http.IncomingMessage.prototype['logOutCart'] = IncomingMessageExt.logOutCart
+  http.IncomingMessage.prototype['logoutCustomer'] =
+    http.IncomingMessage.prototype['logOutCustomer'] = IncomingMessageExt.logOutCustomer
 
-  http.IncomingMessage.prototype.hasCart = IncomingMessageExt.hasCart
-  http.IncomingMessage.prototype.hasNoCart = IncomingMessageExt.hasNoCart
+  http.IncomingMessage.prototype['hasCart'] = IncomingMessageExt.hasCart
+  http.IncomingMessage.prototype['hasNoCart'] = IncomingMessageExt.hasNoCart
 
-  http.IncomingMessage.prototype.hasCustomer = IncomingMessageExt.hasCustomer
-  http.IncomingMessage.prototype.hasNoCustomer = IncomingMessageExt.hasNoCustomer
+  http.IncomingMessage.prototype['hasCustomer'] = IncomingMessageExt.hasCustomer
+  http.IncomingMessage.prototype['hasNoCustomer'] = IncomingMessageExt.hasNoCustomer
 }

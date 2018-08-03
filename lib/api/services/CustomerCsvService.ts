@@ -195,7 +195,7 @@ export class CustomerCsvService extends Service {
         }
 
         // Convert to normal object
-        customer = customer instanceof this.app.models['CustomerUpload'] ? customer.get({plain: true}) : customer
+        customer = customer instanceof this.app.models['CustomerUpload'].instance ? customer.get({plain: true}) : customer
         _.each(customer, (value, key) => {
           if (key.indexOf('shipping_') > -1) {
             const newKey = key.replace('shipping_', '')

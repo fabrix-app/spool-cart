@@ -12,23 +12,26 @@ const queryDefaults = require('../utils/queryDefaults')
 export class CartResolver extends SequelizeResolver {
   /**
    *
-   * @param criteria
+   * @param id
    * @param options
    * @returns {*|Promise.<Instance>}
    */
-  findByIdDefault(criteria, options = {}) {
+  findByIdDefault(id, options = {}) {
+    if (typeof id !== 'number' && typeof id !== 'string') {
+      throw new Error('Id was not a string or a number')
+    }
     options = this.app.services.SequelizeService.mergeOptionDefaults(
       queryDefaults.Cart.default(this.app),
       options
     )
-    return this.findById(criteria, options)
+    return this.findById(id, options)
   }
   /**
    *
    * @param options
    * @returns {*|Promise.<Instance>}
    */
-  findOneDefault(options = {}) {
+  findOneDefault(options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
       queryDefaults.Cart.default(this.app),
       options
@@ -41,7 +44,10 @@ export class CartResolver extends SequelizeResolver {
    * @param options
    * @returns {*|Promise.<Instance>}
    */
-  findByTokenDefault(token, options = {}) {
+  findByTokenDefault(token, options: {[key: string]: any} = {}) {
+    if (typeof token !== 'string') {
+      throw new Error('Token is not a string')
+    }
     options = this.app.services.SequelizeService.mergeOptionDefaults(
       queryDefaults.Cart.default(this.app),
       options,
@@ -51,7 +57,6 @@ export class CartResolver extends SequelizeResolver {
         }
       }
     )
-
     return this.findOne(options)
   }
   /**
@@ -68,12 +73,15 @@ export class CartResolver extends SequelizeResolver {
    * @param options
    */
   resolveById (cart, options: {[key: string]: any} = {}) {
-    return this.findById(cart.id, options)
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+    if (!(cart instanceof Object)) {
+      return Promise.reject(new Error('resolveById requires an object with an id property'))
+    }
+    return this.findByIdDefault(cart.id, options)
+      .then(resCart => {
+        if (!resCart && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Cart ${cart.id} not found`)
         }
-        return resUser
+        return resCart
       })
   }
   /**
@@ -82,34 +90,18 @@ export class CartResolver extends SequelizeResolver {
    * @param options
    */
   resolveByToken (cart, options: {[key: string]: any} = {}) {
-    return this.findOne(defaultsDeep({
-      where: {
-        token: cart.token
-      }
-    }, options))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+    if (!(cart instanceof Object)) {
+      return Promise.reject(new Error('resolveByToken requires an object with a token property'))
+    }
+    if (!(cart.token)) {
+      return Promise.reject(new Error('resolveByToken requires an object with a token property'))
+    }
+    return this.findByTokenDefault(cart.token, options)
+      .then(resCart => {
+        if (!resCart && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Cart token ${cart.token} not found`)
         }
-        return resUser
-      })
-  }
-  /**
-   * Resolve by email Function
-   * @param cart
-   * @param options
-   */
-  resolveByEmail (cart, options: {[key: string]: any} = {}) {
-    return this.findOne(defaultsDeep({
-      where: {
-        email: cart.email
-      }
-    }, options))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
-          throw new ModelError('E_NOT_FOUND', `Cart email ${cart.email} not found`)
-        }
-        return resUser
+        return resCart
       })
   }
   /**
@@ -118,12 +110,12 @@ export class CartResolver extends SequelizeResolver {
    * @param options
    */
   resolveByNumber (cart, options: {[key: string]: any} = {}) {
-    return this.findById(cart, options)
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+    return this.findByIdDefault(cart, options)
+      .then(resCart => {
+        if (!resCart && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Cart ${cart.token} not found`)
         }
-        return resUser
+        return resCart
       })
   }
   /**
@@ -132,16 +124,12 @@ export class CartResolver extends SequelizeResolver {
    * @param options
    */
   resolveByString (cart, options: {[key: string]: any} = {}) {
-    return this.findOne(defaultsDeep({
-      where: {
-        token: cart
-      }
-    }, options))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+    return this.findByTokenDefault(cart, options)
+      .then(resCart => {
+        if (!resCart && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Cart ${cart} not found`)
         }
-        return resUser
+        return resCart
       })
   }
   /**
@@ -154,10 +142,11 @@ export class CartResolver extends SequelizeResolver {
       'instance': cart instanceof this.instance,
       'id': !!(cart && isObject(cart) && cart.id),
       'token': !!(cart && isObject(cart) && cart.token),
-      'email': !!(cart && isObject(cart) && cart.email),
+      'create': !!(cart && isObject(cart) && options.create !== false),
       'number': !!(cart && isNumber(cart)),
       'string': !!(cart && isString(cart))
     }
+
     const type = Object.keys(resolvers).find((key) => resolvers[key])
 
     switch (type) {
@@ -170,8 +159,11 @@ export class CartResolver extends SequelizeResolver {
       case 'token': {
         return this.resolveByToken(cart, options)
       }
-      case 'email': {
-        return this.resolveByEmail(cart, options)
+      // case 'email': {
+      //   return this.resolveByEmail(cart, options)
+      // }
+      case 'create': {
+        return this.create(cart, options)
       }
       case 'number': {
         return this.resolveByNumber(cart, options)
@@ -712,7 +704,7 @@ Cart.prototype.resetDefaults = function() {
 /**
  *
  */
-Cart.prototype.setLineItems = function( lines = []) {
+Cart.prototype.setLineItems = function(lines = []) {
   this.line_items = lines
 
   this.total_items = 0
@@ -740,7 +732,7 @@ Cart.prototype.setLineItems = function( lines = []) {
 /**
  *
  */
-Cart.prototype.setItemDiscountedLines = function( item, discount, criteria) {
+Cart.prototype.setItemDiscountedLines = function(item, discount, criteria) {
   if (!(discount instanceof this.app.models['Discount'].instance)) {
     throw new Error('setItemDiscountedLines expects discount parameter to be a Discount Instance')
   }
@@ -871,7 +863,7 @@ Cart.prototype.setItemsDiscountedLines = function (discounts, criteria) {
 /**
  *
  */
-Cart.prototype.setDiscountedLines = function( lines = []) {
+Cart.prototype.setDiscountedLines = function(lines = []) {
   this.total_discounts = 0
   this.discounted_lines = lines
   this.discounted_lines.forEach(line => {
@@ -884,22 +876,22 @@ Cart.prototype.setDiscountedLines = function( lines = []) {
  *
  * @param lines
  */
-Cart.prototype.setPricingOverrides = function( lines = []) {
+Cart.prototype.setPricingOverrides = function(lines = []) {
   this.total_overrides = 0
   this.pricing_overrides = lines
   this.pricing_overrides.forEach(line => {
     this.total_overrides = this.total_overrides + line.price
   })
   return this.setTotals()
-},
+}
 
 /**
  *
  * @param lines
  */
-Cart.prototype.setCouponLines = function( lines) {
+Cart.prototype.setCouponLines = function(lines = []) {
   this.total_coupons = 0
-  this.coupon_lines = lines || []
+  this.coupon_lines = lines
   this.coupon_lines.forEach(line => {
     this.total_coupons = this.total_coupons + line.price
   })
@@ -940,7 +932,7 @@ Cart.prototype.setItemsShippingLines = function (items) {
 /**
  *
  */
-Cart.prototype.setShippingLines = function( lines = []) {
+Cart.prototype.setShippingLines = function(lines = []) {
   this.total_shipping = 0
   this.shipping_lines = [...this.shipping_lines, ...lines],
     this.shipping_lines.forEach(line => {
@@ -985,7 +977,7 @@ Cart.prototype.setItemsTaxLines = function (items) {
 /**
  *
  */
-Cart.prototype.setTaxLines = function( lines = []) {
+Cart.prototype.setTaxLines = function(lines = []) {
   this.total_tax = 0
   this.tax_lines = [...this.tax_lines, ...lines]
   this.tax_lines.forEach(line => {
@@ -1017,7 +1009,7 @@ Cart.prototype.setTotals = function() {
 /**
  *
  */
-Cart.prototype.setLineProperties = (line) => {
+Cart.prototype.setLineProperties = function(line) {
   if (line.properties) {
     for (const l in line.properties) {
       if (line.properties.hasOwnProperty(l)) {
@@ -1107,7 +1099,7 @@ Cart.prototype.line = function(data) {
 /**
  *
  */
-Cart.prototype.addLine = function( item, qty, properties, options = {}) {
+Cart.prototype.addLine = function(item, qty, properties, options = {}) {
   // The quantity available of this variant
   let lineQtyAvailable = -1
   let line
@@ -1193,7 +1185,7 @@ Cart.prototype.addLine = function( item, qty, properties, options = {}) {
 /**
  *
  */
-Cart.prototype.removeLine = function( item, qty, options = {}) {
+Cart.prototype.removeLine = function(item, qty, options = {}) {
   const lineItems = this.line_items
   if (!qty || !isNumber(qty)) {
     qty = 1
@@ -1215,7 +1207,7 @@ Cart.prototype.removeLine = function( item, qty, options = {}) {
 /**
  *
  */
-Cart.prototype.addShipping = function( shipping = [], options: {[key: string]: any} = {}) {
+Cart.prototype.addShipping = function(shipping = [], options: {[key: string]: any} = {}) {
   const shippingLines = this.shipping_lines
 
   if (isArray(shipping)) {
@@ -1255,7 +1247,7 @@ Cart.prototype.addShipping = function( shipping = [], options: {[key: string]: a
 /**
  *
  */
-Cart.prototype.removeShipping = function( shipping = [], options: {[key: string]: any} = {}) {
+Cart.prototype.removeShipping = function(shipping = [], options: {[key: string]: any} = {}) {
   const shippingLines = this.shipping_lines
 
   if (isArray(shipping)) {
@@ -1284,7 +1276,7 @@ Cart.prototype.removeShipping = function( shipping = [], options: {[key: string]
 /**
  *
  */
-Cart.prototype.addTaxes = function( taxes = [], options = {}) {
+Cart.prototype.addTaxes = function(taxes = [], options = {}) {
 
   const taxLines = this.tax_lines
 
@@ -1323,7 +1315,7 @@ Cart.prototype.addTaxes = function( taxes = [], options = {}) {
 /**
  *
  */
-Cart.prototype.removeTaxes = function( taxes = [], options = {}) {
+Cart.prototype.removeTaxes = function(taxes = [], options = {}) {
   const taxLines = this.tax_lines
 
   if (isArray(taxes)) {
@@ -1350,7 +1342,7 @@ Cart.prototype.removeTaxes = function( taxes = [], options = {}) {
 /**
  *
  */
-Cart.prototype.close = function( status, save) {
+Cart.prototype.close = function(status, save) {
   this.status = status || CART_STATUS.CLOSED
   if (save) {
     return this.save(save)
@@ -1375,7 +1367,7 @@ Cart.prototype.clear = function () {
 /**
  *
  */
-Cart.prototype.ordered = function( order, save) {
+Cart.prototype.ordered = function(order, save) {
   this.order_id = order.id
   this.status = CART_STATUS.ORDERED
   if (save) {
@@ -1387,7 +1379,7 @@ Cart.prototype.ordered = function( order, save) {
 /**
  *
  */
-Cart.prototype.buildOrder = function( options: {[key: string]: any} = {}) {
+Cart.prototype.buildOrder = function(options: {[key: string]: any} = {}) {
   return {
     // Request info
     client_details: options.client_details || this.client_details || {},
@@ -1436,11 +1428,11 @@ Cart.prototype.buildOrder = function( options: {[key: string]: any} = {}) {
     pricing_overrides: this.pricing_overrides,
     total_overrides: this.total_overrides
   }
-},
+}
 /**
  *
  */
-Cart.prototype.calculatePricingOverrides = function( options: {[key: string]: any} = {}) {
+Cart.prototype.calculatePricingOverrides = function(options: {[key: string]: any} = {}) {
 
   this.line_items = this.line_items || []
   this.pricing_overrides = this.pricing_overrides || []
@@ -1513,7 +1505,7 @@ Cart.prototype.calculatePricingOverrides = function( options: {[key: string]: an
 /**
  *
  */
-Cart.prototype.calculateDiscounts = function( options: {[key: string]: any} = {}) {
+Cart.prototype.calculateDiscounts = function(options: {[key: string]: any} = {}) {
 
   const criteria = []
   const productIds = this.line_items.map(item => item.product_id)
@@ -1645,7 +1637,7 @@ Cart.prototype.calculateDiscounts = function( options: {[key: string]: any} = {}
 /**
  *
  */
-Cart.prototype.calculateShipping = function( options: {[key: string]: any} = {}) {
+Cart.prototype.calculateShipping = function(options: {[key: string]: any} = {}) {
   if (!this.has_shipping) {
     return Promise.resolve(this)
   }
@@ -1653,7 +1645,7 @@ Cart.prototype.calculateShipping = function( options: {[key: string]: any} = {})
     this,
     this.line_items,
     this.shipping_address,
-    this.app.models['Cart'].instance,
+    this.app.models['Cart'],
     options
   )
     .then(shippingResult => {
@@ -1670,11 +1662,17 @@ Cart.prototype.calculateShipping = function( options: {[key: string]: any} = {})
 /**
  *
  */
-Cart.prototype.calculateTaxes = function( options: {[key: string]: any} = {}) {
+Cart.prototype.calculateTaxes = function(options: {[key: string]: any} = {}) {
   if (!this.has_taxes) {
     return Promise.resolve(this)
   }
-  return this.app.services.TaxService.calculate(this, this.line_items, this.shipping_address, this.app.models['Cart'].instance, options)
+  return this.app.services.TaxService.calculate(
+    this,
+    this.line_items,
+    this.shipping_address,
+    this.app.models['Cart'],
+    options
+  )
     .then(taxesResult => {
       // console.log('WORKING ON TAXES RESULT', taxesResult.line_items)
       this.setItemsTaxLines(taxesResult.line_items)
@@ -1689,7 +1687,7 @@ Cart.prototype.calculateTaxes = function( options: {[key: string]: any} = {}) {
 /**
  *
  */
-Cart.prototype.recalculate = function( options: {[key: string]: any} = {}) {
+Cart.prototype.recalculate = function(options: {[key: string]: any} = {}) {
   // Default Values
   // const collections = []
 
@@ -1725,7 +1723,7 @@ Cart.prototype.recalculate = function( options: {[key: string]: any} = {}) {
 /**
  *
  */
-Cart.prototype.resolveCustomer = function( options: {[key: string]: any} = {}) {
+Cart.prototype.resolveCustomer = function(options: {[key: string]: any} = {}) {
   if (
     this.Customer
     && this.Customer instanceof this.app.models['Customer'].instance
@@ -1752,7 +1750,7 @@ Cart.prototype.resolveCustomer = function( options: {[key: string]: any} = {}) {
 }
 
 // TODO
-Cart.prototype.resolveCustomerAndItemCollections = function( options = {}) {
+Cart.prototype.resolveCustomerAndItemCollections = function(options = {}) {
   this.line_items.forEach(item => {
     //
   })
@@ -1761,7 +1759,7 @@ Cart.prototype.resolveCustomerAndItemCollections = function( options = {}) {
 /**
  *
  */
-Cart.prototype.resolveDiscounts = function( options: {[key: string]: any} = {}) {
+Cart.prototype.resolveDiscounts = function(options: {[key: string]: any} = {}) {
   if (
     this.discounts
     && this.discounts.length > 0
@@ -1782,7 +1780,7 @@ Cart.prototype.resolveDiscounts = function( options: {[key: string]: any} = {}) 
   }
 }
 
-Cart.prototype.getCollectionPairs = function( options: {[key: string]: any} = {}) {
+Cart.prototype.getCollectionPairs = function(options: {[key: string]: any} = {}) {
   const collectionPairs = []
   const criteria = []
   let productIds = this.line_items.map(item => item.product_id)
@@ -1851,7 +1849,7 @@ Cart.prototype.getCollectionPairs = function( options: {[key: string]: any} = {}
     })
 }
 
-Cart.prototype.resolveShippingAddress = function( options: {[key: string]: any} = {}) {
+Cart.prototype.resolveShippingAddress = function(options: {[key: string]: any} = {}) {
   if (
     this.shipping_address
     && this.shipping_address instanceof this.app.models['Address'].instance
@@ -1879,7 +1877,7 @@ Cart.prototype.resolveShippingAddress = function( options: {[key: string]: any} 
 /**
  *
  */
-Cart.prototype.resolveBillingAddress = function( options: {[key: string]: any} = {}) {
+Cart.prototype.resolveBillingAddress = function(options: {[key: string]: any} = {}) {
   if (
     this.billing_address
     && this.billing_address instanceof this.app.models['Address'].instance
@@ -1907,7 +1905,7 @@ Cart.prototype.resolveBillingAddress = function( options: {[key: string]: any} =
 /**
  *
  */
-Cart.prototype.updateShippingAddress = function( address, options: {[key: string]: any} = {}) {
+Cart.prototype.updateShippingAddress = function(address, options: {[key: string]: any} = {}) {
   const Address = this.app.models['Address']
   const shippingUpdate = Address.cleanAddress(address)
 
@@ -1941,7 +1939,7 @@ Cart.prototype.updateShippingAddress = function( address, options: {[key: string
 /**
  *
  */
-Cart.prototype.updateBillingAddress = function( address, options: {[key: string]: any} = {}) {
+Cart.prototype.updateBillingAddress = function(address, options: {[key: string]: any} = {}) {
   const Address = this.app.models['Address']
   const billingUpdate = Address.cleanAddress(address)
 

@@ -141,23 +141,29 @@ export class ProductVariant extends Model {
           }
         },
         hooks: {
-          beforeValidate(productVariant, options) {
-            if (!productVariant.calculated_price && productVariant.price) {
-              productVariant.calculated_price = productVariant.price
+          beforeValidate: [
+            (productVariant, options) => {
+              if (!productVariant.calculated_price && productVariant.price) {
+                productVariant.calculated_price = productVariant.price
+              }
             }
-          },
-          beforeCreate(productVariant, options) {
-            return app.services.ProductService.beforeVariantCreate(productVariant, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeUpdate(productVariant, options) {
-            return app.services.ProductService.beforeVariantUpdate(productVariant, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          ],
+          beforeCreate: [
+            (productVariant, options) => {
+              return app.services.ProductService.beforeVariantCreate(productVariant, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeUpdate: [
+            (productVariant, options) => {
+              return app.services.ProductService.beforeVariantUpdate(productVariant, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         }
       }
     }

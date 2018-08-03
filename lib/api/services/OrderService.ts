@@ -1,9 +1,6 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import * as _ from 'lodash'
 import { PAYMENT_PROCESSING_METHOD } from '../../enums'
 import { FULFILLMENT_STATUS } from '../../enums'
 import { ORDER_STATUS } from '../../enums'
@@ -22,13 +19,10 @@ export class OrderService extends Service {
 
   /**
    * Creates an Order
-   * @param obj
-   * @returns {Promise}
    */
   // TODO Select Vendor if not selected per order_item
   // TODO handle inventory policy and coupon policy on fulfillments
-  create(obj, options) {
-    options = options || {}
+  create(obj, options: {[key: string]: any} = {}) {
     const Address = this.app.models['Address']
     const Customer = this.app.models['Customer']
     const Order = this.app.models['Order']
@@ -147,7 +141,7 @@ export class OrderService extends Service {
               item.exclude_payment_types = item.exclude_payment_types || []
               return item.exclude_payment_types.indexOf('Account Balance') !== -1
             })
-            const removeTotal = _.sumBy(exclusions, (e) => e.calculated_price)
+            const removeTotal = _.sumBy(exclusions, (e: {[key: string]: any}) => e.calculated_price)
             const deductibleTotal = Math.max(0, totalDue - removeTotal)
             // Apply Customer Account balance
             deduction = Math.min(deductibleTotal, (deductibleTotal - (deductibleTotal - resCustomer.account_balance)))
@@ -189,9 +183,9 @@ export class OrderService extends Service {
           // })
 
           // Create the blank fulfillments
-          let fulfillments = _.groupBy(obj.line_items, 'fulfillment_service')
+          const fulfillmentsGroups = _.groupBy(obj.line_items, 'fulfillment_service')
           // Map into array
-          fulfillments = _.map(fulfillments, (items, service) => {
+          const fulfillments = _.map(fulfillmentsGroups, (items, service) => {
             // return Fulfillment.build({
             return {
               service: service,
@@ -207,7 +201,8 @@ export class OrderService extends Service {
             return item
           })
 
-          const order = Order.build({
+          return Order.create({
+          // const order = Order.build({
             // Order Info
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
             processed_at: new Date(),
@@ -275,7 +270,7 @@ export class OrderService extends Service {
           }, {
             include: [
               // {
-              //   model: this.app.models['Customer']
+              //   model: this.app.models['Customer'].instance
               // },
               {
                 model: OrderItem.instance,
@@ -295,17 +290,22 @@ export class OrderService extends Service {
                 model: this.app.models['Transaction'].instance,
                 as: 'transactions'
               }
-            ]
+            ],
+            transaction: options.transaction || null
           })
-          return order.save({transaction: options.transaction || null})
+
+          // order.set('order_items', lineItems)
+          //
+          // console.log('BROKE ORDER 1', order)
+          // return order.save({transaction: options.transaction || null})
         })
-        .then(order => {
-          if (!order) {
+        .then(_order => {
+          if (!_order) {
             throw new Error('Unexpected Error while creating order')
           }
-          resOrder = order
+          resOrder = _order
 
-          if (resCustomer instanceof Customer && deduction > 0) {
+          if (resCustomer instanceof Customer.instance && deduction > 0) {
             return resCustomer.logAccountBalance(
               'debit',
               deduction,
@@ -320,7 +320,7 @@ export class OrderService extends Service {
           }
         })
         .then(() => {
-          if (resCustomer instanceof Customer) {
+          if (resCustomer instanceof Customer.instance) {
             return resCustomer
               .setTotalSpent(totalPrice)
               .setLastOrder(resOrder)
@@ -358,7 +358,7 @@ export class OrderService extends Service {
         })
         .then(() => {
           // TODO REMOVE THIS PART WHEN WE CREATE THE EVENT ELSEWHERE
-          if (resCustomer instanceof Customer) {
+          if (resCustomer instanceof Customer.instance) {
             return resCustomer.addOrder(resOrder.id, { transaction: options.transaction || null})
               .then(() => {
                 const event = {
@@ -535,8 +535,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  payOrders(orders, options) {
-    options = options || {}
+  payOrders(orders, options: {[key: string]: any} = {}) {
     const Sequelize = this.app.models['Order'].sequelize
     return Sequelize.Promise.mapSeries(orders, order => {
       return this.pay(order, order.payment_details, {transaction: options.transaction || null})
@@ -549,8 +548,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  refundOrderItem(orderItem, options) {
-    options = options || {}
+  refundOrderItem(orderItem, options: {[key: string]: any} = {}) {
     const OrderItem = this.app.models['OrderItem']
     const Order = this.app.models['Order']
     const Refund = this.app.models['Refund']
@@ -640,9 +638,7 @@ export class OrderService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   // TODO restock
-  refund(order, refunds, options) {
-    refunds = refunds || []
-    options = options || {}
+  refund(order, refunds = [], options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Sequelize = Order.sequelize
     let resOrder
@@ -765,9 +761,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  authorize(order, authorizations, options) {
-    authorizations = authorizations || []
-    options = options || {}
+  authorize(order, authorizations = [], options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     let resOrder
     return Order.resolve(order, { transaction: options.transaction || null })
@@ -795,7 +789,7 @@ export class OrderService extends Service {
             }
           }).filter(n => n)
           // Authorize the pending transactions
-          return Order.datastore.Promise.mapSeries(toAuthorize, transaction => {
+          return Order.sequelize.Promise.mapSeries(toAuthorize, transaction => {
             return this.app.services.TransactionService.authorize(
               transaction,
               {transaction: options.transaction || null}
@@ -812,7 +806,7 @@ export class OrderService extends Service {
               return transaction
             }
           })
-          return Order.datastore.Promise.mapSeries(canAuthorize, transaction => {
+          return Order.sequelize.Promise.mapSeries(canAuthorize, transaction => {
             return this.app.services.TransactionService.authorize(
               transaction,
               {transaction: options.transaction || null }
@@ -834,9 +828,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  capture(order, captures, options) {
-    captures = captures || []
-    options = options || {}
+  capture(order, captures = [], options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Sequelize = Order.sequelize
     let resOrder
@@ -903,9 +895,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  void(order, voids, options) {
-    options = options || {}
-    voids = voids || []
+  void(order, voids = [], options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Sequelize = Order.sequelize
     let resOrder
@@ -1044,8 +1034,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  cancel(order, options) {
-    options = options || {}
+  cancel(order, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Sequelize = Order.sequelize
     const reason = order.cancel_reason || ORDER_CANCEL.OTHER
@@ -1162,7 +1151,7 @@ export class OrderService extends Service {
       return address
     }
     else {
-      if (customerAddress instanceof Address) {
+      if (customerAddress instanceof Address.instance) {
         return customerAddress.get({plain: true})
       }
       else {
@@ -1173,12 +1162,8 @@ export class OrderService extends Service {
 
   /**
    *
-   * @param order
-   * @param tag
-   * @returns {Promise.<TResult>}
    */
-  addTag(order, tag, options) {
-    options = options || {}
+  addTag(order, tag, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Tag = this.app.models['Tag']
     let resOrder, resTag
@@ -1211,8 +1196,7 @@ export class OrderService extends Service {
   /**
    * Remove a Tag from an Order
    */
-  removeTag(order, tag, options) {
-    options = options || {}
+  removeTag(order, tag, options: {[key: string]: any} = {}) {
     let resOrder, resTag
     const Order = this.app.models['Order']
     const Tag = this.app.models['Tag']
@@ -1250,8 +1234,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise}
    */
-  pricingOverrides(overrides, id, admin, options) {
-    options = options || {}
+  pricingOverrides(overrides, id, admin, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     // Standardize the input
     if (_.isObject(overrides) && overrides.pricing_overrides) {
@@ -1541,8 +1524,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  removeItem(order, item, options) {
-    options = options || {}
+  removeItem(order, item, options: {[key: string]: any} = {}) {
     if (!item) {
       throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
@@ -1571,7 +1553,7 @@ export class OrderService extends Service {
         // Build the item
         resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
         // Remove the item
-        return resOrder.removeItem(resItem)
+        return resOrder.removeItem(resItem, {transaction: options.transaction || null})
       })
       .then(() => {
         // recalculate
@@ -1805,7 +1787,7 @@ export class OrderService extends Service {
 
         fulfillments = [...fulfillments, ..._fulfillments]
 
-        return Order.datastore.Promise.mapSeries(fulfillments, fulfillment => {
+        return Order.sequelize.Promise.mapSeries(fulfillments, fulfillment => {
           return this.app.services.FulfillmentService.sendFulfillment(
             resOrder,
             fulfillment,

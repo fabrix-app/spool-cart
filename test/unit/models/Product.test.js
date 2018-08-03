@@ -14,7 +14,7 @@ describe('Product Model', () => {
   it('should resolve a product instance', (done) => {
     Product.resolve(Product.build({}))
       .then(product => {
-        assert.ok(product instanceof Product)
+        assert.ok(product instanceof Product.instance)
         done()
       })
       .catch(err => {

@@ -76,11 +76,11 @@ export class OrderResolver extends SequelizeResolver {
    */
   resolveById (order, options: {[key: string]: any} = {}) {
     return this.findById(order.id, options)
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resOrder => {
+        if (!resOrder && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `order ${order.id} not found`)
         }
-        return resUser
+        return resOrder
       })
   }
   /**
@@ -94,11 +94,11 @@ export class OrderResolver extends SequelizeResolver {
         token: order.token
       }
     }))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resOrder => {
+        if (!resOrder && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `order token ${order.token} not found`)
         }
-        return resUser
+        return resOrder
       })
   }
   /**
@@ -108,11 +108,11 @@ export class OrderResolver extends SequelizeResolver {
    */
   resolveByNumber (order, options: {[key: string]: any} = {}) {
     return this.findById(order, options)
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resOrder => {
+        if (!resOrder && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `order ${order.token} not found`)
         }
-        return resUser
+        return resOrder
       })
   }
   /**
@@ -123,14 +123,14 @@ export class OrderResolver extends SequelizeResolver {
   resolveByString (order, options: {[key: string]: any} = {}) {
     return this.findOne(this.app.services.SequelizeService.mergeOptionDefaults(options, {
       where: {
-        code: order
+        token: order
       }
     }))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resOrder => {
+        if (!resOrder && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `order ${order} not found`)
         }
-        return resUser
+        return resOrder
       })
   }
   /**
@@ -236,57 +236,43 @@ export class Order extends Model {
           }
         ],
         hooks: {
-          /**
-           *
-           * @param values
-           * @param options
-           */
-          beforeCreate: (order, options) => {
-            if (order.ip) {
-              order.create_ip = order.ip
+          beforeCreate: [
+            (order, options) => {
+              if (order.ip) {
+                order.create_ip = order.ip
+              }
+              if (!order.token) {
+                order.token = `order_${shortId.generate()}`
+              }
             }
-            if (!order.token) {
-              order.token = `order_${shortId.generate()}`
+          ],
+          afterCreate: [
+            (order, options) => {
+              return app.services.OrderService.afterCreate(order, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
             }
-          },
-          /**
-           *
-           * @param order
-           * @param options
-           */
-          afterCreate: (order, options) => {
-            return app.services.OrderService.afterCreate(order, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          /**
-           *
-           * @param order
-           * @param options
-           */
-          beforeUpdate: (order, options) => {
-            if (order.ip) {
-              order.update_ip = order.ip
+          ],
+          beforeUpdate: [
+            (order, options) => {
+              if (order.ip) {
+                order.update_ip = order.ip
+              }
+              // order.setStatus()
+              if (order.changed('status') && order.status === ORDER_STATUS.CLOSED) {
+                order.close()
+              }
             }
-
-            // order.setStatus()
-
-            if (order.changed('status') && order.status === ORDER_STATUS.CLOSED) {
-              order.close()
+          ],
+          afterUpdate: [
+            (order, options) => {
+              return app.services.OrderService.afterUpdate(order, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
             }
-          },
-          /**
-           *
-           * @param order
-           * @param options
-           */
-          afterUpdate: (order, options) => {
-            return app.services.OrderService.afterUpdate(order, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          ]
         }
       }
     }
@@ -892,7 +878,7 @@ export interface Order {
   sendUpdatedEmail(options): any
 }
 
-Order.prototype.toJSON = () => {
+Order.prototype.toJSON = function() {
   // Make JSON
   const resp = this instanceof this.app.models['Order'].instance ? this.get({ plain: true }) : this
 
@@ -932,7 +918,7 @@ Order.prototype.close = function() {
  *
  */
 Order.prototype.logDiscountUsage = function(options: {[key: string]: any} = {}) {
-  return this.app.models['Order'].datastore.Promise.mapSeries(this.discounted_lines, line => {
+  return this.app.models['Order'].sequelize.Promise.mapSeries(this.discounted_lines, line => {
     return this.app.models['Discount'].findById(line.id, {
       attributes: ['id', 'times_used', 'usage_limit'],
       transaction: options.transaction || null
@@ -1195,7 +1181,7 @@ Order.prototype.groupFulfillments = function(options: {[key: string]: any} = {})
         return { service: service, items: items }
       })
       // Create the non sent fulfillments
-      return this.app.models['Order'].datastore.Promise.mapSeries(tGroups, (group) => {
+      return this.app.models['Order'].sequelize.Promise.mapSeries(tGroups, (group) => {
         const resFulfillment = this.fulfillments.find(fulfillment => fulfillment.service === group.service)
         return resFulfillment.addOrder_items(group.items, {
           hooks: false,
@@ -1226,7 +1212,7 @@ Order.prototype.groupFulfillments = function(options: {[key: string]: any} = {})
  * @returns {*|Promise.<T>}
  */
 Order.prototype.groupTransactions = function(paymentDetails, options: {[key: string]: any} = {}) {
-  return this.app.models['Order'].datastore.Promise.mapSeries(paymentDetails, (detail, index) => {
+  return this.app.models['Order'].sequelize.Promise.mapSeries(paymentDetails, (detail, index) => {
     const transaction = this.app.models['Transaction'].build({
       // Set the customer id (in case we can save this source)
       customer_id: this.customer_id,
@@ -1293,7 +1279,7 @@ Order.prototype.groupSubscriptions = function(active, options: {[key: string]: a
         })
       })
 
-      return this.app.models['Order'].datastore.Promise.mapSeries(groups, group => {
+      return this.app.models['Order'].sequelize.Promise.mapSeries(groups, group => {
         return this.app.services.SubscriptionService.create(
           this,
           group.items,
@@ -1334,7 +1320,7 @@ Order.prototype.fulfill = function(fulfillments = [], options: {[key: string]: a
       // Remove empties
       toFulfill = toFulfill.filter(f => f)
       // console.log('BROKE FULFILL', toFulfill)
-      return this.datastore.Promise.mapSeries(toFulfill, resFulfillment => {
+      return this.sequelize.Promise.mapSeries(toFulfill, resFulfillment => {
         if (!(resFulfillment instanceof this.app.models['Fulfillment'].instance)) {
           throw new Error('resFulfillment is not an instance of Fulfillment')
         }
@@ -1873,7 +1859,7 @@ Order.prototype.sendToFulfillment = function(options: {[key: string]: any} = {})
     reload: options.reload || null
   })
     .then(() => {
-      return this.app.models['Order'].datastore.Promise.mapSeries(this.fulfillments, fulfillment => {
+      return this.app.models['Order'].sequelize.Promise.mapSeries(this.fulfillments, fulfillment => {
         return this.app.services.FulfillmentService.sendFulfillment(this, fulfillment, {transaction: options.transaction || null})
       })
     })
@@ -1966,7 +1952,7 @@ Order.prototype.saveItemsShippingLines = function (items, options: {[key: string
     && Object.keys(line).indexOf('line') === -1
   )
 
-  return this.app.models['OrderItem'].datastore.Promise.mapSeries(items, item => {
+  return this.app.models['OrderItem'].sequelize.Promise.mapSeries(items, item => {
     return item.setItemsShippingLines(items.find(i => i.id === item.id))
       .save(options)
   })
@@ -1984,14 +1970,14 @@ Order.prototype.saveItemsShippingLines = function (items, options: {[key: string
 /**
  *
  */
-Order.prototype.saveItemsTaxLines = function (items, options: {[key: string]: any} = {}) {
+Order.prototype.saveItemsTaxLines = function (items = [], options: {[key: string]: any} = {}) {
   // Filter any non manual tax lines
   let taxLines = this.tax_lines.filter(line =>
     Object.keys(line).indexOf('id') === -1
     && Object.keys(line).indexOf('line') === -1
   )
 
-  return this.app.models['OrderItem'].datastore.Promise.mapSeries(items, item => {
+  return this.app.models['OrderItem'].sequelize.Promise.mapSeries(items, item => {
     return item.setItemsTaxLines(items.find(i => i.id === item.id))
       .save(options)
   })
@@ -2319,8 +2305,7 @@ Order.prototype.resolveOrderItems = function(options: {[key: string]: any} = {})
   }
   else {
     return this.getOrder_items({transaction: options.transaction || null})
-      .then(orderItems => {
-        orderItems = orderItems || []
+      .then((orderItems = []) => {
         this.order_items = orderItems
         this.setDataValue('order_items', orderItems)
         this.set('order_items', orderItems)
@@ -2346,8 +2331,7 @@ Order.prototype.resolveRefunds = function(options: {[key: string]: any} = {}) {
   }
   else {
     return this.getRefunds({transaction: options.transaction || null})
-      .then(refunds => {
-        refunds = refunds || []
+      .then((refunds = []) => {
         this.refunds = refunds
         this.setDataValue('refunds', refunds)
         this.set('refunds', refunds)
@@ -2374,8 +2358,7 @@ Order.prototype.resolveTransactions = function(options: {[key: string]: any} = {
   }
   else {
     return this.getTransactions({transaction: options.transaction || null})
-      .then(transactions => {
-        transactions = transactions || []
+      .then((transactions = []) => {
         this.transactions = transactions
         this.setDataValue('transactions', transactions)
         this.set('transactions', transactions)
@@ -2392,14 +2375,13 @@ Order.prototype.resolveFulfillments = function(options: {[key: string]: any} = {
     && this.fulfillments.every(f => f instanceof this.app.models['Fulfillment'].instance)
     && options.reload !== true
   ) {
-    return this.datastore.Promise.mapSeries(this.fulfillments, fulfillment => {
+    return this.sequelize.Promise.mapSeries(this.fulfillments, fulfillment => {
       return fulfillment.resolveOrderItems({
         transaction: options.transaction || null,
         reload: options.reload || null
       })
     })
-      .then(fulfillments => {
-        fulfillments = fulfillments || []
+      .then((fulfillments = []) => {
         this.fulfillments = fulfillments
         this.setDataValue('fulfillments', fulfillments)
         this.set('fulfillments', fulfillments)
@@ -2414,8 +2396,7 @@ Order.prototype.resolveFulfillments = function(options: {[key: string]: any} = {
       }],
       transaction: options.transaction || null
     })
-      .then(fulfillments => {
-        fulfillments = fulfillments || []
+      .then((fulfillments = []) => {
         this.fulfillments = fulfillments
         this.setDataValue('fulfillments', fulfillments)
         this.set('fulfillments', fulfillments)
@@ -2432,7 +2413,13 @@ Order.prototype.calculateShipping = function(options: {[key: string]: any} = {})
   }
   return this.resolveOrderItems(options)
     .then(() => {
-      return this.app.services.ShippingService.calculate(this, this.order_items, this.shipping_address, this.app.models['Order'], options)
+      return this.app.services.ShippingService.calculate(
+        this,
+        this.order_items,
+        this.shipping_address,
+        this.app.models['Order'],
+        options
+      )
     })
     .then(shippingResult => {
       return this.saveItemsShippingLines(shippingResult.line_items, options)
@@ -2460,7 +2447,7 @@ Order.prototype.calculateTaxes = function(options: {[key: string]: any} = {}) {
       )
     })
     .then(taxesResult => {
-      return this.saveItemsTaxLines(taxesResult.line_items)
+      return this.saveItemsTaxLines(taxesResult.line_items, options)
     })
     .catch(err => {
       this.app.log.error(err)

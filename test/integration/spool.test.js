@@ -3,12 +3,12 @@
 const assert = require('assert')
 
 describe('Spool', () => {
-  let pack
+  let spool
   before(() => {
-    pack = global.app.spools['cart']
+    spool = global.app.spools['cart']
   })
   it('TODO should be loaded into the app.spools collection', () => {
-    assert(pack)
+    assert(spool)
   })
   // describe('#validate', () => {
   //   it.skip('TODO test')

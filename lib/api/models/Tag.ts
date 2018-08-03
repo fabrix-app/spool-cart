@@ -24,8 +24,9 @@ export class TagResolver extends SequelizeResolver {
       return TagModel.findOne({
         where: {
           name: tag.name
-        }
-      }, options)
+        },
+        ...options
+      })
         .then(resTag => {
           if (resTag) {
             return resTag

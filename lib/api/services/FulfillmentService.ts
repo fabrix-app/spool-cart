@@ -1,8 +1,4 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-// const _ = require('lodash')
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { FULFILLMENT_SERVICE } from '../../enums'
 import { FULFILLMENT_STATUS } from '../../enums'
@@ -20,8 +16,7 @@ export class FulfillmentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  sendFulfillment(order, fulfillment, options) {
-    options = options || {}
+  sendFulfillment(order, fulfillment, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Fulfillment = this.app.models['Fulfillment']
     let resOrder, resFulfillment
@@ -36,7 +31,7 @@ export class FulfillmentService extends Service {
       })
       .then(_fulfillment => {
         if (!_fulfillment) {
-          throw new Error('Fulfillment not found')
+          throw new ModelError('E_NOT_FOUND', 'Fulfillment not found')
         }
         resFulfillment = _fulfillment
         return resFulfillment.resolveOrderItems({transaction: options.transaction || null})
@@ -51,7 +46,7 @@ export class FulfillmentService extends Service {
           && !resFulfillment.order_items.some(i => i.requires_shipping === true)
         ) {
           resFulfillment.fulfilled()
-          return Fulfillment.datastore.Promise.mapSeries(resFulfillment.order_items, item => {
+          return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
             item.fulfillment_status = resFulfillment.status
             return item.save({
               hooks: false,
@@ -65,7 +60,7 @@ export class FulfillmentService extends Service {
           && resFulfillment.order_items.some(i => i.requires_shipping === true)
         ) {
           resFulfillment.sent()
-          return Fulfillment.datastore.Promise.mapSeries(resFulfillment.order_items, item => {
+          return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
             item.fulfillment_status = resFulfillment.status
             return item.save({
               hooks: false,
@@ -77,7 +72,7 @@ export class FulfillmentService extends Service {
           return this.app.services.FulfillmentGenericService.createOrder(resFulfillment, resFulfillment.service)
             .then(result => {
               resFulfillment[result.status]()
-              return Fulfillment.datastore.Promise.mapSeries(resFulfillment.order_items, item => {
+              return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
                 item.fulfillment_status = resFulfillment.status
                 return item.save({
                   hooks: false,
@@ -123,8 +118,7 @@ export class FulfillmentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  updateFulfillment(fulfillment, options) {
-    options = options || {}
+  updateFulfillment(fulfillment, options: {[key: string]: any} = {}) {
     const Fulfillment = this.app.models['Fulfillment']
     let resFulfillment
     return Fulfillment.resolve(fulfillment, {transaction: options.transaction || null})
@@ -160,8 +154,7 @@ export class FulfillmentService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  cancelFulfillment(fulfillment, options) {
-    options = options || {}
+  cancelFulfillment(fulfillment, options: {[key: string]: any} = {}) {
     const Fulfillment = this.app.models['Fulfillment']
     let resFulfillment
     return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null })
@@ -192,7 +185,6 @@ export class FulfillmentService extends Service {
       .then(() => {
         resFulfillment.cancelled()
         return resFulfillment.fulfillUpdate(
-          this.app,
           {status: FULFILLMENT_STATUS.CANCELLED },
           {transaction: options.transaction || null}
         )
@@ -208,8 +200,7 @@ export class FulfillmentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addOrCreateFulfillmentItem(item, options) {
-    options = options || {}
+  addOrCreateFulfillmentItem(item, options: {[key: string]: any} = {}) {
     const OrderItem = this.app.models['OrderItem']
     const Fulfillment = this.app.models['Fulfillment']
     let resOrderItem, resFulfillment
@@ -219,7 +210,7 @@ export class FulfillmentService extends Service {
           throw new ModelError('E_NOT_FOUND', 'Order Item not Found')
         }
         resOrderItem = _item
-        return Fulfillment.find({
+        return Fulfillment.findOne({
           where: {
             order_id: resOrderItem.order_id,
             service: resOrderItem.fulfillment_service
@@ -253,7 +244,7 @@ export class FulfillmentService extends Service {
             })
         }
         else {
-          resFulfillment = Fulfillment.build({
+          return Fulfillment.create({
             order_id: resOrderItem.order_id,
             service: resOrderItem.fulfillment_service,
             // order_items: [
@@ -265,10 +256,16 @@ export class FulfillmentService extends Service {
                 model: OrderItem.instance,
                 as: 'order_items'
               }
-            ]})
+            ],
+            transaction: options.transaction || null
+          })
           // console.log('addOrCreateFulfillment Creating...', resOrderItem, resFulfillment)
-          return resFulfillment.save({transaction: options.transaction || null})
-            .then(() => {
+          // return resFulfillment.save({transaction: options.transaction || null})
+            .then(_newFulfillment => {
+              if (!_newFulfillment) {
+                throw new Error('Fulfillment was not created')
+              }
+              resFulfillment = _newFulfillment
               return resFulfillment.addOrder_item(resOrderItem, {
                 hooks: false,
                 individualHooks: false,
@@ -304,8 +301,7 @@ export class FulfillmentService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  updateFulfillmentItem(item, options) {
-    options = options || {}
+  updateFulfillmentItem(item, options: {[key: string]: any} = {}) {
     const OrderItem = this.app.models['OrderItem']
     const Fulfillment = this.app.models['Fulfillment']
     let resOrderItem, resFulfillment
@@ -315,7 +311,7 @@ export class FulfillmentService extends Service {
           throw new ModelError('E_NOT_FOUND', 'Order Item not Found')
         }
         resOrderItem = _item
-        return Fulfillment.find({
+        return Fulfillment.findOne({
           where: {
             order_id: resOrderItem.order_id,
             service: resOrderItem.fulfillment_service
@@ -369,8 +365,7 @@ export class FulfillmentService extends Service {
    * @param options
    * @returns {*|Promise.<TResult>}
    */
-  removeFulfillmentItem(item, options) {
-    options = options || {}
+  removeFulfillmentItem(item, options: {[key: string]: any} = {}) {
     const OrderItem = this.app.models['OrderItem']
     const Fulfillment = this.app.models['Fulfillment']
     let resOrderItem, resFulfillment
@@ -380,7 +375,7 @@ export class FulfillmentService extends Service {
           throw new Error('Order Item not Found')
         }
         resOrderItem = _item
-        return Fulfillment.find({
+        return Fulfillment.findOne({
           where: {
             order_id: resOrderItem.order_id,
             service: resOrderItem.fulfillment_service
@@ -434,8 +429,7 @@ export class FulfillmentService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  manualUpdateFulfillment(fulfillment, options) {
-    options = options || {}
+  manualUpdateFulfillment(fulfillment, options: {[key: string]: any} = {}) {
     const Fulfillment = this.app.models['Fulfillment']
     let resFulfillment
     return Fulfillment.resolve(fulfillment, {transaction: options.transaction || null})

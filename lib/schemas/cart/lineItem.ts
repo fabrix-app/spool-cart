@@ -1,6 +1,6 @@
-
 import * as joi from 'joi'
-export const lineItem =  joi.object().keys({
+
+export const lineItem = joi.object().keys({
   product_id: joi.number(),
   variant_id: joi.number(),
   product_variant_id: joi.number(),

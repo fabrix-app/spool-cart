@@ -11,7 +11,7 @@ describe('Collection Model', () => {
   it('should resolve a collection instance', (done) => {
     Collection.resolve(Collection.build({}))
       .then(collection => {
-        assert.ok(collection instanceof Collection)
+        assert.ok(collection instanceof Collection.instance)
         done()
       })
       .catch(err => {

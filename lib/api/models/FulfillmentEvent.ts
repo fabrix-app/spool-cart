@@ -110,30 +110,38 @@ export class FulfillmentEvent extends Model {
       options: {
         underscored: true,
         hooks: {
-          beforeCreate: (fulfillmentEvent, options) => {
-            return app.services.FulfillmentService.beforeEventCreate(fulfillmentEvent, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeUpdate: (fulfillmentEvent, options) => {
-            return app.services.FulfillmentService.beforeEventUpdate(fulfillmentEvent, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterCreate: (fulfillmentEvent, options) => {
-            return app.services.FulfillmentService.afterEventCreate(fulfillmentEvent, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterUpdate: (fulfillmentEvent, options) => {
-            return app.services.FulfillmentService.afterEventUpdate(fulfillmentEvent, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          beforeCreate: [
+            (fulfillmentEvent, options) => {
+              return app.services.FulfillmentService.beforeEventCreate(fulfillmentEvent, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeUpdate: [
+            (fulfillmentEvent, options) => {
+              return app.services.FulfillmentService.beforeEventUpdate(fulfillmentEvent, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterCreate: [
+            (fulfillmentEvent, options) => {
+              return app.services.FulfillmentService.afterEventCreate(fulfillmentEvent, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterUpdate: [
+            (fulfillmentEvent, options) => {
+              return app.services.FulfillmentService.afterEventUpdate(fulfillmentEvent, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         },
         enums: {
           FULFILLMENT_EVENT_STATUS: FULFILLMENT_EVENT_STATUS

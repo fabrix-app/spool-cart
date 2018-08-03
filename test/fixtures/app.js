@@ -55,31 +55,6 @@ else {
   }
 }
 
-const web = {
-  express: require('express'),
-  middlewares: {
-    order: [
-      'static',
-      'addMethods',
-      'cookieParser',
-      'session',
-      'bodyParser',
-      'passportInit',
-      'passportSession',
-      'cartInit',
-      'cartSession',
-      'cartSessionCart',
-      'cartSessionCustomer',
-      'methodOverride',
-      'router',
-      'www',
-      '404',
-      '500'
-    ],
-    static: require('express').static('test/static')
-  }
-}
-
 const App = {
   api: {
     // services: {
@@ -100,13 +75,13 @@ const App = {
       spools: [
         require('@fabrix/spool-router').RouterSpool,
         require('@fabrix/spool-express').ExpressSpool,
+        require('@fabrix/spool-generics').GenericsSpool,
+        require('@fabrix/spool-email').EmailSpool,
         require('@fabrix/spool-sequelize').SequelizeSpool,
         require('@fabrix/spool-passport').PassportSpool,
         require('@fabrix/spool-permissions').PermissionsSpool,
         require('@fabrix/spool-notifications').NotificationsSpool,
         require('@fabrix/spool-engine').EngineSpool,
-        require('@fabrix/spool-generics').GenericsSpool,
-        require('@fabrix/spool-email').EmailSpool,
         require('@fabrix/spool-cart-countries').CartCountriesSpool,
         require('../../dist').CartSpool // spool-cart
       ]
@@ -124,7 +99,30 @@ const App = {
     // log: {
     //   logger: new smokesignals.Logger('debug')
     // },
-    web: web,
+    web: {
+      express: require('express'),
+      middlewares: {
+        order: [
+          'static',
+          'addMethods',
+          'cookieParser',
+          'session',
+          'bodyParser',
+          'passportInit',
+          'passportSession',
+          'cartInit',
+          'cartSession',
+          'cartSessionCart',
+          'cartSessionCustomer',
+          'methodOverride',
+          'router',
+          'www',
+          '404',
+          '500'
+        ],
+        static: require('express').static('test/static')
+      }
+    },
     session: {
       secret: 'cart'
     },
@@ -438,16 +436,13 @@ const App = {
 }
 
 const dbPath = path.resolve(__dirname, './test.sqlite')
-// console.log(dbPath)
 if (fs.existsSync(dbPath)) {
   fs.unlinkSync(dbPath)
 }
 const uploadPath = path.resolve(__dirname, './test.uploads.sqlite')
-// console.log(uploadPath)
 if (fs.existsSync(uploadPath)) {
   fs.unlinkSync(uploadPath)
 }
 
 _.defaultsDeep(App, smokesignals.FailsafeConfig)
-// console.log(App)
 module.exports = App

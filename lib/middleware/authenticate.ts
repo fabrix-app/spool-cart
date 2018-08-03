@@ -1,10 +1,9 @@
-/* eslint no-underscore-dangle: [0]*/
-
 /**
  * Module dependencies.
  */
 // const http = require('http')
 // const IncomingMessageExt = require('../http/request')
+// import { __monkeypatchNode } from '../framework/connect'
 
 export const authenticate = function(cart, options, callback) {
 
@@ -22,6 +21,7 @@ export const authenticate = function(cart, options, callback) {
     //   && http.IncomingMessage.prototype.logInCustomer !== IncomingMessageExt.logInCustomer
     // ) {
     require('../framework/connect').__monkeypatchNode()
+    // __monkeypatchNode()
     // }
 
     if (!req._cart) {

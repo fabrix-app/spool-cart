@@ -1,14 +1,11 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
-
+import { country, province, county, city } from '../schemas/country'
 
 export const validateCountry = {
   // Validate Create Country
   createCountry(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.country, (err, value) => {
+      joi.validate(data, country, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +16,7 @@ export const validateCountry = {
   // Validate Update Country
   updateCountry(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.country, (err, value) => {
+      joi.validate(data, country, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +27,7 @@ export const validateCountry = {
   // Validate Destroy Country
   destroyCountry(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.country, (err, value) => {
+      joi.validate(data, country, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -41,7 +38,7 @@ export const validateCountry = {
   // Validate Create Province
   createProvince(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.province, (err, value) => {
+      joi.validate(data, province, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -52,7 +49,7 @@ export const validateCountry = {
   // Validate Update Province
   updateProvince(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.province, (err, value) => {
+      joi.validate(data, province, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -63,7 +60,7 @@ export const validateCountry = {
   // Validate Destroy Province
   destroyProvince(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.province, (err, value) => {
+      joi.validate(data, province, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -74,7 +71,7 @@ export const validateCountry = {
   // Validate Create County
   createCounty(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.county, (err, value) => {
+      joi.validate(data, county, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -85,7 +82,7 @@ export const validateCountry = {
   // Validate Update County
   updateCounty(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.county, (err, value) => {
+      joi.validate(data, county, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -96,7 +93,7 @@ export const validateCountry = {
   // Validate Destroy County
   destroyCounty(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.county, (err, value) => {
+      joi.validate(data, county, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -107,7 +104,7 @@ export const validateCountry = {
   // Validate Create City
   createCity(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.city, (err, value) => {
+      joi.validate(data, city, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -118,7 +115,7 @@ export const validateCountry = {
   // Validate Update City
   updateCity(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.city, (err, value) => {
+      joi.validate(data, city, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -129,7 +126,7 @@ export const validateCountry = {
   // Validate Destroy City
   destroyCity(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.country.city, (err, value) => {
+      joi.validate(data, city, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }

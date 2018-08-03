@@ -224,7 +224,7 @@ export class SubscriptionCsvService extends Service {
         }))
       })
       .then(resolvedItems => {
-        return Subscription.datastore.Promise.mapSeries(resolvedItems, (item) => {
+        return Subscription.sequelize.Promise.mapSeries(resolvedItems, (item) => {
           // item = _.omit(item.get({plain: true}), [
           //   'requires_subscription',
           //   'subscription_unit',

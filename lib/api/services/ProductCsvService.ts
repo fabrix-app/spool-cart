@@ -485,7 +485,8 @@ export class ProductCsvService extends Service {
       offset: 0,
       limit: 10,
       attributes: ['handle'],
-      group: ['handle']
+      group: ['handle'],
+      regressive: false,
       // distinct: true
     }, (products) => {
 
@@ -819,8 +820,7 @@ export class ProductCsvService extends Service {
    * @param uploadId
    * @returns {Promise}
    */
-  processProductMetaUpload(uploadId, options) {
-    options = options || {}
+  processProductMetaUpload(uploadId, options: {[key: string]: any} = {}) {
     const ProductMetaUpload = this.app.models.ProductMetaUpload
     const Metadata = this.app.models.Metadata
     const Product = this.app.models.Product
@@ -947,8 +947,7 @@ export class ProductCsvService extends Service {
    * @param options
    * @returns {Promise}
    */
-  processProductAssociationUpload(uploadId, options) {
-    options = options || {}
+  processProductAssociationUpload(uploadId, options: {[key: string]: any} = {}) {
     const AssociationUpload = this.app.models['ProductAssociationUpload']
     const ProductService = this.app.services.ProductService
     const errors = []
@@ -961,7 +960,7 @@ export class ProductCsvService extends Service {
       transaction: options.transaction || null
     }, associations => {
 
-      return AssociationUpload.datastore.Promise.mapSeries(associations, association => {
+      return AssociationUpload.sequelize.Promise.mapSeries(associations, association => {
         return ProductService.addAssociation({
           handle: association.product_handle,
           sku: association.product_sku

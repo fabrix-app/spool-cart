@@ -418,7 +418,7 @@ export class TransactionService extends Service {
             }))
           }
         })
-        return Order.datastore.Promise.mapSeries(toUpdate, update => { return update })
+        return Order.sequelize.Promise.mapSeries(toUpdate, update => { return update })
       })
       .then(() => {
         return resOrder

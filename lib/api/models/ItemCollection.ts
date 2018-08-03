@@ -27,9 +27,7 @@ export class ItemCollection extends Model {
           {
             fields: ['collection_id', 'model', 'model_id', 'position']
           }
-        ],
-        classMethods: {
-        }
+        ]
       }
     }
   }

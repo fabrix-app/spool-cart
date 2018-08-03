@@ -20,9 +20,6 @@ export class ItemRefund extends Model {
         underscored: true,
         enums: {
           REFUND_MODELS: REFUND_MODELS
-        },
-        classMethods: {
-
         }
       }
     }

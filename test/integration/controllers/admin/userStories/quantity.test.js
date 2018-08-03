@@ -149,7 +149,7 @@ describe('Admin User Quantity', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('WORKING HERE', res.body)
+        console.log('BROKE WORKING HERE', res.body)
 
         assert.equal(res.body.payment_kind, 'manual')
         assert.equal(res.body.transaction_kind, 'authorize')

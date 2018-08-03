@@ -9,8 +9,7 @@ import { INVENTORY_POLICY } from '../../enums'
 export class ProductUploadResolver extends SequelizeResolver {
   batch(options, batch) {
     const self = this
-
-    options.limit = options.limit || 100
+    options.limit = options.limit || 10
     options.offset = options.offset || 0
     options.regressive = options.regressive || false
 
@@ -18,7 +17,10 @@ export class ProductUploadResolver extends SequelizeResolver {
       let count = 0
       return self.findAndCountAll(options)
         .then(results => {
-          count = results.count
+          results.count.map(counts => {
+            count = count + 1
+          })
+          // count = results.count
           return batch(results.rows)
         })
         .then(batched => {
@@ -27,12 +29,36 @@ export class ProductUploadResolver extends SequelizeResolver {
             return recursiveQuery(options)
           }
           else {
-            return Promise.resolve()
+            return batched
           }
         })
     }
     return recursiveQuery(options)
+    // const self = this
+    // options.limit = options.limit || 100
+    // options.offset = options.offset || 0
+    // options.regressive = options.regressive || false
+    //
+    // const recursiveQuery = function(options) {
+    //   let count = 0
+    //   return self.findAndCountAll(options)
+    //     .then(results => {
+    //       count = results.count
+    //       return batch(results.rows)
+    //     })
+    //     .then(batched => {
+    //       if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+    //         options.offset = options.regressive ? 0 : options.offset + options.limit
+    //         return recursiveQuery(options)
+    //       }
+    //       else {
+    //         return Promise.resolve()
+    //       }
+    //     })
+    // }
+    // return recursiveQuery(options)
   }
+
 }
 
 /**

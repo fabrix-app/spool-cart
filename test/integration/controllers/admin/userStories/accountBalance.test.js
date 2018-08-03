@@ -36,7 +36,6 @@ describe('Admin User Account Balance', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('Customer Account Balance', res.body)
         assert.equal(res.body.account_balance, 100)
         done(err)
       })

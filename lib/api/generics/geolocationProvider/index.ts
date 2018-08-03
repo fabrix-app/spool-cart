@@ -1,8 +1,14 @@
 import { Generic } from '@fabrix/spool-generics'
 
-export class DefaultGeolocationProvider extends Generic {
+export class DefaultGeolocationProvider { // extends Generic {
+  // constructor(config) {
+  //   super(config)
+  // }
+
+  public config: {[key: string]: any} = {}
+
   constructor(config) {
-    super(config)
+    this.config = config
   }
 
   addressToString(address) {

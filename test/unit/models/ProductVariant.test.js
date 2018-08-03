@@ -5,13 +5,13 @@ const assert = require('assert')
 describe('ProductVariant Model', () => {
   let ProductVariant
   it('should exist', () => {
-    ProductVariant = global.app.services.ProxyEngineService.getModel('ProductVariant')
+    ProductVariant = global.app.models['ProductVariant']
     assert(ProductVariant)
   })
   it('should resolve a ProductVariant instance', (done) => {
     ProductVariant.resolve(ProductVariant.build({}))
       .then(productVariant => {
-        assert.ok(productVariant instanceof ProductVariant)
+        assert.ok(productVariant instanceof ProductVariant.instance)
         done()
       })
       .catch(err => {

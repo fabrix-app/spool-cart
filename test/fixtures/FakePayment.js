@@ -3,10 +3,10 @@ const _ = require('lodash')
 const shortId = require('shortid')
 const Generic = require('@fabrix/spool-generics').Generic
 
-module.exports = class FakePaymentProcessor extends Generic {
-  constructor(options) {
-    super()
-    this.options = options
+module.exports = class FakePaymentProcessor { // extends Generic {
+  constructor(config) {
+    // super()
+    this.config = config
   }
   authorize(transaction) {
 

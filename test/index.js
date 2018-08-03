@@ -9,7 +9,6 @@ before(function(done) {
   // return global.app.start().catch(global.app.stop)
   global.app.start()
     .then(() => {
-      console.log('BROKE, MADE IT HERE')
       return global.app.models.Shop.findAll()
     })
     .then(shops => {

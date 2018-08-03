@@ -3,6 +3,7 @@ import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { isObject, isString, isNumber, values, merge } from 'lodash'
+import { Op } from 'sequelize'
 
 import { UNITS } from '../../enums'
 import { PRODUCT_DEFAULTS } from '../../enums'
@@ -107,14 +108,14 @@ export class ProductResolver extends SequelizeResolver {
   /**
    *
    */
-  findOneDefault(criteria, options: {[key: string]: any} = {}) {
+  findOneDefault(options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
       queryDefaults.Product.default(this.app),
       options
     )
     // console.log('Product.findOneDefault', options)
     let resProduct
-    return this.findOne(criteria, options)
+    return this.findOne(options)
       .then(product => {
         if (!product) {
           // resProduct = app.models['Product'].build()
@@ -346,29 +347,35 @@ export class Product extends Model {
           }
         },
         hooks: {
-          beforeValidate(product, options) {
-            if (!product.handle && product.title) {
-              product.handle = product.title
+          beforeValidate: [
+            (product, options) => {
+              if (!product.handle && product.title) {
+                product.handle = product.title
+              }
+              if (!product.calculated_price && product.price) {
+                product.calculated_price = product.price
+              }
+              if (!product.compare_at_price && product.price) {
+                product.compare_at_price = product.price
+              }
             }
-            if (!product.calculated_price && product.price) {
-              product.calculated_price = product.price
+          ],
+          beforeCreate: [
+            (product, options) => {
+              return app.services.ProductService.beforeCreate(product, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
             }
-            if (!product.compare_at_price && product.price) {
-              product.compare_at_price = product.price
+          ],
+          beforeUpdate: [
+            (product, options) => {
+              return app.services.ProductService.beforeUpdate(product, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
             }
-          },
-          beforeCreate(product, options) {
-            return app.services.ProductService.beforeCreate(product, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeUpdate(product, options) {
-            return app.services.ProductService.beforeUpdate(product, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          ]
         }
       }
     }
@@ -949,18 +956,21 @@ Product.prototype.getCustomerHistory = function(customer, options: {[key: string
  *
  */
 Product.prototype.hasPurchaseHistory = function(customerId, options: {[key: string]: any} = {}) {
+  const $not = Op.not
+
   return this.app.models['OrderItem'].findOne({
     where: {
       customer_id: customerId,
       product_id: this.id,
       fulfillment_status: {
-        $not: ['cancelled', 'pending', 'none']
+        [$not]: ['cancelled', 'pending', 'none']
       }
     },
     attributes: ['id'],
     transaction: options.transaction || null
   })
     .then(pHistory => {
+      console.log('BROKE History', pHistory)
       if (pHistory) {
         return true
       }

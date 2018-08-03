@@ -77,7 +77,7 @@ export class TagController extends Controller {
   findOne(req, res) {
     const orm = this.app.models
     const Tag = orm['Tag']
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
 
     Tag.findOne({
       where: where
@@ -104,7 +104,7 @@ export class TagController extends Controller {
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = res.jsonCriteria(req.query.where)
+    const where = req.jsonCriteria(req.query.where)
     Tag.findAndCountAll({
       where: where,
       order: sort,

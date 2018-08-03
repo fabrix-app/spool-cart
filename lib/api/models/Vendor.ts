@@ -181,11 +181,13 @@ export class Vendor extends Model {
           }
         },
         hooks: {
-          beforeValidate(values, options) {
-            if (!values.handle && values.name) {
-              values.handle = values.name
+          beforeValidate: [
+            (values, options) => {
+              if (!values.handle && values.name) {
+                values.handle = values.name
+              }
             }
-          }
+          ]
         }
       }
     }

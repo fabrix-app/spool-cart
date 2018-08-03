@@ -1,17 +1,12 @@
-import { FabrixApp } from '@fabrix/fabrix'
-import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
-import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { User as PermissionsUser } from '@fabrix/spool-permissions/dist/api/models'
 import { User as PassportUser } from '@fabrix/spool-passport/dist/api/models'
 import { User as NotificationsUser } from '@fabrix/spool-notifications/dist/api/models'
+import { Utils } from '@fabrix/spool-sequelize'
+import { isString } from 'lodash'
 
-import { defaultsDeep, isString } from 'lodash'
-
-// const shortid = require('shortid')
-
-export class User extends PermissionsUser {
-  static config(app, Sequelize) {
-    return defaultsDeep(NotificationsUser.config, {
+export class User extends NotificationsUser {
+  static config(app, Sequelize): {[key: string]: any} {
+    return Utils.mergeConfig(NotificationsUser.config(app, Sequelize), {
       options: {
         underscored: true,
         // defaultScope: {
@@ -49,9 +44,10 @@ export class User extends PermissionsUser {
       }
     })
   }
-  static schema(app, Sequelize) {
 
-    return defaultsDeep(NotificationsUser.schema, {
+  static schema(app, Sequelize): {[key: string]: any} {
+
+    return Utils.mergeConfig(PermissionsUser.schema(app, Sequelize), {
       //
       accepts_marketing: {
         type: Sequelize.BOOLEAN,

@@ -21,11 +21,6 @@ export class City extends Model {
               live_mode: true
             }
           }
-        },
-        classMethods: {
-          resolve: function(city, options) {
-            //
-          }
         }
       }
     }

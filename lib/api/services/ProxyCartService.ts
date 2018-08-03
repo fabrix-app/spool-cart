@@ -2,16 +2,14 @@ import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 const _ = require('lodash')
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { ValidationError } from '@fabrix/fabrix/dist/errors'
-import * as Schemas from '../../schemas'
-
-const joi = require('joi')
-const sharp = require('sharp')
-
-const geolib = require('geolib')
-const currencyFormatter = require('currency-formatter')
-const removeMd = require('remove-markdown')
-const stripTags = require('striptags')
-const request = require('request')
+import { address as addressSchema } from '../../schemas/address'
+import * as joi from 'joi'
+import * as sharp from 'sharp'
+import * as geolib from 'geolib'
+import * as currencyFormatter from 'currency-formatter'
+import * as removeMd from 'remove-markdown'
+import * as stripTags from 'striptags'
+import * as request from 'request'
 
 import { initialize as initializeMiddleware } from '../../middleware/initialize'
 import { authenticate as authenticateMiddleware } from '../../middleware/authenticate'
@@ -335,7 +333,7 @@ export class ProxyCartService extends Service {
    */
   validateAddress(address) {
     try {
-      joi.validate(address, Schemas.address.address)
+      joi.validate(address, addressSchema)
     }
     catch (err) {
       throw new ValidationError(err)
@@ -423,7 +421,7 @@ export class ProxyCartService extends Service {
       const Shop = this.app.models['Shop']
       const Address = this.app.models['Address']
 
-      if (!(obj instanceof Cart) && !(obj instanceof Subscription.instance)) {
+      if (!(obj instanceof Cart.instance) && !(obj instanceof Subscription.instance)) {
         const err = new Error('Object must be an instance!')
         return reject(err)
       }
@@ -438,7 +436,7 @@ export class ProxyCartService extends Service {
         transaction: options.transaction || null
       })
         .then(shop => {
-          if (!shop && !shop.address) {
+          if (!shop || !shop.address) {
             return resolve(null)
           }
           const from = {
@@ -592,7 +590,7 @@ export class ProxyCartService extends Service {
         }
         else {
           to = _to
-          return Shop.datastore.Promise.mapSeries(lineItems, item => {
+          return Shop.sequelize.Promise.mapSeries(lineItems, item => {
             return this.resolveItemNexusTo(item, to, {transaction: options.transaction || null})
           })
         }
@@ -615,9 +613,10 @@ export class ProxyCartService extends Service {
           })
             .then(_shop => {
 
-              if (!_shop && !_shop.address) {
+              if (!_shop || !_shop.address) {
                 return null
               }
+
               _nexuses[0] = {
                 name: _shop.name,
                 address_1: _shop.address.address_1,
@@ -739,11 +738,11 @@ export class ProxyCartService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  afterUserCreate(user, options) {
-    options = options || {}
+  afterUserCreate(user, options: {[key: string]: any} = {}) {
     const Customer = this.app.models['Customer']
     const Cart = this.app.models['Cart']
     // return Promise.resolve(user)
+
     return Customer.resolve({
       id: user.current_customer_id,
       email: user.email,

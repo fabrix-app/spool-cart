@@ -1,9 +1,15 @@
 import { Generic } from '@fabrix/spool-generics'
 
-export class DefaultTaxProvider extends Generic {
+export class DefaultTaxProvider { // extends Generic {
+  // constructor(config) {
+  //   super(config)
+  //   // this.config = config
+  // }
+
+  public config: {[key: string]: any} = {}
+
   constructor(config) {
-    super(config)
-    // this.config = config
+    this.config = config
   }
 
   getRate(data) {
@@ -16,12 +22,12 @@ export class DefaultTaxProvider extends Generic {
   }
 
   taxForOrder(data) {
-    const app = this.app // this.config.app
+    const app = this.config.app
     const Country = app.models['Country']
     const Province = app.models['Province']
     return Promise.resolve()
       .then(() => {
-        return Province.datastore.Promise.mapSeries(data.nexus_addresses, nexus => {
+        return Province.sequelize.Promise.mapSeries(data.nexus_addresses, nexus => {
           return Province.findOne({
             where: {
               code: nexus.province_code
@@ -44,7 +50,7 @@ export class DefaultTaxProvider extends Generic {
 
         if (data.to_address && nexusProvinces.some(p => p.code === data.to_address.province_code)) {
           // this.config.app.log.debug('HAS NEXUS TAXES:', data.to_address.province_code)
-          this.app.log.debug('HAS NEXUS TAXES:', data.to_address.province_code)
+          this.config.app.log.debug('HAS NEXUS TAXES:', data.to_address.province_code)
 
           const nexus = nexusProvinces.find(p => p.code === data.to_address.province_code)
 

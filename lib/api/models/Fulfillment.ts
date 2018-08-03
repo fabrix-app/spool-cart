@@ -203,30 +203,38 @@ export class Fulfillment extends Model {
           },
         },
         hooks: {
-          beforeCreate: (fulfillment, options) => {
-            return app.services.FulfillmentService.beforeCreate(fulfillment, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          beforeUpdate: (fulfillment, options) => {
-            return app.services.FulfillmentService.beforeUpdate(fulfillment, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterCreate: (fulfillment, options) => {
-            return app.services.FulfillmentService.afterCreate(fulfillment, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          },
-          afterUpdate: (fulfillment, options) => {
-            return app.services.FulfillmentService.afterUpdate(fulfillment, options)
-              .catch(err => {
-                return Promise.reject(err)
-              })
-          }
+          beforeCreate: [
+            (fulfillment, options) => {
+              return app.services.FulfillmentService.beforeCreate(fulfillment, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          beforeUpdate: [
+            (fulfillment, options) => {
+              return app.services.FulfillmentService.beforeUpdate(fulfillment, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterCreate: [
+            (fulfillment, options) => {
+              return app.services.FulfillmentService.afterCreate(fulfillment, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ],
+          afterUpdate: [
+            (fulfillment, options) => {
+              return app.services.FulfillmentService.afterUpdate(fulfillment, options)
+                .catch(err => {
+                  return Promise.reject(err)
+                })
+            }
+          ]
         }
       }
     }
@@ -392,28 +400,28 @@ export interface Fulfillment {
  *
  * @returns {*}
  */
-Fulfillment.prototype.pending = () => {
+Fulfillment.prototype.pending = function() {
   return this
 }
 /**
  *
  * @returns {*}
  */
-Fulfillment.prototype.none = () => {
+Fulfillment.prototype.none = function() {
   return this
 }
 /**
  *
  * @returns {*}
  */
-Fulfillment.prototype.partial = () => {
+Fulfillment.prototype.partial = function() {
   return this
 }
 /**
  *
  * @returns {*}
  */
-Fulfillment.prototype.sent = () => {
+Fulfillment.prototype.sent = function() {
   this.sent_at = new Date(Date.now())
   this.status = FULFILLMENT_STATUS.SENT
   return this
@@ -422,7 +430,7 @@ Fulfillment.prototype.sent = () => {
  *
  * @returns {*}
  */
-Fulfillment.prototype.fulfilled = () => {
+Fulfillment.prototype.fulfilled = function() {
   this.fulfilled_at = new Date(Date.now())
   this.status = FULFILLMENT_STATUS.FULFILLED
   return this
@@ -431,7 +439,7 @@ Fulfillment.prototype.fulfilled = () => {
  *
  * @returns {*}
  */
-Fulfillment.prototype.cancelled = () => {
+Fulfillment.prototype.cancelled = function() {
   this.cancelled_at = new Date(Date.now())
   this.status = FULFILLMENT_STATUS.CANCELLED
   return this
@@ -439,7 +447,7 @@ Fulfillment.prototype.cancelled = () => {
 /**
  *
  */
-Fulfillment.prototype.fulfillUpdate = (data = {}, options: {[key: string]: any} = {}) => {
+Fulfillment.prototype.fulfillUpdate = function(data = {}, options: {[key: string]: any} = {}) {
   return this.resolveOrderItems({
     transaction: options.transaction || null,
     reload: options.reload || null
@@ -452,7 +460,7 @@ Fulfillment.prototype.fulfillUpdate = (data = {}, options: {[key: string]: any} 
       this.extras = data.extras || this.extras
       this.receipt = data.receipt || this.receipt
 
-      return this.datastore.Promise.mapSeries(this.order_items, item => {
+      return this.sequelize.Promise.mapSeries(this.order_items, item => {
         item.fulfillment_status = this.status
         return item.save({
           fields: ['fulfillment_status'],
@@ -467,7 +475,7 @@ Fulfillment.prototype.fulfillUpdate = (data = {}, options: {[key: string]: any} 
 /**
  *
  */
-Fulfillment.prototype.reconcileFulfillmentStatus = (options: {[key: string]: any} = {}) => {
+Fulfillment.prototype.reconcileFulfillmentStatus = function(options: {[key: string]: any} = {}) {
   return this.resolveFulfillmentStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
@@ -504,7 +512,7 @@ Fulfillment.prototype.reconcileFulfillmentStatus = (options: {[key: string]: any
 /**
  *
  */
-Fulfillment.prototype.resolveFulfillmentStatus = (options: {[key: string]: any} = {}) => {
+Fulfillment.prototype.resolveFulfillmentStatus = function(options: {[key: string]: any} = {}) {
   // let currentStatus, previousStatus
   if (!this.id) {
     return Promise.resolve(this)
@@ -521,7 +529,7 @@ Fulfillment.prototype.resolveFulfillmentStatus = (options: {[key: string]: any} 
 /**
  *
  */
-Fulfillment.prototype.resolveOrderItems = (options: {[key: string]: any}) => {
+Fulfillment.prototype.resolveOrderItems = function(options: {[key: string]: any}) {
   if (
     this.order_items
     && this.order_items.every(i => i instanceof this.app.models['OrderItem'].instance)
@@ -544,7 +552,7 @@ Fulfillment.prototype.resolveOrderItems = (options: {[key: string]: any}) => {
 /**
  *
  */
-Fulfillment.prototype.saveFulfillmentStatus = (options: {[key: string]: any} = {}) => {
+Fulfillment.prototype.saveFulfillmentStatus = function(options: {[key: string]: any} = {}) {
   return this.resolveFulfillmentStatus({
     transaction: options.transaction || null,
     reload: options.reload || null
@@ -557,7 +565,7 @@ Fulfillment.prototype.saveFulfillmentStatus = (options: {[key: string]: any} = {
  *
  * @returns {*}
  */
-Fulfillment.prototype.setFulfillmentStatus = () => {
+Fulfillment.prototype.setFulfillmentStatus = function() {
   if (!this.order_items) {
     throw new Error('Fulfillment.setFulfillmentStatus requires order_items to be populated')
   }

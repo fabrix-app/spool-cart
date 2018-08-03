@@ -1,7 +1,5 @@
-
-
 import { FabrixPolicy as Policy } from '@fabrix/fabrix/dist/common'
-const multer = require('multer')
+import * as multer from 'multer'
 
 /**
  * @module OrderPolicy

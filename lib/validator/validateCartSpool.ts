@@ -1,12 +1,10 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
+import { cartSpoolConfig } from '../schemas/cartSpoolConfig'
 
 export const validateCartSpool = {
   config(config) {
     return new Promise((resolve, reject) => {
-      joi.validate(config, Schemas.cartSpoolConfig, (err, value) => {
+      joi.validate(config, cartSpoolConfig, (err, value) => {
         if (err) {
           return reject(new TypeError('config.cart: ' + err))
         }

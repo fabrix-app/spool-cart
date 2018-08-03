@@ -1,14 +1,24 @@
-
-
 import * as joi from 'joi'
-import * as Schemas from '../schemas'
+import {
+  cart,
+  checkout,
+  addItems,
+  removeItems,
+  updateItems,
+  addTaxes,
+  removeTaxes,
+  addShipping,
+  removeShipping,
+  pricingOverrides,
+  clear
+} from '../schemas/cart'
 
 
 export const validateCart = {
   // Validate Creating a cart
   create(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.cart, (err, value) => {
+      joi.validate(data, cart, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -19,7 +29,7 @@ export const validateCart = {
   // Validate Updating a cart
   update(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.cart, (err, value) => {
+      joi.validate(data, cart, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -30,7 +40,7 @@ export const validateCart = {
   // Validate Cart Checkout
   checkout(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.checkout, (err, value) => {
+      joi.validate(data, checkout, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -41,7 +51,7 @@ export const validateCart = {
   // Validate Items to add to cart
   addItems(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.addItems, (err, value) => {
+      joi.validate(data, addItems, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -52,7 +62,7 @@ export const validateCart = {
   // Validate Items to update in cart
   updateItems(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.updateItems, (err, value) => {
+      joi.validate(data, updateItems, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -63,7 +73,7 @@ export const validateCart = {
   // Validate Items to remove from cart
   removeItems(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.removeItems, (err, value) => {
+      joi.validate(data, removeItems, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -73,7 +83,7 @@ export const validateCart = {
   },
   addShipping(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.addShipping, (err, value) => {
+      joi.validate(data, addShipping, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -83,7 +93,7 @@ export const validateCart = {
   },
   removeShipping(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.removeShipping, (err, value) => {
+      joi.validate(data, removeShipping, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -93,7 +103,7 @@ export const validateCart = {
   },
   addTaxes(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.addTaxes, (err, value) => {
+      joi.validate(data, addTaxes, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -103,7 +113,7 @@ export const validateCart = {
   },
   removeTaxes(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.removeTaxes, (err, value) => {
+      joi.validate(data, removeTaxes, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -114,7 +124,7 @@ export const validateCart = {
   // Validate Clearing all items from the cart
   clear(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.clear, (err, value) => {
+      joi.validate(data, clear, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
@@ -125,7 +135,7 @@ export const validateCart = {
   // Validate Pricing Overrides
   pricingOverrides(data) {
     return new Promise((resolve, reject) => {
-      joi.validate(data, Schemas.cart.pricingOverrides, (err, value) => {
+      joi.validate(data, pricingOverrides, (err, value) => {
         if (err) {
           return reject(new TypeError(err))
         }
