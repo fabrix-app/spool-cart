@@ -303,8 +303,6 @@ describe('Admin User Checkout with Nexus Taxes', () => {
         assert.equal(res.body.order.tax_lines[0].name, 'California Sales Tax')
         assert.equal(res.body.order.tax_lines[0].price, 7758)
 
-        // console.log('BROKE USER STORY', res.body.order)
-
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
         assert.equal(res.body.order.customer_id, customerID)

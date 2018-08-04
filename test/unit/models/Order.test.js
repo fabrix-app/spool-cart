@@ -22,32 +22,46 @@ describe('Order Model', () => {
       })
   })
   it('should resolve Subscribe Immediately', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       fulfillment_kind: 'immediate',
       has_subscription: true,
       total_price: 10,
-      total_items: 1
+      total_items: 1,
+      transactions: [
+        {
+          kind: 'sale',
+          status: 'success',
+          amount: 5
+        },
+        {
+          kind: 'capture',
+          status: 'success',
+          amount: 5
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'sale',
-        status: 'success',
-        amount: 5
-      },
-      {
-        kind: 'capture',
-        status: 'success',
-        amount: 5
-      }
-    ])
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'sale',
+    //     status: 'success',
+    //     amount: 5
+    //   },
+    //   {
+    //     kind: 'capture',
+    //     status: 'success',
+    //     amount: 5
+    //   }
+    // ])
 
-    resOrder.save()
-      .then(() => {
+    // resOrder.save()
+      .then((order) => {
+        resOrder = order
         return resOrder.resolveSendImmediately()
       })
       .then(subscribe => {
@@ -62,31 +76,45 @@ describe('Order Model', () => {
       })
   })
   it('should not resolve Subscribe Immediately', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       fulfillment_kind: 'immediate',
       has_subscription: true,
       total_price: 10,
-      total_items: 1
+      total_items: 1,
+      transactions: [
+        {
+          kind: 'sale',
+          status: 'success',
+          amount: 5
+        },
+        {
+          kind: 'capture',
+          status: 'failure',
+          amount: 5
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'sale',
-        status: 'success',
-        amount: 5
-      },
-      {
-        kind: 'capture',
-        status: 'failure',
-        amount: 5
-      }
-    ])
-    resOrder.save()
-      .then(() => {
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'sale',
+    //     status: 'success',
+    //     amount: 5
+    //   },
+    //   {
+    //     kind: 'capture',
+    //     status: 'failure',
+    //     amount: 5
+    //   }
+    // ])
+    // resOrder.save()
+      .then((order) => {
+        resOrder = order
         return resOrder.resolveSendImmediately()
       })
       .then(subscribe => {
@@ -101,30 +129,44 @@ describe('Order Model', () => {
       })
   })
   it('should resolve Fulfill Immediately', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       fulfillment_kind: 'immediate',
       total_price: 10,
-      total_items: 1
+      total_items: 1,
+      transactions: [
+        {
+          kind: 'sale',
+          status: 'success',
+          amount: 5
+        },
+        {
+          kind: 'capture',
+          status: 'success',
+          amount: 5
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'sale',
-        status: 'success',
-        amount: 5
-      },
-      {
-        kind: 'capture',
-        status: 'success',
-        amount: 5
-      }
-    ])
-    resOrder.save()
-      .then(() => {
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'sale',
+    //     status: 'success',
+    //     amount: 5
+    //   },
+    //   {
+    //     kind: 'capture',
+    //     status: 'success',
+    //     amount: 5
+    //   }
+    // ])
+    // resOrder.save()
+      .then((order) => {
+        resOrder = order
         return resOrder.resolveSendImmediately()
       })
       .then(subscribe => {
@@ -139,30 +181,44 @@ describe('Order Model', () => {
       })
   })
   it('should not resolve Fulfill Immediately because of failure', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       fulfillment_kind: 'immediate',
       total_price: 10,
-      total_items: 1
+      total_items: 1,
+      transactions: [
+        {
+          kind: 'sale',
+          status: 'success',
+          amount: 5
+        },
+        {
+          kind: 'capture',
+          status: 'failure',
+          amount: 5
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'sale',
-        status: 'success',
-        amount: 5
-      },
-      {
-        kind: 'capture',
-        status: 'failure',
-        amount: 5
-      }
-    ])
-    resOrder.save()
-      .then(() => {
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'sale',
+    //     status: 'success',
+    //     amount: 5
+    //   },
+    //   {
+    //     kind: 'capture',
+    //     status: 'failure',
+    //     amount: 5
+    //   }
+    // ])
+    // resOrder.save()
+      .then((order) => {
+        resOrder = order
         return resOrder.resolveSendImmediately()
       })
       .then(subscribe => {
@@ -177,30 +233,44 @@ describe('Order Model', () => {
       })
   })
   it('should not resolve Fulfill Immediately because of manual', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       fulfillment_kind: 'manual',
       total_price: 10,
-      total_items: 1
+      total_items: 1,
+      transactions: [
+        {
+          kind: 'sale',
+          status: 'success',
+          amount: 5
+        },
+        {
+          kind: 'capture',
+          status: 'success',
+          amount: 5
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'sale',
-        status: 'success',
-        amount: 5
-      },
-      {
-        kind: 'capture',
-        status: 'success',
-        amount: 5
-      }
-    ])
-    resOrder.save()
-      .then(() => {
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'sale',
+    //     status: 'success',
+    //     amount: 5
+    //   },
+    //   {
+    //     kind: 'capture',
+    //     status: 'success',
+    //     amount: 5
+    //   }
+    // ])
+    // resOrder.save()
+      .then((order) => {
+        resOrder = order
         return resOrder.resolveSendImmediately()
       })
       .then(subscribe => {
@@ -215,30 +285,44 @@ describe('Order Model', () => {
       })
   })
   it('should not resolve Fulfill Immediately because of manual and failure', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       fulfillment_kind: 'manual',
       total_price: 10,
-      total_items: 1
+      total_items: 1,
+      transactions: [
+        {
+          kind: 'sale',
+          status: 'success',
+          amount: 5
+        },
+        {
+          kind: 'capture',
+          status: 'failure',
+          amount: 5
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'sale',
-        status: 'success',
-        amount: 5
-      },
-      {
-        kind: 'capture',
-        status: 'failure',
-        amount: 5
-      }
-    ])
-    resOrder.save()
-      .then(() => {
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'sale',
+    //     status: 'success',
+    //     amount: 5
+    //   },
+    //   {
+    //     kind: 'capture',
+    //     status: 'failure',
+    //     amount: 5
+    //   }
+    // ])
+    // resOrder.save()
+      .then((order) => {
+        resOrder = order
         return resOrder.resolveSendImmediately()
       })
       .then(subscribe => {
@@ -254,53 +338,72 @@ describe('Order Model', () => {
   })
 
   it('should auto fulfill order when financial_status is updated to paid and fulfillment is immediate', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       shop_id: 1,
       customer_id: 1,
       fulfillment_kind: 'immediate',
       total_price: 10,
-      total_items: 1
+      total_items: 1,
+      transactions: [
+        {
+          kind: 'sale',
+          status: 'success',
+          amount: 5
+        },
+        {
+          kind: 'capture',
+          status: 'failure',
+          amount: 5
+        }
+      ],
+      fulfillments: [
+        {
+          service: 'manual'
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       },{
-        model: OrderItem,
+        model: OrderItem.instance,
         as: 'order_items',
-        include: [ global.app.models['Fulfillment'] ]
+        include: [ global.app.models['Fulfillment'].instance ]
       },{
-        model: global.app.models['Fulfillment'],
+        model: global.app.models['Fulfillment'].instance,
         as: 'fulfillments',
         include: [
           {
-            model: OrderItem,
+            model: OrderItem.instance,
             as: 'order_items'
           }
         ]
       },{
-        model: global.app.models['Event'],
+        model: global.app.models['Event'].instance,
         as: 'events'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'sale',
-        status: 'success',
-        amount: 5
-      },
-      {
-        kind: 'capture',
-        status: 'failure',
-        amount: 5
-      }
-    ])
-    resOrder.set('fulfillments', [
-      {
-        service: 'manual'
-      }
-    ])
-    return resOrder.save()
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'sale',
+    //     status: 'success',
+    //     amount: 5
+    //   },
+    //   {
+    //     kind: 'capture',
+    //     status: 'failure',
+    //     amount: 5
+    //   }
+    // ])
+    // resOrder.set('fulfillments', [
+    //   {
+    //     service: 'manual'
+    //   }
+    // ])
+    // return resOrder.save()
       .then(order => {
+        resOrder = order
         assert.equal(resOrder.financial_status, 'pending')
         assert.equal(resOrder.fulfillment_status, 'pending')
         // Add Order Item
@@ -343,12 +446,20 @@ describe('Order Model', () => {
   })
 
   it('should allow to add items to pending authorize/sale transaction', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       shop_id: 1,
       customer_id: 1,
       fulfillment_kind: 'manual',
       transaction_kind: 'authorize',
       payment_kind: 'manual',
+      transactions: [
+        {
+          kind: 'authorize',
+          status: 'pending',
+          amount: 0
+        }
+      ],
       fulfillments: [
         {
           service: 'manual'
@@ -356,35 +467,36 @@ describe('Order Model', () => {
       ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       },{
-        model: OrderItem,
+        model: OrderItem.instance,
         as: 'order_items'
       },{
-        model: global.app.models['Fulfillment'],
+        model: global.app.models['Fulfillment'].instance,
         as: 'fulfillments',
         include: [
           {
-            model: OrderItem,
+            model: OrderItem.instance,
             as: 'order_items'
           }
         ]
       },{
-        model: global.app.models['Event'],
+        model: global.app.models['Event'].instance,
         as: 'events'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'authorize',
-        status: 'pending',
-        amount: 0
-      },
-    ])
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'authorize',
+    //     status: 'pending',
+    //     amount: 0
+    //   },
+    // ])
 
-    return resOrder.save()
+    // return resOrder.save()
       .then(order => {
+        resOrder = order
         assert.equal(resOrder.financial_status, 'pending')
         assert.equal(resOrder.fulfillment_status, 'pending')
         return OrderService.addItem(resOrder, {product_id: 2, quantity: 1})
@@ -427,27 +539,36 @@ describe('Order Model', () => {
       })
   })
   it('should resolve transactions', (done) => {
-    const resOrder = Order.build({
+    let resOrder
+    Order.create({
       shop_id: 1,
       customer_id: 1,
       fulfillment_kind: 'manual',
       transaction_kind: 'authorize',
-      payment_kind: 'manual'
+      payment_kind: 'manual',
+      transactions: [
+        {
+          kind: 'authorize',
+          status: 'pending',
+          amount: 0
+        }
+      ]
     }, {
       include: [{
-        model: Transaction,
+        model: Transaction.instance,
         as: 'transactions'
       }]
     })
-    resOrder.set('transactions', [
-      {
-        kind: 'authorize',
-        status: 'pending',
-        amount: 0
-      },
-    ])
-    resOrder.save()
-      .then(() => {
+    // resOrder.set('transactions', [
+    //   {
+    //     kind: 'authorize',
+    //     status: 'pending',
+    //     amount: 0
+    //   },
+    // ])
+    // resOrder.save()
+      .then((order) => {
+        resOrder = order
         return resOrder.resolveTransactions()
       })
       .then(() => {

@@ -109,9 +109,6 @@ describe('Admin User Checkout with Product Discount', () => {
       .expect(200)
       .end((err, res) => {
         orderID = res.body.order.id
-
-        // console.log('BROKE USER STORY', res.body.order)
-
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
         assert.equal(res.body.order.customer_id, customerID)

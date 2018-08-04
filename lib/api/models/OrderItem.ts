@@ -603,21 +603,19 @@ OrderItem.prototype.setTaxLines = function(lines = []) {
 
 OrderItem.prototype.setProperties = function(prev) {
 
-  this.price_per_unit = this.price_per_unit || this.price
-
   if (this.properties && prev) {
     // Remove any old property pricing
     for (const l in prev.properties) {
       if (prev.properties.hasOwnProperty(l)) {
-        this.price = this.price - prev.properties[l].price
-        this.price_per_unit = this.price_per_unit - prev.properties[l].price
+        this.price = this.price - (prev.properties[l].price || 0)
+        this.price_per_unit = this.price_per_unit - (prev.properties[l].price || 0)
       }
     }
     // and then add the new properties in
     for (const l in this.properties) {
       if (this.properties.hasOwnProperty(l)) {
-        this.price = this.price + this.properties[l].price
-        this.price_per_unit = this.price_per_unit + this.properties[l].price
+        this.price = this.price + (this.properties[l].price || 0)
+        this.price_per_unit = this.price_per_unit + (this.properties[l].price || 0)
       }
     }
   }
@@ -651,9 +649,9 @@ OrderItem.prototype.recalculate = function(options: {[key: string]: any} = {}) {
     || this.changed('tax_lines')
     || this.changed('coupon_lines')
   ) {
-    this.app.log.debug('ORDER ITEM CHANGED')
+    // this.app.log.debug('ORDER ITEM CHANGED', this.id, Object.keys(this.previous()))
 
-    let totalDiscounts = 0 // this.total_discounts
+    let totalDiscounts = 0
     let totalShipping = 0
     let totalTaxes = 0
     let totalCoupons = 0
@@ -696,10 +694,7 @@ OrderItem.prototype.recalculate = function(options: {[key: string]: any} = {}) {
       }
       return line
     })
-
     const calculatedPrice = Math.max(0, (this.price_per_unit * this.quantity) - totalDiscounts - totalCoupons)
-
-    console.log('BROKE HERE', calculatedPrice, this.price_per_unit, this.quantity, totalDiscounts, totalCoupons)
 
     this.calculated_price = calculatedPrice
     this.total_discounts = totalDiscounts

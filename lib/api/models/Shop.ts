@@ -20,11 +20,11 @@ export class ShopResolver extends SequelizeResolver {
    */
   resolveById (shop, options: {[key: string]: any} = {}) {
     return this.findById(shop.id, options)
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resShop => {
+        if (!resShop && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Shop ${shop.id} not found`)
         }
-        return resUser
+        return resShop
       })
   }
   /**
@@ -38,11 +38,11 @@ export class ShopResolver extends SequelizeResolver {
         token: shop.token
       }
     }))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resShop => {
+        if (!resShop && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Shop token ${shop.token} not found`)
         }
-        return resUser
+        return resShop
       })
   }
   /**
@@ -56,11 +56,11 @@ export class ShopResolver extends SequelizeResolver {
         handle: shop.handle
       }
     }))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resShop => {
+        if (!resShop && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Shop handle ${shop.handle} not found`)
         }
-        return resUser
+        return resShop
       })
   }
   /**
@@ -70,11 +70,11 @@ export class ShopResolver extends SequelizeResolver {
    */
   resolveByNumber (shop, options: {[key: string]: any} = {}) {
     return this.findById(shop, options)
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resShop => {
+        if (!resShop && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Shop ${shop.token} not found`)
         }
-        return resUser
+        return resShop
       })
   }
   /**
@@ -88,11 +88,26 @@ export class ShopResolver extends SequelizeResolver {
         code: shop
       }
     }))
-      .then(resUser => {
-        if (!resUser && options.reject !== false) {
+      .then(resShop => {
+        if (!resShop && options.reject !== false) {
           throw new ModelError('E_NOT_FOUND', `Shop ${shop} not found`)
         }
-        return resUser
+        return resShop
+      })
+  }
+
+  /**
+   *
+   */
+  resolveDefault(options: {[key: string]: any} = {}) {
+    return this.findOne({
+      transaction: options.transaction || null
+    })
+      .then(resShop => {
+        if (!resShop && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', 'Shop not found')
+        }
+        return resShop
       })
   }
   /**
@@ -107,7 +122,8 @@ export class ShopResolver extends SequelizeResolver {
       'token': !!(shop && isObject(shop) && shop.token),
       'handle': !!(shop && isObject(shop) && shop.handle),
       'number': !!(shop && isNumber(shop)),
-      'string': !!(shop && isString(shop))
+      'string': !!(shop && isString(shop)),
+      'default': options.default === true
     }
     const type = Object.keys(resolvers).find((key) => resolvers[key])
 
@@ -129,6 +145,9 @@ export class ShopResolver extends SequelizeResolver {
       }
       case 'string': {
         return this.resolveByString(shop, options)
+      }
+      case 'default': {
+        return this.resolveDefault(options)
       }
       default: {
         // TODO create proper error

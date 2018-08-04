@@ -536,7 +536,7 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiPostCartRoute',
-            roles: ['admin', 'registered']
+            roles: ['admin', 'registered', 'public']
           }
         }
       }

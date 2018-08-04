@@ -29,7 +29,7 @@ export class TaxService extends Service {
   /**
    *
    */
-  getTaxes(obj, lineItems, resolvedItemsFromTo, options: {[key: string]: any} = {}) {
+  getTaxes(obj, lineItems = [], resolvedItemsFromTo, options: {[key: string]: any} = {}) {
     const taxProvider = this.app.config.get(`generics.${obj.tax_provider}`)
       || this.app.config.get('generics.tax_provider')
 

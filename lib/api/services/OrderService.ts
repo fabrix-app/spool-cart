@@ -474,10 +474,40 @@ export class OrderService extends Service {
    * @returns {*|Promise.<T>}
    */
   // TODO handle payment of remaining balance if provided
-  pay(order, paymentDetails, options) {
-    options = options || {}
+  pay(order, paymentDetails, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Sequelize = Order.sequelize
+
+    // Make sure order_items is in includes
+    options.includes = options.includes || []
+    if (!options.includes.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.includes.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.includes.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.includes.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Refund'].instance)) {
+      options.includes.push({
+        model: this.app.models['Refund'].instance,
+        as: 'refunds'
+      })
+    }
+
     let resOrder
     return Order.resolve(order, options)
       .then(_order => {
@@ -641,6 +671,37 @@ export class OrderService extends Service {
   refund(order, refunds = [], options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     const Sequelize = Order.sequelize
+
+    // Make sure order_items is in includes
+    options.includes = options.includes || []
+    if (!options.includes.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.includes.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.includes.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.includes.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Refund'].instance)) {
+      options.includes.push({
+        model: this.app.models['Refund'].instance,
+        as: 'refunds'
+      })
+    }
+
     let resOrder
     return Order.resolve(order, options)
       .then(_order => {
@@ -726,7 +787,7 @@ export class OrderService extends Service {
           totalRefunds = totalRefunds + refund.amount
         })
         resOrder.total_refunds = totalRefunds
-        return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
+        return resOrder.saveFinancialStatus({ reload: true, transaction: options.transaction || null })
       })
       .then(() => {
         const event = {
@@ -1038,6 +1099,38 @@ export class OrderService extends Service {
     const Order = this.app.models['Order']
     const Sequelize = Order.sequelize
     const reason = order.cancel_reason || ORDER_CANCEL.OTHER
+
+
+    // Make sure order_items is in includes
+    options.includes = options.includes || []
+    if (!options.includes.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.includes.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.includes.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.includes.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Refund'].instance)) {
+      options.includes.push({
+        model: this.app.models['Refund'].instance,
+        as: 'refunds'
+      })
+    }
+
     let resOrder, canRefund = [], canVoid = [], canCancel = [], canCancelFulfillment = []
     return Order.resolve(order, options)
       .then(_order => {
@@ -1134,7 +1227,8 @@ export class OrderService extends Service {
         return resOrder.sendCancelledEmail({transaction: options.transaction || null})
       })
       .then(() => {
-        return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)
+        // return resOrder.reload({ transaction: options.transaction || null }) //
+        return Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1295,11 +1389,34 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addItem(order, item, options) {
-    options = options || {}
+  addItem(order, item, options: {[key: string]: any} = {}) {
     if (!item) {
       throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
+
+    // Make sure order_items is in include
+    options.include = options.include || []
+    if (!options.include.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.include.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.include.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.include.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.include.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.include.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
     let resOrder, resItem
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
@@ -1365,11 +1482,34 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addItems(order, items, options) {
-    options = options || {}
+  addItems(order, items, options: {[key: string]: any} = {}) {
     if (!items) {
       throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
+
+    // Make sure order_items is in includes
+    options.includes = options.includes || []
+    if (!options.includes.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.includes.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.includes.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.includes.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
     let resOrder, resItems = []
     const Order = this.app.models['Order']
     const Sequelize = this.app.models['Product'].sequelize
@@ -1453,11 +1593,34 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  updateItem(order, item, options) {
-    options = options || {}
+  updateItem(order, item, options: {[key: string]: any} = {}) {
     if (!item) {
       throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
+
+    // Make sure order_items is in includes
+    options.includes = options.includes || []
+    if (!options.includes.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.includes.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.includes.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.includes.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
     let resOrder, resItem
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
@@ -1528,6 +1691,31 @@ export class OrderService extends Service {
     if (!item) {
       throw new ModelError('E_NOT_FOUND', 'Item is not defined')
     }
+
+    // Make sure order_items is in includes
+    options.includes = options.includes || []
+    if (!options.includes.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.includes.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.includes.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.includes.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
+
     let resOrder, resItem
     const Order = this.app.models['Order']
     return Order.resolve(order, options)
@@ -1594,8 +1782,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addShipping(order, shipping, options) {
-    options = options || {}
+  addShipping(order, shipping, options: {[key: string]: any} = {}) {
     if (!shipping) {
       throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
     }
@@ -1621,8 +1808,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeShipping(order, shipping, options) {
-    options = options || {}
+  removeShipping(order, shipping, options: {[key: string]: any} = {}) {
     if (!shipping) {
       throw new ModelError('E_NOT_FOUND', 'Shipping is not defined')
     }
@@ -1648,8 +1834,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addTaxes(order, taxes, options) {
-    options = options || {}
+  addTaxes(order, taxes, options: {[key: string]: any} = {}) {
     if (!taxes) {
       throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
     }
@@ -1675,8 +1860,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeTaxes(order, taxes, options) {
-    options = options || {}
+  removeTaxes(order, taxes, options: {[key: string]: any} = {}) {
     if (!taxes) {
       throw new ModelError('E_NOT_FOUND', 'Taxes is not defined')
     }
@@ -1702,14 +1886,36 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  fulfill(order, fulfillments, options) {
-    options = options || {}
-    fulfillments = fulfillments || []
+  fulfill(order, fulfillments = [], options: {[key: string]: any} = {}) {
 
     // Make this an array
     if (!_.isArray(fulfillments)) {
       fulfillments = [fulfillments]
     }
+
+    // Make sure order_items is in include
+    options.include = options.include || []
+    if (!options.include.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.include.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.include.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.include.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.include.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.include.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
 
     let resOrder
     const Order = this.app.models['Order']
@@ -1741,8 +1947,6 @@ export class OrderService extends Service {
 
         fulfillments = [...fulfillments, ..._fulfillments]
 
-        // console.log('BROKE',fulfillments)
-
         return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
       })
       .then(() => {
@@ -1757,14 +1961,43 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  send(order, fulfillments, options) {
-    options = options || {}
-    fulfillments = fulfillments || []
+  send(order, fulfillments = [], options: {[key: string]: any} = {}) {
+    const Order = this.app.models['Order']
     if (typeof fulfillments === 'string') {
       fulfillments = [fulfillments]
     }
+
+    // Make sure order_items is in includes
+    options.includes = options.includes || []
+    if (!options.includes.some(include => include.model === this.app.models['OrderItem'].instance)) {
+      options.includes.push({
+        model: this.app.models['OrderItem'].instance,
+        as: 'order_items'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Fulfillment'].instance)) {
+      options.includes.push({
+        model: this.app.models['Fulfillment'].instance,
+        as: 'fulfillments'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Transaction'].instance)) {
+      options.includes.push({
+        model: this.app.models['Transaction'].instance,
+        as: 'transactions'
+      })
+    }
+
+    if (!options.includes.some(include => include.model === this.app.models['Refund'].instance)) {
+      options.includes.push({
+        model: this.app.models['Refund'].instance,
+        as: 'refunds'
+      })
+    }
+
     let resOrder
-    const Order = this.app.models['Order']
     return Order.resolve(order, options)
       .then(_order => {
         if (!_order) {
@@ -1795,8 +2028,12 @@ export class OrderService extends Service {
           )
         })
       })
+      // .then(() => {
+      //   return resOrder.resolveFulfillmentStatus({reload: true, transaction: options.transaction || null})
+      // })
       .then(() => {
-        return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)
+        // return resOrder.reload({ transaction: options.transaction || null }) //
+        return Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1807,11 +2044,11 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  authorizeTransaction(order, transaction, options) {
-    options = options || {}
-
+  authorizeTransaction(order, transaction, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     let resOrder, resTransaction
+
+
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(_order => {
         if (!_order) {
@@ -1841,8 +2078,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  captureTransaction(order, transaction, options) {
-    options = options || {}
+  captureTransaction(order, transaction, options: {[key: string]: any} = {}) {
 
     const Order = this.app.models['Order']
     let resOrder, resTransaction
@@ -1875,8 +2111,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  payTransaction(order, transaction, options) {
-    options = options || {}
+  payTransaction(order, transaction, options: {[key: string]: any} = {}) {
 
     const Order = this.app.models['Order']
     let resOrder, resTransaction
@@ -1909,8 +2144,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  refundTransaction(order, transaction, options) {
-    options = options || {}
+  refundTransaction(order, transaction, options: {[key: string]: any} = {}) {
 
     const Order = this.app.models['Order']
     let resOrder, resTransaction
@@ -1943,8 +2177,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  retryTransaction(order, transaction, options) {
-    options = options || {}
+  retryTransaction(order, transaction, options: {[key: string]: any} = {}) {
 
     const Order = this.app.models['Order']
     let resOrder, resTransaction
@@ -1977,8 +2210,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  cancelTransaction(order, transaction, options) {
-    options = options || {}
+  cancelTransaction(order, transaction, options: {[key: string]: any} = {}) {
 
     const Order = this.app.models['Order']
     let resOrder, resTransaction
@@ -2010,8 +2242,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<transaction>}
    */
-  voidTransaction(order, transaction, options) {
-    options = options || {}
+  voidTransaction(order, transaction, options: {[key: string]: any} = {}) {
 
     const Order = this.app.models['Order']
     let resOrder, resTransaction
@@ -2045,9 +2276,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<fulfillment>}
    */
-  manualUpdateFulfillment(order, fulfillment, options) {
-    options = options || {}
-    // console.log('BROKE OrderService.manualUpdateFulfillment', fulfillment)
+  manualUpdateFulfillment(order, fulfillment, options: {[key: string]: any} = {}) {
     const Order = this.app.models['Order']
     let resOrder, resFulfillment
     return Order.resolve(order, {transaction: options.transaction || null})
@@ -2159,8 +2388,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  itemBeforeCreate(item, options) {
-    options = options || {}
+  itemBeforeCreate(item, options: {[key: string]: any} = {}) {
     return item.recalculate({transaction: options.transaction || null})
       .then(() => {
         return item
@@ -2174,8 +2402,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  itemBeforeUpdate(item, options) {
-    options = options || {}
+  itemBeforeUpdate(item, options: {[key: string]: any} = {}) {
     return item.recalculate({transaction: options.transaction || null})
       .then(() => {
         return item
@@ -2189,8 +2416,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  itemBeforeSave(item, options) {
-    options = options || {}
+  itemBeforeSave(item, options: {[key: string]: any} = {}) {
     return item.recalculate({transaction: options.transaction || null})
       .then(() => {
         return item
@@ -2203,7 +2429,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  itemAfterCreate(item, options) {
+  itemAfterCreate(item, options: {[key: string]: any} = {}) {
     // return item.reconcileFulfillment()
     //   .then(item => {
     //     return item
@@ -2217,7 +2443,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  itemAfterUpdate(item, options) {
+  itemAfterUpdate(item, options: {[key: string]: any} = {}) {
     // return item.reconcileFulfillment()
     //   .then(item => {
     //     return item
@@ -2225,7 +2451,7 @@ export class OrderService extends Service {
     return Promise.resolve(item)
   }
 
-  itemAfterDestroy(item, options) {
+  itemAfterDestroy(item, options: {[key: string]: any} = {}) {
     // return item.reconcileFulfillment()
     //   .then(item => {
     //     return item
@@ -2239,7 +2465,7 @@ export class OrderService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  afterCreate(order, options) {
+  afterCreate(order, options: {[key: string]: any} = {}) {
     order.number = `${order.shop_id}-${order.id + 1000}`
     if (!order.name && order.number) {
       order.name = `#${order.number}`
@@ -2249,7 +2475,7 @@ export class OrderService extends Service {
     // return Promise.resolve(order)
   }
 
-  afterUpdate(order, options) {
+  afterUpdate(order, options: {[key: string]: any} = {}) {
     // this.app.services.EngineService.publish('order.updated', order)
     return Promise.resolve(order)
   }

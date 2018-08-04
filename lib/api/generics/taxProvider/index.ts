@@ -1,16 +1,6 @@
 import { Generic } from '@fabrix/spool-generics'
 
-export class DefaultTaxProvider { // extends Generic {
-  // constructor(config) {
-  //   super(config)
-  //   // this.config = config
-  // }
-
-  public config: {[key: string]: any} = {}
-
-  constructor(config) {
-    this.config = config
-  }
+export class DefaultTaxProvider extends Generic {
 
   getRate(data) {
     return Promise.resolve({
@@ -22,7 +12,7 @@ export class DefaultTaxProvider { // extends Generic {
   }
 
   taxForOrder(data) {
-    const app = this.config.app
+    const app = this.app
     const Country = app.models['Country']
     const Province = app.models['Province']
     return Promise.resolve()
@@ -50,7 +40,7 @@ export class DefaultTaxProvider { // extends Generic {
 
         if (data.to_address && nexusProvinces.some(p => p.code === data.to_address.province_code)) {
           // this.config.app.log.debug('HAS NEXUS TAXES:', data.to_address.province_code)
-          this.config.app.log.debug('HAS NEXUS TAXES:', data.to_address.province_code)
+          this.app.log.debug('HAS NEXUS TAXES:', data.to_address.province_code)
 
           const nexus = nexusProvinces.find(p => p.code === data.to_address.province_code)
 

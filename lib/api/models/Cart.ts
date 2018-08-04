@@ -1172,7 +1172,7 @@ Cart.prototype.addLine = function(item, qty, properties, options = {}) {
         line = this.line(item)
         line = this.setLineProperties(line)
 
-        this.app.log.silly('Cart.addLine NEW LINE', line)
+        // this.app.log.silly('Cart.addLine NEW LINE', line)
         // Add line to line items
         lineItems.push(line)
         // Assign line items

@@ -1763,9 +1763,6 @@ Subscription.prototype.getCollectionPairs = function(options: {[key: string]: an
           model_id: variantIds
         })
       }
-
-      // console.log('BROKE CRITERIA',criteria)
-
       if (criteria.length > 0) {
         return this.app.models['ItemCollection'].findAll({
           where: {

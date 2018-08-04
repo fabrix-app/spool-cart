@@ -38,9 +38,10 @@ export class ProductResolver extends SequelizeResolver {
         // })
         // .then(() => {
         if (resProduct && options.req && options.req.customer) {
-          return resProduct.getCustomerHistory(options.req.customer, {
-            transaction: options.transaction || null
-          })
+          return resProduct.getCustomerHistory(
+            options.req.customer,
+            { transaction: options.transaction || null}
+          )
         }
         else {
           return
@@ -48,7 +49,7 @@ export class ProductResolver extends SequelizeResolver {
       })
       .then(() => {
         if (resProduct) {
-          return resProduct.calculate(this.app, {
+          return resProduct.calculate({
             req: options.req || null,
             transaction: options.transaction || null
           })
@@ -85,9 +86,10 @@ export class ProductResolver extends SequelizeResolver {
         // })
         // .then(() => {
         if (resProduct && options.req && options.req.customer) {
-          return resProduct.getCustomerHistory(this.app, options.req.customer, {
-            transaction: options.transaction || null
-          })
+          return resProduct.getCustomerHistory(
+            options.req.customer,
+            { transaction: options.transaction || null}
+          )
         }
         else {
           return
@@ -95,7 +97,7 @@ export class ProductResolver extends SequelizeResolver {
       })
       .then(() => {
         if (resProduct) {
-          return resProduct.calculate(this.app, {
+          return resProduct.calculate({
             req: options.req || null,
             transaction: options.transaction || null
           })
@@ -132,9 +134,10 @@ export class ProductResolver extends SequelizeResolver {
         // })
         // .then(() => {
         if (resProduct && options.req && options.req.customer) {
-          return resProduct.getCustomerHistory(options.req.customer, {
-            transaction: options.transaction || null
-          })
+          return resProduct.getCustomerHistory(
+            options.req.customer,
+            { transaction: options.transaction || null}
+          )
         }
         else {
           return
@@ -935,6 +938,7 @@ Product.prototype.setTotals = function() {
  */
 Product.prototype.getCustomerHistory = function(customer, options: {[key: string]: any} = {}) {
   let hasPurchaseHistory = false, isSubscribed = false
+
   return this.hasPurchaseHistory(customer.id, options)
     .then(pHistory => {
       hasPurchaseHistory = pHistory
@@ -956,21 +960,20 @@ Product.prototype.getCustomerHistory = function(customer, options: {[key: string
  *
  */
 Product.prototype.hasPurchaseHistory = function(customerId, options: {[key: string]: any} = {}) {
-  const $not = Op.not
+  // const $not = Op.not
 
   return this.app.models['OrderItem'].findOne({
     where: {
       customer_id: customerId,
       product_id: this.id,
       fulfillment_status: {
-        [$not]: ['cancelled', 'pending', 'none']
+        $not: ['cancelled', 'pending', 'none']
       }
     },
     attributes: ['id'],
     transaction: options.transaction || null
   })
     .then(pHistory => {
-      console.log('BROKE History', pHistory)
       if (pHistory) {
         return true
       }
@@ -1094,7 +1097,6 @@ Product.prototype.calculateDiscounts = function(options: {[key: string]: any} = 
     })
     .then(_collections => {
       collectionPairs = _collections
-      // console.log('BROKE COLLECTION IDS', collectionIds)
       if (options.req && options.req.cart && options.req.cart.id) {
         criteria.push({
           model: 'cart',
@@ -1160,9 +1162,6 @@ Product.prototype.calculateDiscounts = function(options: {[key: string]: any} = 
         }
         return d
       })
-
-      // console.log('Broke Criteria', discountCriteria)
-
       if (discounts.length > 0) {
         return this.app.models['Discount'].findAll({
           where: {

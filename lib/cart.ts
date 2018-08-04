@@ -55,9 +55,7 @@ export const Cart = {
     if (!app.config.get('generics.tax_provider.adapter')) {
       app.config.set('generics.tax_provider', {
         adapter: DefaultTaxProvider,
-        config: {
-          app: app
-        }
+        config: {}
       })
     }
     if (!app.config.get('generics.image_provider.adapter')) {
@@ -77,15 +75,15 @@ export const Cart = {
         adapter: RenderGeneric,
         config: {
           // Must always be set to true
-          html: true
-        },
-        plugins: [
-          // Example Plugin (markdown-it-meta is required and already installed)
-          // {
-          //   plugin: require('markdown-it-meta'),
-          //   config: {}
-          // }
-        ]
+          html: true,
+          plugins: [
+            // Example Plugin (markdown-it-meta is required and already installed)
+            // {
+            //   plugin: require('markdown-it-meta'),
+            //   config: {}
+            // }
+          ]
+        }
       })
     }
     return Promise.resolve({})

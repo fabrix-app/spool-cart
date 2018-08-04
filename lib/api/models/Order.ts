@@ -1341,6 +1341,9 @@ Order.prototype.fulfill = function(fulfillments = [], options: {[key: string]: a
       })
     })
     .then(() => {
+      return this.resolveFulfillments({reload: true, transaction: options.transaction || null})
+    })
+    .then(() => {
       return this.saveFulfillmentStatus({transaction: options.transaction || null})
     })
 }
@@ -2108,8 +2111,14 @@ Order.prototype.addItem = function(orderItem, options: {[key: string]: any} = {}
           })
       }
     })
+    .then((item) => {
+      return this.resolveOrderItems({reload: true, transaction: options.transaction || null})
+    })
     .then(() => {
-      return this.reload({transaction: options.transaction || null})
+      return this.resolveFulfillments({reload: true, transaction: options.transaction || null})
+    })
+    .then(() => {
+      return this.resolveTransactions({reload: true, transaction: options.transaction || null})
     })
 }
 /**
@@ -2187,7 +2196,13 @@ Order.prototype.updateItem = function(orderItem, options: {[key: string]: any} =
       }
     })
     .then(() => {
-      return this.reload({transaction: options.transaction || null})
+      return this.resolveOrderItems({reload: true, transaction: options.transaction || null})
+    })
+    .then(() => {
+      return this.resolveFulfillments({reload: true, transaction: options.transaction || null})
+    })
+    .then(() => {
+      return this.resolveTransactions({reload: true, transaction: options.transaction || null})
     })
 }
 /**
@@ -2231,7 +2246,13 @@ Order.prototype.removeItem = function(orderItem, options: {[key: string]: any} =
       }
     })
     .then(() => {
-      return this.reload({transaction: options.transaction || null})
+      return this.resolveOrderItems({reload: true, transaction: options.transaction || null})
+    })
+    .then(() => {
+      return this.resolveFulfillments({reload: true, transaction: options.transaction || null})
+    })
+    .then(() => {
+      return this.resolveTransactions({reload: true, transaction: options.transaction || null})
     })
 }
 /**

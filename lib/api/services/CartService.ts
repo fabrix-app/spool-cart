@@ -143,8 +143,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise<T>|Cart}
    */
-  update(identifier, cart, options) {
-    options = options || {}
+  update(identifier, cart, options: {[key: string]: any} = {}) {
     const Cart = this.app.models['Cart']
 
     let resCart
@@ -197,8 +196,7 @@ export class CartService extends Service {
    * @returns {Promise.<*>}
    */
   // TODO use any provided shipping/billing addresses and add them to customer address history
-  checkout(req, options) {
-    options = options || {}
+  checkout(req, options: {[key: string]: any} = {}) {
     // const Cart = this.app.models['Cart']
 
     if (!req.body.cart) {
@@ -444,8 +442,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise}
    */
-  afterOrder(req, order, options) {
-    options = options || {}
+  afterOrder(req, order, options: {[key: string]: any} = {}) {
     const Cart = this.app.models['Cart']
     return Cart.resolve(req.body.cart, {transaction: options.transaction || null})
       .then(cart => {
@@ -462,8 +459,7 @@ export class CartService extends Service {
    * @param options
    * @returns {Promise}
    */
-  pricingOverrides(overrides, id, admin, options) {
-    options = options || {}
+  pricingOverrides(overrides, id, admin, options: {[key: string]: any} = {}) {
     const Cart = this.app.models['Cart']
     // Standardize the input
     if (_.isObject(overrides) && overrides.pricing_overrides) {
@@ -824,7 +820,10 @@ export class CartService extends Service {
       cart.token = `cart_${shortid.generate()}`
     }
     // Will return default shop if blank
-    return this.app.models['Shop'].resolve(cart.shop_id, {transaction: options.transaction || null})
+    return this.app.models['Shop'].resolve(cart.shop_id, {
+      transaction: options.transaction || null,
+      default: true
+    })
       .then(shop => {
         cart.shop_id = shop.id
         return cart.recalculate({transaction: options.transaction || null})

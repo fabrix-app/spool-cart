@@ -1,16 +1,6 @@
 import { Generic } from '@fabrix/spool-generics'
 
-export class DefaultShippingProvider { // extends Generic {
-  // constructor(config) {
-  //   super(config)
-  //   // this.config = config
-  // }
-
-  public config: {[key: string]: any} = {}
-
-  constructor(config) {
-    this.config = config
-  }
+export class DefaultShippingProvider extends Generic {
 
   validateAddress(data) {
     return Promise.resolve(data)

@@ -732,7 +732,6 @@ Customer.prototype.hasPurchaseHistory = function(productId, options = {}) {
     transaction: options.transaction || null
   })
     .then(pHistory => {
-      console.log('BROKE History 2', pHistory)
       if (pHistory) {
         return true
       }

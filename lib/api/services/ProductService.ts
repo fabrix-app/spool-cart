@@ -589,7 +589,6 @@ export class ProductService extends Service {
         if (!product.seo_description && product.body) {
           update.seo_description = this.app.services.ProxyCartService.description(product.body)
         }
-        // console.log('BROKE', resProduct.variants.length, product.variants.length)
 
         // Update Existing Variant
         resProduct.variants = resProduct.variants.map(variant => {
