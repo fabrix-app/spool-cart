@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 
 import { TAG_MODELS } from '../../enums'
 
@@ -40,7 +39,7 @@ export class ItemTag extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'tag_model',
-        values: values(TAG_MODELS)
+        values: Object.values(TAG_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

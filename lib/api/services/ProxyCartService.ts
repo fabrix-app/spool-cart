@@ -1,5 +1,5 @@
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
+import * as _ from 'lodash'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { ValidationError } from '@fabrix/fabrix/dist/errors'
 import { address as addressSchema } from '../../schemas/address'

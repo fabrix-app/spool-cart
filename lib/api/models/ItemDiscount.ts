@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 
 import { DISCOUNT_MODELS } from '../../enums'
 
@@ -45,7 +44,7 @@ export class ItemDiscount extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'discount_model',
-        values: values(DISCOUNT_MODELS)
+        values: Object.values(DISCOUNT_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

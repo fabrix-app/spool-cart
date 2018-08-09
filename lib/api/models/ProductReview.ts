@@ -1,6 +1,6 @@
+import { FabrixApp } from '@fabrix/fabrix'
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { FabrixApp } from '@fabrix/fabrix'
 
 /**
  * @module ProductReview

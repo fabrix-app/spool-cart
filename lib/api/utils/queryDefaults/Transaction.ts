@@ -1,4 +1,4 @@
-module.exports = {
+export const Transaction = {
   default: (app) => {
     return {}
   }

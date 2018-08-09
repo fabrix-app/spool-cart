@@ -4,7 +4,7 @@ import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { FabrixApp } from '@fabrix/fabrix'
 import { values, isObject, isString, isNumber, defaultsDeep } from 'lodash'
 
-const queryDefaults = require('../utils/queryDefaults')
+import { ProductVariant as ProductVariantQuery } from '../utils/queryDefaults'
 import { UNITS } from '../../enums'
 import { INTERVALS } from '../../enums'
 import { INVENTORY_POLICY } from '../../enums'
@@ -18,13 +18,13 @@ export class ProductVariantResolver extends SequelizeResolver {
    * @returns {*|Promise.<Instance>}
    */
   findByIdDefault (id, options = {}) {
-    options = defaultsDeep(options, queryDefaults.ProductVariant.default(this.app))
+    options = defaultsDeep(options, ProductVariantQuery.default(this.app))
     return this.findById(id, options)
   }
 
   findAllDefault (options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.ProductVariant.default(this.app),
+      ProductVariantQuery.default(this.app),
       options
     )
     return this.findAll(options)

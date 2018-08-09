@@ -1,5 +1,4 @@
 import { User as PermissionsUser } from '@fabrix/spool-permissions/dist/api/models'
-import { User as PassportUser } from '@fabrix/spool-passport/dist/api/models'
 import { User as NotificationsUser } from '@fabrix/spool-notifications/dist/api/models'
 import { Utils } from '@fabrix/spool-sequelize'
 import { isString } from 'lodash'

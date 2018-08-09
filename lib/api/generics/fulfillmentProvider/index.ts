@@ -1,6 +1,6 @@
 import { Generic } from '@fabrix/spool-generics'
 
-const _ = require('lodash')
+import * as _ from 'lodash'
 export class ManualFulfillmentProvider extends Generic {
   /**
    *

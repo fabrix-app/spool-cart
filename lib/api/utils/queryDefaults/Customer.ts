@@ -1,4 +1,4 @@
-module.exports = {
+export const Customer = {
   default: (app) => {
     return {
       include: [

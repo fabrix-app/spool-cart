@@ -3,12 +3,11 @@ import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { isObject, isString, isNumber, values, merge } from 'lodash'
-import { Op } from 'sequelize'
 
+import { Product as ProductQuery } from '../utils/queryDefaults'
 import { UNITS } from '../../enums'
 import { PRODUCT_DEFAULTS } from '../../enums'
 import { DISCOUNT_STATUS } from '../../enums'
-const queryDefaults = require('../utils/queryDefaults')
 
 export class ProductResolver extends SequelizeResolver {
   /**
@@ -19,11 +18,9 @@ export class ProductResolver extends SequelizeResolver {
    */
   findByIdDefault (criteria, options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Product.default(this.app),
+      ProductQuery.default(this.app),
       options
     )
-    // console.log('Product.findByIdDefault', options)
-    // console.log(criteria, options)
     let resProduct
     return this.findById(criteria, options)
       .then(product => {
@@ -64,7 +61,7 @@ export class ProductResolver extends SequelizeResolver {
    */
   findByHandleDefault (handle, options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Product.default(this.app),
+      ProductQuery.default(this.app),
       options,
       {
         where: {
@@ -112,10 +109,9 @@ export class ProductResolver extends SequelizeResolver {
    */
   findOneDefault(options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Product.default(this.app),
+      ProductQuery.default(this.app),
       options
     )
-    // console.log('Product.findOneDefault', options)
     let resProduct
     return this.findOne(options)
       .then(product => {
@@ -162,7 +158,7 @@ export class ProductResolver extends SequelizeResolver {
    */
   findAllDefault(options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Product.findAllDefault(this.app),
+      ProductQuery.findAllDefault(this.app),
       options
     )
     return this.findAll(options)
@@ -174,7 +170,7 @@ export class ProductResolver extends SequelizeResolver {
    */
   findAndCountDefault (options) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Product.findAllDefault(this.app),
+      ProductQuery.findAllDefault(this.app),
       options
     )
     return this.findAndCountAll(options)
@@ -888,8 +884,6 @@ Product.prototype.setItemDiscountedLines = function (discounts = [], criteria = 
     }
   })
 
-  // console.log('FACTORED PRODUCT DISCOUNTS',factoredDiscountedLines)
-
   return this.setDiscountedLines(factoredDiscountedLines)
 }
 /**
@@ -960,7 +954,6 @@ Product.prototype.getCustomerHistory = function(customer, options: {[key: string
  *
  */
 Product.prototype.hasPurchaseHistory = function(customerId, options: {[key: string]: any} = {}) {
-  // const $not = Op.not
 
   return this.app.models['OrderItem'].findOne({
     where: {
@@ -1278,7 +1271,6 @@ Product.prototype.toJSON = function() {
 
   // Transform Tags to array on toJSON
   if (resp.tags) {
-    // console.log(resp.tags)
     resp.tags = resp.tags.map(tag => {
       if (tag && isString(tag)) {
         return tag
@@ -1320,7 +1312,6 @@ Product.prototype.toJSON = function() {
   }
   // Transform Vendors to strings
   if (resp.vendors) {
-    // console.log(resp.vendors)
     resp.vendors = resp.vendors.map(vendor => {
       if (vendor && isString(vendor)) {
         return vendor

@@ -137,7 +137,6 @@ export class ReviewController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ReviewController.removeVariant', err)
         return res.serverError(err)
       })
   }
@@ -160,7 +159,6 @@ export class ReviewController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ReviewController.removeVariant', err)
         return res.serverError(err)
       })
   }
@@ -183,7 +181,6 @@ export class ReviewController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ReviewController.removeVariant', err)
         return res.serverError(err)
       })
   }

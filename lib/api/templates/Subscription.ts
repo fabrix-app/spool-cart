@@ -1,6 +1,6 @@
 // tslint:disable:max-line-length
 import { Template } from '@fabrix/spool-email'
-const moment = require('moment')
+import * as moment from 'moment'
 
 export class Subscription extends Template {
   /**
@@ -9,8 +9,8 @@ export class Subscription extends Template {
    * @returns {string}
    */
   cancelled(subscription) {
-    let cancelTime = new Date(subscription.cancelled_at)
-    cancelTime = moment(cancelTime).format('LLLL')
+    const cancelTimeDate = new Date(subscription.cancelled_at)
+    const cancelTime = moment(cancelTimeDate.toDateString()).format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
@@ -50,8 +50,8 @@ ${subscriptionItems}
    */
   failed(subscription) {
 
-    let cancelTime = new Date(subscription.renews_on)
-    cancelTime = moment(cancelTime)
+    const cancelTimeDate = new Date(subscription.renews_on)
+    const cancelTime = moment(cancelTimeDate.toDateString())
       .add(this.app.config.get('cart.subscriptions.grace_period_days') || 0, 'days')
       .format('LLLL')
 
@@ -82,11 +82,11 @@ ${subscriptionItems}
   renewed(subscription) {
     // let renewTime = new Date(subscription.renewed_at)
     // renewTime = moment(renewTime).format('LLLL')
-    let renewOnTime = new Date(subscription.renews_on)
-    renewOnTime = moment(renewOnTime).format('LLLL')
+    const renewOnTimeDate = new Date(subscription.renews_on)
+    const renewOnTime = moment(renewOnTimeDate.toDateString()).format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
+      return `<p>${ item.name } x ${ item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
     }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Renewed</h1>
@@ -109,11 +109,11 @@ ${subscriptionItems}
    * @returns {string}
    */
   activated(subscription) {
-    let renewTime = new Date(subscription.renewed_at)
-    renewTime = moment(renewTime).format('LLLL')
+    const renewTimeDate = new Date(subscription.renewed_at)
+    const renewTime = moment(renewTimeDate.toDateString()).format('LLLL')
 
-    let renewOnTime = new Date(subscription.renews_on)
-    renewOnTime = moment(renewOnTime).format('LLLL')
+    const renewOnTimeDate = new Date(subscription.renews_on)
+    const renewOnTime = moment(renewOnTimeDate.toDateString()).format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
@@ -135,11 +135,11 @@ ${subscriptionItems}
    * @returns {string}
    */
   deactivated(subscription) {
-    let renewTime = new Date(subscription.renewed_at)
-    renewTime = moment(renewTime).format('LLLL')
+    const renewTimeDate = new Date(subscription.renewed_at)
+    const renewTime = moment(renewTimeDate.toDateString()).format('LLLL')
 
-    let renewOnTime = new Date(subscription.renews_on)
-    renewOnTime = moment(renewOnTime).format('LLLL')
+    const renewOnTimeDate = new Date(subscription.renews_on)
+    const renewOnTime = moment(renewOnTimeDate.toDateString()).format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
@@ -161,11 +161,11 @@ ${subscriptionItems}
    * @returns {string}
    */
   updated(subscription) {
-    let renewTime = new Date(subscription.renewed_at)
-    renewTime = moment(renewTime).format('LLLL')
+    const renewTimeDate = new Date(subscription.renewed_at)
+    const renewTime = moment(renewTimeDate.toDateString()).format('LLLL')
 
-    let renewOnTime = new Date(subscription.renews_on)
-    renewOnTime = moment(renewOnTime).format('LLLL')
+    const renewOnTimeDate = new Date(subscription.renews_on)
+    const renewOnTime = moment(renewOnTimeDate.toDateString()).format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
@@ -187,8 +187,8 @@ ${subscriptionItems}
    * @returns {string}
    */
   willRenew(subscription) {
-    let renewOnTime = new Date(subscription.renews_on)
-    renewOnTime = moment(renewOnTime).format('LLLL')
+    const renewOnTimeDate = new Date(subscription.renews_on)
+    const renewOnTime = moment(renewOnTimeDate.toDateString()).format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`

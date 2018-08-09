@@ -5,7 +5,7 @@ import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { isArray, isObject, isString, isNumber, defaults, groupBy, extend, values, each, findIndex, map, filter, forEach } from 'lodash'
 import * as shortId from 'shortid'
 
-const queryDefaults = require('../utils/queryDefaults')
+import { Order as OrderQuery } from '../utils/queryDefaults'
 import { ORDER_STATUS } from '../../enums'
 import { ORDER_CANCEL } from '../../enums'
 import { ORDER_FINANCIAL } from '../../enums'
@@ -26,7 +26,7 @@ export class OrderResolver extends SequelizeResolver {
    */
   findByIdDefault (id, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Order.default(this.app),
+      OrderQuery.default(this.app),
       options
     )
     return this.findById(id, options)
@@ -39,7 +39,7 @@ export class OrderResolver extends SequelizeResolver {
    */
   findByTokenDefault (token, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Order.default(this.app),
+      OrderQuery.default(this.app),
       options,
       {
         where: {
@@ -56,7 +56,7 @@ export class OrderResolver extends SequelizeResolver {
    */
   findAndCountDefault (options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Order.default(this.app),
+      OrderQuery.default(this.app),
       options
     )
     return this.findAndCountAll(options)
@@ -884,7 +884,6 @@ Order.prototype.toJSON = function() {
 
   // Transform Tags to array on toJSON
   if (resp.tags) {
-    // console.log(resp.tags)
     resp.tags = resp.tags.map(tag => {
       if (tag && isString(tag)) {
         return tag
@@ -1319,7 +1318,6 @@ Order.prototype.fulfill = function(fulfillments = [], options: {[key: string]: a
       toFulfill = fulfillments.map(fulfillment => this.fulfillments.find(f => f.id === fulfillment.id))
       // Remove empties
       toFulfill = toFulfill.filter(f => f)
-      // console.log('BROKE FULFILL', toFulfill)
       return this.sequelize.Promise.mapSeries(toFulfill, resFulfillment => {
         if (!(resFulfillment instanceof this.app.models['Fulfillment'].instance)) {
           throw new Error('resFulfillment is not an instance of Fulfillment')
@@ -1332,7 +1330,6 @@ Order.prototype.fulfill = function(fulfillments = [], options: {[key: string]: a
           tracking_number: fulfillment.tracking_number || resFulfillment.tracking_number,
           receipt: fulfillment.receipt || resFulfillment.receipt
         }
-        // console.log('UPDATE', update)
         return resFulfillment.fulfillUpdate(
           update,
           {
@@ -1899,7 +1896,6 @@ Order.prototype.resolveSendImmediately = function(options: {[key: string]: any} 
     return Promise.resolve(false)
   }
   if ([ORDER_FULFILLMENT.PENDING, ORDER_FULFILLMENT.NONE].indexOf(this.fulfillment_status) === -1) {
-    // console.log('NOT ME', this.fulfillment_status, ORDER_FULFILLMENT.PENDING, ORDER_FULFILLMENT.NONE)
     return Promise.resolve(false)
   }
   return this.resolveFinancialStatus({ transaction: options.transaction || null })
@@ -2104,7 +2100,6 @@ Order.prototype.addItem = function(orderItem, options: {[key: string]: any} = {}
         if (orderItem.properties) {
           prevOrderItem.properties = orderItem.properties
         }
-        // console.log('BREAKING', prevOrderItem)
         return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
           .then(() => {
             return prevOrderItem.save({transaction: options.transaction || null})
@@ -2179,8 +2174,6 @@ Order.prototype.updateItem = function(orderItem, options: {[key: string]: any} =
       if (orderItem.properties) {
         prevOrderItem.properties = orderItem.properties
       }
-
-      // console.log('BREAKING update', prevOrderItem)
 
       if (prevOrderItem.quantity <= 0) {
         return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
@@ -2275,7 +2268,7 @@ Order.prototype.reconcileTransactions = function(options: {[key: string]: any} =
     // authorize/capture/sale
     else {
       const amount = this.total_due - this.previous('total_due')
-      // console.log('CREATE NEW TRANSACTION', amount)
+      // this.app.log.debug('CREATE NEW TRANSACTION', amount)
       return this.app.services.TransactionService.reconcileCreate(
         this,
         amount,

@@ -4,7 +4,7 @@ import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { isObject, isString, isNumber, defaultsDeep, pick, extend, values } from 'lodash'
 
-const queryDefaults = require('../utils/queryDefaults')
+import { Collection as CollectionQuery } from '../utils/queryDefaults'
 import { COLLECTION_SORT_ORDER } from '../../enums'
 import { COLLECTION_PURPOSE } from '../../enums'
 import { COLLECTION_DISCOUNT_SCOPE } from '../../enums'
@@ -15,14 +15,14 @@ import { COLLECTION_SHIPPING_TYPE } from '../../enums'
 export class CollectionResolver extends SequelizeResolver {
   findByIdDefault(id, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Collection.default(this.app),
+      CollectionQuery.default(this.app),
       options
     )
     return this.findById(id, options)
   }
   findByHandleDefault(handle, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Collection.default(this.app),
+      CollectionQuery.default(this.app),
       {
         where: {
           handle: handle
@@ -34,7 +34,7 @@ export class CollectionResolver extends SequelizeResolver {
   }
   findOneDefault(options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Collection.default(this.app),
+      CollectionQuery.default(this.app),
       options
     )
     return this.findOne(options)
@@ -42,7 +42,7 @@ export class CollectionResolver extends SequelizeResolver {
 
   findAllDefault(options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Collection.default(this.app),
+      CollectionQuery.default(this.app),
       options
     )
     return this.findAll(options)
@@ -50,7 +50,7 @@ export class CollectionResolver extends SequelizeResolver {
 
   findAndCountDefault(options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Collection.findAndCountDefault(this.app),
+      CollectionQuery.findAndCountDefault(this.app),
       options
     )
     return this.findAndCountAll(options)
@@ -708,7 +708,6 @@ Collection.prototype.toJSON = function() {
 
   // Transform Tags to array on toJSON
   if (resp.tags) {
-    // console.log(resp.tags)
     resp.tags = resp.tags.map(tag => {
       if (tag && isString(tag)) {
         return tag

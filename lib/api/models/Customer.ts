@@ -4,9 +4,7 @@ import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { isObject, isString, isNumber, defaultsDeep, pick, extend, values } from 'lodash'
 import * as shortId from 'shortid'
-import { Op } from 'sequelize'
-
-const queryDefaults = require('../utils/queryDefaults')
+import { Customer as CustomerQuery } from '../utils/queryDefaults'
 import { CUSTOMER_STATE } from '../../enums'
 
 export class CustomerResolver extends SequelizeResolver {
@@ -15,7 +13,7 @@ export class CustomerResolver extends SequelizeResolver {
    */
   findByIdDefault (id, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Customer.default(this.app),
+      CustomerQuery.default(this.app),
       options
     )
     return this.findById(id, options)
@@ -28,7 +26,7 @@ export class CustomerResolver extends SequelizeResolver {
    */
   findByTokenDefault (token, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Customer.default(this.app),
+      CustomerQuery.default(this.app),
       options,
       {
         where: {
@@ -43,7 +41,7 @@ export class CustomerResolver extends SequelizeResolver {
    */
   findAndCountDefault (options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Customer.default(this.app),
+      CustomerQuery.default(this.app),
       options || {},
       {distinct: true}
     )
@@ -719,13 +717,12 @@ Customer.prototype.getProductHistory = function( product, options = {}) {
  *
  */
 Customer.prototype.hasPurchaseHistory = function(productId, options = {}) {
-  const $not = Op.not
   return this.app.models['OrderItem'].findOne({
     where: {
       customer_id: this.id,
       product_id: productId,
       fulfillment_status: {
-        [$not]: ['cancelled', 'pending', 'none']
+        $not: ['cancelled', 'pending', 'none']
       }
     },
     attributes: ['id'],

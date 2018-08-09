@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 import { INTERVALS } from '../../enums'
 
 // const SUBSCRIPTION_CANCEL = require('../../lib').Enums.SUBSCRIPTION_CANCEL
@@ -78,7 +77,7 @@ export class SubscriptionUpload extends Model {
       // The unit of the interval
       unit: {
         type: Sequelize.ENUM,
-        values: values(INTERVALS),
+        values: Object.values(INTERVALS),
         defaultValue: INTERVALS.MONTH
       },
       // Active Subscription

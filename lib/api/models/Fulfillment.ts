@@ -4,7 +4,7 @@ import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { defaultsDeep, isObject, isNumber, isString, values } from 'lodash'
 
-const queryDefaults = require('../utils/queryDefaults')
+import { Fulfillment as FulfillmentQuery } from '../utils/queryDefaults'
 import { FULFILLMENT_STATUS } from '../../enums'
 import { FULFILLMENT_SERVICE } from '../../enums'
 
@@ -12,7 +12,7 @@ export class FulfillmentResolver extends SequelizeResolver {
 
   findByIdDefault(id, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Fulfillment.default(this.app),
+      FulfillmentQuery.default(this.app),
       options
     )
     return this.findById(id, options)
@@ -20,7 +20,7 @@ export class FulfillmentResolver extends SequelizeResolver {
 
   findAndCountDefault(options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Fulfillment.default(this.app),
+      FulfillmentQuery.default(this.app),
       options
     )
     return this.findAndCountAll(options)

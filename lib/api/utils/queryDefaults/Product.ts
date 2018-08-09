@@ -1,4 +1,4 @@
-module.exports = {
+export const Product = {
   default: (app) => {
     return {
       include: [

@@ -1,6 +1,6 @@
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
-const moment = require('moment')
+import { omit, clone } from 'lodash'
+import * as moment from 'moment'
 import { COLLECTION_DISCOUNT_TYPE } from '../../enums'
 import { COLLECTION_DISCOUNT_SCOPE } from '../../enums'
 import { DISCOUNT_STATUS } from '../../enums'
@@ -258,7 +258,7 @@ export class DiscountService extends Service {
               }
               // const lineDiscountedLines = item.discounted_lines
               // Set the default Discounted Line
-              const lineDiscountedLine = _.omit(_.clone(discountedLine), 'lines')
+              const lineDiscountedLine = omit(clone(discountedLine), 'lines')
 
               if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
                 lineDiscountedLine.price = discountedLine.rate
@@ -302,7 +302,7 @@ export class DiscountService extends Service {
 
             // const lineDiscountedLines = item.discounted_lines
             // Set the default Discounted Line
-            const lineDiscountedLine = _.omit(_.clone(discountedLine), 'lines')
+            const lineDiscountedLine = omit(clone(discountedLine), 'lines')
 
             if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
               lineDiscountedLine.price = discountedLine.rate

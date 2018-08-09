@@ -1,10 +1,10 @@
 // tslint:disable:no-console
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const csvParser = require('papaparse')
-const _ = require('lodash')
-const shortid = require('shortid')
-const fs = require('fs')
-import  { COLLECTION_UPLOAD } from '../../enums'
+import * as csvParser from 'papaparse'
+import * as _ from 'lodash'
+import * as shortid from 'shortid'
+import * as fs from 'fs'
+import { COLLECTION_UPLOAD } from '../../enums'
 
 /**
  * @module CollectionCsvService
@@ -20,7 +20,7 @@ export class CollectionCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const EngineService = this.app.services.EngineService
-    const errors = []
+    const errors: any[] = []
     let errorsCount = 0, lineNumber = 1
 
     return new Promise((resolve, reject) => {
@@ -44,7 +44,6 @@ export class CollectionCsvService extends Service {
         },
         complete: (results, _file) => {
           console.timeEnd('csv')
-          // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
           EngineService.count('CollectionUpload', { where: { upload_id: uploadID }})
             .then(count => {
@@ -80,7 +79,6 @@ export class CollectionCsvService extends Service {
   csvCollectionRow(row, uploadID) {
     return Promise.resolve()
       .then(() => {
-        // console.log(row)
         const CollectionUpload = this.app.models.CollectionUpload
         const values = _.values(COLLECTION_UPLOAD)
         const keys = _.keys(COLLECTION_UPLOAD)
@@ -226,7 +224,7 @@ export class CollectionCsvService extends Service {
 
       return this.app.models.Collection.sequelize.Promise.mapSeries(collections, collection => {
 
-        let create = {
+        let create: {[key: string]: any} = {
           handle: collection.handle,
           title: collection.title,
           description: collection.description,
