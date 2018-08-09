@@ -1,7 +1,6 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-import { FabrixApp } from '@fabrix/fabrix'
 import { isObject, isString, isNumber, defaultsDeep, pick, extend, values } from 'lodash'
 import * as shortId from 'shortid'
 import * as moment from 'moment'

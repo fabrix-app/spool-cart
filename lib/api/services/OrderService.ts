@@ -296,7 +296,6 @@ export class OrderService extends Service {
 
           // order.set('order_items', lineItems)
           //
-          // console.log('BROKE ORDER 1', order)
           // return order.save({transaction: options.transaction || null})
         })
         .then(_order => {

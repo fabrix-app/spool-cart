@@ -1,20 +1,20 @@
-exports.Address = require('./Address')
-exports.Cart = require('./Cart')
-exports.City = require('./City')
-exports.Collection = require('./Collection')
-exports.Country = require('./Country')
-exports.Coupon = require('./Coupon')
-exports.Customer = require('./Customer')
-exports.Discount = require('./Discount')
-exports.Fulfillment = require('./Fulfillment')
-exports.GiftCard = require('./GiftCard')
-exports.Metadata = require('./Metadata')
-exports.Order = require('./Order')
-exports.Product = require('./Product')
-exports.ProductVariant = require('./ProductVariant')
-exports.Province = require('./Province')
-exports.Refund = require('./Refund')
-exports.Shop = require('./Shop')
-exports.Subscription = require('./Subscription')
-exports.Tag = require('./Tag')
-exports.Transaction = require('./Transaction')
+export { Address } from './Address'
+export { Cart } from './Cart'
+export { City } from './City'
+export { Collection } from './Collection'
+export { Country } from './Country'
+export { Coupon } from './Coupon'
+export { Customer } from './Customer'
+export { Discount } from './Discount'
+export { Fulfillment } from './Fulfillment'
+export { GiftCard } from './GiftCard'
+export { Metadata } from './Metadata'
+export { Order } from './Order'
+export { Product } from './Product'
+export { ProductVariant } from './ProductVariant'
+export { Province } from './Province'
+export { Refund } from './Refund'
+export { Shop } from './Shop'
+export { Subscription } from './Subscription'
+export { Tag } from './Tag'
+export { Transaction } from './Transaction'

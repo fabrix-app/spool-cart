@@ -1,4 +1,4 @@
-module.exports = {
+export const Subscription = {
   default: (app) => {
     return {
       include: [

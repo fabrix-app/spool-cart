@@ -7,7 +7,7 @@ import { FabrixApp } from '@fabrix/fabrix'
 import { CART_STATUS } from '../../enums'
 import { DISCOUNT_STATUS } from '../../enums'
 import { PAYMENT_PROCESSING_METHOD } from '../../enums'
-const queryDefaults = require('../utils/queryDefaults')
+import { Cart as CartQuery } from '../utils/queryDefaults'
 
 export class CartResolver extends SequelizeResolver {
   /**
@@ -21,7 +21,7 @@ export class CartResolver extends SequelizeResolver {
       throw new Error('Id was not a string or a number')
     }
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Cart.default(this.app),
+      CartQuery.default(this.app),
       options
     )
     return this.findById(id, options)
@@ -33,7 +33,7 @@ export class CartResolver extends SequelizeResolver {
    */
   findOneDefault(options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Cart.default(this.app),
+      CartQuery.default(this.app),
       options
     )
     return this.findOne(options)
@@ -49,7 +49,7 @@ export class CartResolver extends SequelizeResolver {
       throw new Error('Token is not a string')
     }
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Cart.default(this.app),
+      CartQuery.default(this.app),
       options,
       {
         where: {
@@ -821,8 +821,6 @@ Cart.prototype.setItemsDiscountedLines = function (discounts, criteria) {
     return line
   })
 
-  // console.log('Lines results', discountedLines)
-
   // Apply rules to line item discounts
   discountedLines.forEach(line => {
     line.discounts.forEach(discount => {
@@ -917,8 +915,6 @@ Cart.prototype.setItemsShippingLines = function (items) {
       totalShipping = shippedLine.shipping_lines.forEach(line => {
         totalShipping = totalShipping + line.price
       })
-
-      // console.log('SHIPPED LINE', shippedLine)
       shippingLines = [...shippingLines, ...shippedLine.shipping_lines]
       item.shipping_lines = shippedLine.shipping_lines
       item.total_shipping = totalShipping
@@ -963,7 +959,6 @@ Cart.prototype.setItemsTaxLines = function (items) {
         totalTaxes = totalTaxes + line.price
       })
 
-      // console.log('TAXED LINE', taxedLine)
       taxesLines = [...taxesLines, ...taxedLine.tax_lines]
       item.tax_lines = taxedLine.tax_lines
       item.total_taxes = totalTaxes
@@ -1373,7 +1368,7 @@ Cart.prototype.ordered = function(order, save) {
   if (save) {
     return this.save(save)
   }
-  // console.log('WANTS PROMISE', this)
+
   return this // Promise.resolve(this)
 }
 /**
@@ -1649,7 +1644,6 @@ Cart.prototype.calculateShipping = function(options: {[key: string]: any} = {}) 
     options
   )
     .then(shippingResult => {
-      // console.log('WORKING ON SHIPPING RESULT', shippingResult.line_items)
       this.setItemsShippingLines(shippingResult.line_items)
 
       return this
@@ -1674,7 +1668,6 @@ Cart.prototype.calculateTaxes = function(options: {[key: string]: any} = {}) {
     options
   )
     .then(taxesResult => {
-      // console.log('WORKING ON TAXES RESULT', taxesResult.line_items)
       this.setItemsTaxLines(taxesResult.line_items)
 
       return this

@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 
 import { INTERVALS } from '../../enums'
 import { INVENTORY_POLICY } from '../../enums'
@@ -223,7 +222,7 @@ export class ProductUpload extends Model {
       // 'Variant Inventory Policy'
       inventory_policy: {
         type: Sequelize.ENUM,
-        values: values(INVENTORY_POLICY)
+        values: Object.values(INVENTORY_POLICY)
         // defaultValue: INVENTORY_POLICY.DENY
       },
       max_quantity: {
@@ -291,7 +290,7 @@ export class ProductUpload extends Model {
       // 'Subscription Unit'
       subscription_unit: {
         type: Sequelize.ENUM,
-        values: values(INTERVALS)
+        values: Object.values(INTERVALS)
         // defaultValue: INTERVALS.NONE
       },
       // 'Subscription Interval'

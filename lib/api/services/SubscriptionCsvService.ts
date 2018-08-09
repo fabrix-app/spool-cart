@@ -1,9 +1,9 @@
 // tslint:disable:no-console
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const csvParser = require('papaparse')
-const _ = require('lodash')
-const shortid = require('shortid')
-const fs = require('fs')
+import * as csvParser from 'papaparse'
+import * as _ from 'lodash'
+import * as shortid from 'shortid'
+import * as fs from 'fs'
 import { SUBSCRIPTION_UPLOAD } from '../../enums'
 
 /**
@@ -43,7 +43,6 @@ export class SubscriptionCsvService extends Service {
         },
         complete: (results, _file) => {
           console.timeEnd('csv')
-          // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
           EngineService.count('SubscriptionUpload', { where: { upload_id: uploadID }})
             .then(count => {
@@ -162,7 +161,6 @@ export class SubscriptionCsvService extends Service {
           active: subscription.active,
           token: subscription.token
         }
-        // console.log('UPLOAD SUBSCRIPTION', create)
         return this.transformFromRow(create)
           .then(() => {
             subscriptionsTotal++

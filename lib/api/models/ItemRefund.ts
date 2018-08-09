@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 
 import { REFUND_MODELS } from '../../enums'
 
@@ -41,7 +40,7 @@ export class ItemRefund extends Model {
         type: Sequelize.ENUM,
         unique: 'item_refund',
         notNull: true,
-        values: values(REFUND_MODELS)
+        values: Object.values(REFUND_MODELS)
       },
       model_id: {
         type: Sequelize.STRING,

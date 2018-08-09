@@ -1,9 +1,9 @@
 // tslint:disable:no-console
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const csvParser = require('papaparse')
-const _ = require('lodash')
-const shortid = require('shortid')
-const fs = require('fs')
+import * as csvParser from 'papaparse'
+import * as _ from 'lodash'
+import * as shortid from 'shortid'
+import * as fs from 'fs'
 import { ORDER_UPLOAD } from '../../enums'
 
 /**
@@ -43,7 +43,6 @@ export class OrderCsvService extends Service {
         },
         complete: (results, _file) => {
           console.timeEnd('csv')
-          // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
           EngineService.count('OrderUpload', { where: { upload_id: uploadID }})
             .then(count => {
@@ -78,7 +77,6 @@ export class OrderCsvService extends Service {
    * @param uploadID
    */
   csvOrderRow(row, uploadID) {
-    // console.log(row)
     const OrderUpload = this.app.models.OrderUpload
     const values = _.values(ORDER_UPLOAD)
     const keys = _.keys(ORDER_UPLOAD)
@@ -178,7 +176,6 @@ export class OrderCsvService extends Service {
           if (_.isEmpty(create.billing_address)) {
             delete create.billing_address
           }
-          // console.log('UPLOAD ORDER', create)
           return this.transformFromRow(create, {})
         })
           .then(results => {

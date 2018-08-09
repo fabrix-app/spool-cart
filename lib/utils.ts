@@ -9,7 +9,7 @@ export const Utils = {
       shops: []
     }
     fixtures.shops.push(app.config.get('cart.nexus'))
-    // console.log('utils.buildShopFixtures', fixtures)
+    // app.log.debug('utils.buildShopFixtures', fixtures)
     return Promise.resolve(fixtures)
   },
   /**
@@ -67,7 +67,7 @@ export const Utils = {
     app.config.get('cart.default_countries').forEach(country => {
       fixtures.countries.push(country)
     })
-    // console.log('utils.buildShopFixtures', fixtures)
+    // app.log.debug('utils.buildShopFixtures', fixtures)
     return Promise.resolve(fixtures)
   },
   /**

@@ -681,7 +681,6 @@ export class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.clearCart', err)
         this.app.log.error('CartController.login', err)
         return res.serverError(err)
       })

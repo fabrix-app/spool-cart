@@ -2,8 +2,8 @@
 
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
-const shortid = require('shortid')
+import * as _ from 'lodash'
+import * as shortid from 'shortid'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { PAYMENT_PROCESSING_METHOD } from '../../enums'
 import { CART_STATUS } from '../../enums'

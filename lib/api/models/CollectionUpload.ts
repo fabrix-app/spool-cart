@@ -1,7 +1,6 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { values } from 'lodash'
-// const helpers = require('engine-helpers')
 import { COLLECTION_SORT_ORDER } from '../../enums'
 import { COLLECTION_PURPOSE } from '../../enums'
 import { COLLECTION_DISCOUNT_SCOPE } from '../../enums'

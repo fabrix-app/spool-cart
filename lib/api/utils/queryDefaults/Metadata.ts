@@ -1,4 +1,4 @@
-module.exports = {
+export const Metadata = {
   default: (app) => {
     return {}
   }

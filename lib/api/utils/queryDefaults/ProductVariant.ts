@@ -1,4 +1,4 @@
-module.exports = {
+export const ProductVariant = {
   default: (app) => {
     return {}
   }

@@ -380,7 +380,6 @@ export class ProductController extends Controller {
           return _.extend(product, {position: models.find(m => m.model_id === product.id).position})
         })
         products = _.orderBy(products, ['position'], ['asc'])
-        // console.log('working on models', products)
         // Paginate
         res.paginate(count, limit, offset, sort)
         return this.app.services.PermissionsService.sanitizeResult(req, products)

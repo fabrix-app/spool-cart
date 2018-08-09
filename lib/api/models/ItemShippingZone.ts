@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 
 import { SHIPPING_MODELS } from '../../enums'
 
@@ -40,7 +39,7 @@ export class ItemShippingZone extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'shipping_zone_model',
-        values: values(SHIPPING_MODELS)
+        values: Object.values(SHIPPING_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

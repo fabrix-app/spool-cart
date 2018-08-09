@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 
 import { IMAGE_MODELS } from '../../enums'
 
@@ -40,7 +39,7 @@ export class ItemImage extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'image_model',
-        values: values(IMAGE_MODELS)
+        values: Object.values(IMAGE_MODELS)
       },
       // ID of the model the image belongs to
       model_id: {

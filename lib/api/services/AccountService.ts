@@ -1,10 +1,7 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const _ = require('lodash')
-const moment = require('moment')
+import { isNumber, merge, extend } from 'lodash'
+import * as moment from 'moment'
 import { TRANSACTION_STATUS } from '../../enums'
 
 /**
@@ -45,7 +42,7 @@ export class AccountService extends Service {
            return detail
          })
       }
-      else if (_.isNumber(detail.source)) {
+      else if (isNumber(detail.source)) {
         return this.app.models['Source'].findById(detail.source)
           .then(source => {
             // Convert to plain object
@@ -113,10 +110,10 @@ export class AccountService extends Service {
           email: resAccount.email
         }
         // Merge the updates
-        update = _.merge(update, updates)
+        update = merge(update, updates)
         return this.app.services.PaymentGenericService.updateCustomer(update)
           .then(updatedAccount => {
-            resAccount  = _.extend(resAccount, updatedAccount)
+            resAccount  = extend(resAccount, updatedAccount)
             return resAccount.save({transaction: options.transaction || null})
           })
       })
@@ -333,7 +330,7 @@ export class AccountService extends Service {
         return this.app.services.PaymentGenericService.findCustomerSource(find)
       })
       .then(serviceCustomerSource => {
-        resSource = _.extend(resSource, serviceCustomerSource)
+        resSource = extend(resSource, serviceCustomerSource)
         resSource.is_default = true
         return resSource.save({transaction: options.transaction || null})
       })
@@ -383,11 +380,11 @@ export class AccountService extends Service {
           account_foreign_id: resAccount.foreign_id,
           foreign_id: resSource.foreign_id
         }
-        update = _.merge(update, updates)
+        update = merge(update, updates)
         return this.app.services.PaymentGenericService.updateCustomerSource(update)
       })
       .then(serviceCustomerSource => {
-        resSource = _.extend(resSource, serviceCustomerSource)
+        resSource = extend(resSource, serviceCustomerSource)
         return resSource.save({transaction: options.transaction || null})
       })
       .then(() => {

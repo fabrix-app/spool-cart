@@ -1,6 +1,5 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
-import { values } from 'lodash'
 
 import { CUSTOMER_MODELS } from '../../enums'
 /**
@@ -44,7 +43,7 @@ export class ItemCustomer extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'customer_model',
-        values: values(CUSTOMER_MODELS)
+        values: Object.values(CUSTOMER_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

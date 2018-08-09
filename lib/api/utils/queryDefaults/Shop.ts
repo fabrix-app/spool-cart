@@ -1,4 +1,4 @@
-module.exports = {
+export const Shop = {
   default: (app) => {
     return {}
   }

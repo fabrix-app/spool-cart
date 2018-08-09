@@ -1,9 +1,9 @@
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
+import { omit } from 'lodash'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { TRANSACTION_STATUS } from '../../enums'
 import { TRANSACTION_KIND } from '../../enums'
-const moment = require('moment')
+import * as moment from 'moment'
 
 /**
  * @module TransactionService
@@ -178,7 +178,7 @@ export class TransactionService extends Service {
         return resTransaction.save({transaction: options.transaction || null})
       })
       .then(() => {
-        const newTransaction = _.omit(resTransaction.get({plain: true}), ['id', 'token'])
+        const newTransaction = omit(resTransaction.get({plain: true}), ['id', 'token'])
         newTransaction.amount = amount
         return this.create(newTransaction, {transaction: options.transaction || null})
       })

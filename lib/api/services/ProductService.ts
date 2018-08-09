@@ -2,11 +2,11 @@
 
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
+import * as _ from 'lodash'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { PRODUCT_DEFAULTS } from '../../enums'
 import { VARIANT_DEFAULTS } from '../../enums'
-const fs = require('fs')
+import * as fs from 'fs'
 
 /**
  * @module ProductService
@@ -143,14 +143,12 @@ export class ProductService extends Service {
     })
       .then(resProduct => {
         if (resProduct instanceof Product.instance) {
-          // console.log('UPDATING', product)
           // Set ID in case it's missing in this transaction
           product.id = resProduct.id
           // Update the existing product
           return this.updateProduct(product, options)
         }
         else {
-          // console.log('CREATING', product)
           // Create a new Product
           return this.createProduct(product, options)
         }
@@ -334,7 +332,6 @@ export class ProductService extends Service {
           throw new Error('Product was not created')
         }
         resProduct = createdProduct
-        // console.log('createdProduct',createdProduct)
         if (product.tags && product.tags.length > 0) {
           product.tags = _.sortedUniq(product.tags.filter(n => n))
           return Tag.transformTags(product.tags, {transaction: options.transaction || null})
@@ -372,7 +369,6 @@ export class ProductService extends Service {
       .then(collections => {
         if (collections && collections.length > 0) {
           return Product.sequelize.Promise.mapSeries(collections, collection => {
-            // console.log('WORKING ON ADDING', collection)
             const through = collection.product_position ? {position: collection.product_position} : {}
             return resProduct.addCollection(collection.id, {
               through: through,
@@ -524,8 +520,6 @@ export class ProductService extends Service {
           options: productOptions
         }
 
-        // console.log('BROKE DEFAULT SKU', resProduct.variants[0].id,  resProduct.variants[0].sku)
-
         // force array of variants
         product.variants = product.variants || []
         // force array of images
@@ -626,7 +620,6 @@ export class ProductService extends Service {
         product.variants = product.variants.map((variant) => {
           // Set the product id of the variant
           variant.product_id = resProduct.id
-          // console.log('BROKE NEW VARIANT', variant.id, variant.sku)
           // Set the defaults
           variant = this.variantDefaults(variant, resProduct.get({plain: true}))
 
@@ -651,9 +644,6 @@ export class ProductService extends Service {
           }
           return Variant.build(variant)
         })
-
-        // console.log('BROKE TO BE CREATED VARIANTS', product.variants.length)
-
         // Join all the variants and sort by current positions
         resProduct.variants = _.sortBy(_.concat(resProduct.variants, product.variants), 'position')
 
@@ -739,7 +729,6 @@ export class ProductService extends Service {
         // Set the collections
         if (collections && collections.length > 0) {
           return Product.sequelize.Promise.mapSeries(collections, collection => {
-            // console.log('WORKING ON ADDING', collection)
             const through = collection.product_position ? {position: collection.product_position} : {}
             return resProduct.addCollection(collection.id, {
               through: through,
@@ -777,7 +766,6 @@ export class ProductService extends Service {
       .then(vendors => {
         return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
           if (variant instanceof Variant.instance) {
-            // console.log('broke saving', variant.id, variant.sku)
             return variant.save({
               transaction: options.transaction || null
             })
@@ -787,7 +775,6 @@ export class ProductService extends Service {
                 })
           }
           else {
-            // console.log('BROKE creating', variant.sku)
             return resProduct.createVariant(variant, {
               transaction: options.transaction || null
             })
@@ -1344,7 +1331,6 @@ export class ProductService extends Service {
       throw new ModelError('E_NOT_FOUND', 'Product or Association was not provided')
     }
 
-    // console.log('BROKE ASSOCIATION', product, association)
 
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {

@@ -2,7 +2,6 @@ import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 
 import { COLLECTION_MODELS } from '../../enums'
-const _ = require('lodash')
 /**
  * @module ItemCollection
  * @description Item Collection Model n:m
@@ -47,7 +46,7 @@ export class ItemCollection extends Model {
       model: {
         type: Sequelize.ENUM,
         unique: 'collection_model',
-        values: _.values(COLLECTION_MODELS)
+        values: Object.values(COLLECTION_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

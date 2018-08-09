@@ -1,4 +1,4 @@
-module.exports = {
+export const Order = {
   default: (app) => {
     return {
       include: [

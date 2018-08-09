@@ -516,13 +516,11 @@ OrderItem.prototype.removeShipping = function(shipping, options: {[key: string]:
  *
  */
 OrderItem.prototype.setItemsShippingLines = function(shippingedLine) {
-  // console.log('INCOMING ITEM', shippingedLine)
   // this.shipping_lines = []
   let shippingesLines = []
   let totalShippinges = 0
   // Make this an array if null
   if (shippingedLine) {
-    // console.log('FOUND SHIPPING LINE', shippingedLine.shipping_lines)
 
     shippingedLine.shipping_lines = shippingedLine.shipping_lines || []
     shippingedLine.shipping_lines.map(line => {
@@ -534,11 +532,9 @@ OrderItem.prototype.setItemsShippingLines = function(shippingedLine) {
       totalShippinges = totalShippinges + line.price
     })
 
-    // console.log('SHIPPINGED LINE', shippingedLine)
     shippingesLines = [...shippingesLines, ...shippingedLine.shipping_lines]
   }
   this.shipping_lines = shippingesLines
-  // console.log('FINAL SHIPPING LINES', this.shipping_lines)
 
   return this.setShippingLines(shippingesLines)
 }
@@ -560,13 +556,11 @@ OrderItem.prototype.setShippingLines = function(lines = []) {
  *
  */
 OrderItem.prototype.setItemsTaxLines = function(taxedLine) {
-  // console.log('INCOMING ITEM', taxedLine)
   // this.tax_lines = []
   let taxesLines = []
   let totalTaxes = 0
   // Make this an array if null
   if (taxedLine) {
-    // console.log('FOUND TAX LINE', taxedLine.tax_lines)
 
     taxedLine.tax_lines = taxedLine.tax_lines || []
     taxedLine.tax_lines.map(line => {
@@ -578,11 +572,9 @@ OrderItem.prototype.setItemsTaxLines = function(taxedLine) {
       totalTaxes = totalTaxes + line.price
     })
 
-    // console.log('TAXED LINE', taxedLine)
     taxesLines = [...taxesLines, ...taxedLine.tax_lines]
   }
   this.tax_lines = taxesLines
-  // console.log('FINAL TAX LINES', this.tax_lines)
 
   return this.setTaxLines(taxesLines)
 }
@@ -713,7 +705,6 @@ OrderItem.prototype.recalculate = function(options: {[key: string]: any} = {}) {
  */
 OrderItem.prototype.reconcileFulfillment = function(options: {[key: string]: any} = {}) {
   if (this.isNewRecord && !this.fulfillment_id) {
-    // console.log('reconcileFulfillment: RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
         return this.app.services.FulfillmentService.addOrCreateFulfillmentItem(
@@ -726,7 +717,6 @@ OrderItem.prototype.reconcileFulfillment = function(options: {[key: string]: any
       })
   }
   else if (!this.isNewRecord && this.quantity === 0) {
-    // console.log('reconcileFulfillment: RECONCILE WILL REMOVE', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
         return this.app.services.FulfillmentService.removeFulfillmentItem(
@@ -739,7 +729,6 @@ OrderItem.prototype.reconcileFulfillment = function(options: {[key: string]: any
       })
   }
   else if (!this.isNewRecord && this.changed('quantity') && (this.quantity > this.previous('quantity'))) {
-    // console.log('reconcileFulfillment: RECONCILE WILL UPDATE UP QUANTITY', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
         return this.app.services.FulfillmentService.updateFulfillmentItem(
@@ -752,7 +741,6 @@ OrderItem.prototype.reconcileFulfillment = function(options: {[key: string]: any
       })
   }
   else if (!this.isNewRecord && this.changed('quantity') && (this.quantity < this.previous('quantity'))) {
-    // console.log('reconcileFulfillment: RECONCILE WILL UPDATE DOWN QUANTITY', this)
     return this.save({transaction: options.transaction || null})
       .then(() => {
         return this.app.services.FulfillmentService.removeFulfillmentItem(
@@ -765,7 +753,6 @@ OrderItem.prototype.reconcileFulfillment = function(options: {[key: string]: any
       })
   }
   else {
-    // console.log('reconcileFulfillment: UNHANDLED')
     // Unhandled Case
     return this.save({transaction: options.transaction || null})
   }

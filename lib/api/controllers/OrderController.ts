@@ -244,7 +244,6 @@ export class OrderController extends Controller {
           if (req.body.cart_id) {
             req.body.cart.id = req.body.cart_id
           }
-          console.log('MADE IT HERE 1')
           return CartService.prepareForOrder(req)
         }
         else if (req.body.subscription || req.body.subscription_token || req.body.subscription_id) {

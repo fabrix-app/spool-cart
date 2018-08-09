@@ -1,5 +1,5 @@
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
+import * as _ from 'lodash'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
 import { CUSTOMER_STATE } from '../../enums'
@@ -255,7 +255,6 @@ export class CustomerService extends Service {
         return []
       })
       .then(users => {
-        // console.log('Customer Create Users', users)
         if (users && users.length > 0) {
           return resCustomer.setUsers(users.map(user => user.id), {
             transaction: options.transaction || null

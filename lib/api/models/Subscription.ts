@@ -1,11 +1,10 @@
-import { FabrixApp } from '@fabrix/fabrix'
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { defaultsDeep, isObject, isNumber, isString, findIndex, values, merge } from 'lodash'
 
-const moment = require('moment')
-const queryDefaults = require('../utils/queryDefaults')
+import * as moment from 'moment'
+import { Subscription as SubscriptionQuery } from '../utils/queryDefaults'
 import { INTERVALS } from '../../enums'
 import { SUBSCRIPTION_CANCEL } from '../../enums'
 import { DISCOUNT_STATUS } from '../../enums'
@@ -21,7 +20,7 @@ export class SubscriptionResolver extends SequelizeResolver {
    */
   findByIdDefault(criteria, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Subscription.default(this.app),
+      SubscriptionQuery.default(this.app),
       options
     )
     return this.findById(criteria, options)
@@ -34,7 +33,7 @@ export class SubscriptionResolver extends SequelizeResolver {
    */
   findByTokenDefault(token, options = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Subscription.default(this.app),
+      SubscriptionQuery.default(this.app),
       options,
       {
         where: {
@@ -691,30 +690,28 @@ Subscription.prototype.activate = function() {
   // Check if the dates need to be updated
   const d = moment().startOf('hour')
   const r = d.clone()
-  // console.log('CHECK DATE', d, this.renewed_at, this.renews_on)
   if (this.unit === INTERVALS.DAY) {
     // d.setDate(d.getDay() + this.interval)
-    d.add(this.interval, 'D')
+    d.add(this.interval, 'day')
   }
   else if (this.unit === INTERVALS.WEEK) {
     // d.setMonth(d.getWeek() + this.interval);
-    d.add(this.interval, 'W')
+    d.add(this.interval, 'week')
   }
   else if (this.unit === INTERVALS.MONTH) {
     // d.setMonth(d.getMonth() + this.interval)
-    d.add(this.interval, 'M')
-    // console.log(d)
+    d.add(this.interval, 'month')
   }
   else if (this.unit === INTERVALS.BIMONTH) {
-    d.add(this.interval * 2, 'M')
+    d.add(this.interval * 2, 'month')
     // d.setMonth(d.getMonth() + this.interval * 2)
   }
   else if (this.unit === INTERVALS.YEAR) {
-    d.add(this.interval, 'Y')
+    d.add(this.interval, 'year')
     // d.setYear(d.getYear() + this.interval)
   }
   else if (this.unit === INTERVALS.BIYEAR) {
-    d.add(this.interval * 2, 'Y')
+    d.add(this.interval * 2, 'year')
     // d.setYear(d.getYear() + this.interval * 2)
   }
   // Reset Renews on date
@@ -1029,8 +1026,6 @@ Subscription.prototype.setItemsDiscountedLines = function (discounts, criteria) 
     return line
   })
 
-  // console.log('Lines results', discountedLines)
-
   // Apply rules to line item discounts
   discountedLines.forEach(line => {
     line.discounts.forEach(discount => {
@@ -1066,10 +1061,6 @@ Subscription.prototype.setItemsDiscountedLines = function (discounts, criteria) 
     })
     return item
   })
-
-
-  // console.log('Factored results', factoredDiscountedLines)
-
   return this.setDiscountedLines(factoredDiscountedLines)
 }
 /**
@@ -1131,7 +1122,6 @@ Subscription.prototype.setItemsShippingLines = function (items) {
         totalShipping = totalShipping + line.price
       })
 
-      // console.log('SHIPPED LINE', shippedLine)
       shippingLines = [...shippingLines, ...shippedLine.shipping_lines]
       item.shipping_lines = shippedLine.shipping_lines
       item.total_shipping = totalShipping
@@ -1177,7 +1167,6 @@ Subscription.prototype.setItemsTaxLines = function (items) {
         totalTaxes = totalTaxes + line.price
       })
 
-      // console.log('TAXED LINE', taxedLine)
       taxesLines = [...taxesLines, ...taxedLine.tax_lines]
       item.tax_lines = taxedLine.tax_lines
       item.total_taxes = totalTaxes
@@ -1815,7 +1804,6 @@ Subscription.prototype.calculateTaxes = function(options: {[key: string]: any} =
     options
   )
     .then(taxesResult => {
-      // console.log('WORKING ON TAXES RESULT', taxesResult.line_items)
       this.setItemsTaxLines(taxesResult.line_items)
 
       return this
@@ -1835,30 +1823,28 @@ Subscription.prototype.recalculate = function(options: {[key: string]: any} = {}
 
   // Set Renewal Date
   const d = moment(this.renewed_at)
-  // console.log('CHECK DATE', d, this.renewed_at, this.renews_on)
   if (this.unit === INTERVALS.DAY) {
     // d.setDate(d.getDay() + this.interval)
-    d.add(this.interval, 'D')
+    d.add(this.interval, 'day')
   }
   else if (this.unit === INTERVALS.WEEK) {
     // d.setMonth(d.getWeek() + this.interval);
-    d.add(this.interval, 'W')
+    d.add(this.interval, 'week')
   }
   else if (this.unit === INTERVALS.MONTH) {
     // d.setMonth(d.getMonth() + this.interval)
-    d.add(this.interval, 'M')
-    // console.log(d)
+    d.add(this.interval, 'month')
   }
   else if (this.unit === INTERVALS.BIMONTH) {
-    d.add(this.interval * 2, 'M')
+    d.add(this.interval * 2, 'month')
     // d.setMonth(d.getMonth() + this.interval * 2)
   }
   else if (this.unit === INTERVALS.YEAR) {
-    d.add(this.interval, 'Y')
+    d.add(this.interval, 'year')
     // d.setYear(d.getYear() + this.interval)
   }
   else if (this.unit === INTERVALS.BIYEAR) {
-    d.add(this.interval * 2, 'Y')
+    d.add(this.interval * 2, 'year')
     // d.setYear(d.getYear() + this.interval * 2)
   }
   this.renews_on = d.format('YYYY-MM-DD HH:mm:ss')

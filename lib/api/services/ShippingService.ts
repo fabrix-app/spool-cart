@@ -35,7 +35,6 @@ export class ShippingService extends Service {
     return Promise.resolve({
       line_items: []
     })
-    // console.log('WORKING ON SHIPPING TAX FOR ORDER', obj, lineItems, sendFromTo)
     // return this.app.services.TaxGenericService.taxForOrder({
     //   nexus_addresses: resolvedItemsFromTo.nexus_addresses,
     //   to_address: resolvedItemsFromTo.to_address,

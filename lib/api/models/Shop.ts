@@ -1,7 +1,7 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-import { pick, isString, isNumber, isObject, values, extend } from 'lodash'
+import { pick, isString, isNumber, isObject, extend } from 'lodash'
 import { UNITS } from '../../enums'
 
 export class ShopResolver extends SequelizeResolver {
@@ -333,7 +333,7 @@ export class Shop extends Model {
       // A string representing the default unit of weight measurement for the shop.
       weight_unit: {
         type: Sequelize.ENUM,
-        values: values(UNITS),
+        values: Object.values(UNITS),
         defaultValue: UNITS.G
       },
       // Live Mode

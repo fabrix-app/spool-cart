@@ -259,7 +259,6 @@ export class FulfillmentService extends Service {
             ],
             transaction: options.transaction || null
           })
-          // console.log('addOrCreateFulfillment Creating...', resOrderItem, resFulfillment)
           // return resFulfillment.save({transaction: options.transaction || null})
             .then(_newFulfillment => {
               if (!_newFulfillment) {

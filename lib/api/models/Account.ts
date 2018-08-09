@@ -1,85 +1,163 @@
 import { FabrixModel as Model } from '@fabrix/fabrix/dist/common'
 import { SequelizeResolver } from '@fabrix/spool-sequelize'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const _ = require('lodash')
-const shortId = require('shortid')
-const queryDefaults = require('../utils/queryDefaults')
+import { isObject, isNumber, isString, defaultsDeep } from 'lodash'
+import * as shortId from 'shortid'
+import { Account as AccountQuery } from '../utils/queryDefaults/Account'
 
 export class AccountResolver extends SequelizeResolver {
   findByIdDefault(id, options: {[key: string]: any} = {}) {
     options = this.app.services.SequelizeService.mergeOptionDefaults(
-      queryDefaults.Account.default(this.app),
+      AccountQuery.default(this.app),
       options
     )
     return this.findById(id, options)
   }
 
+  /**
+   * Resolve by instance Function
+   * @param account
+   * @param options
+   */
+  resolveByInstance (account, options: {[key: string]: any} = {}) {
+    return Promise.resolve(account)
+  }
+  /**
+   * Resolve by id Function
+   * @param account
+   * @param options
+   */
+  resolveById (account, options: {[key: string]: any} = {}) {
+    if (!(account instanceof Object)) {
+      return Promise.reject(new Error('resolveById requires an object with an id property'))
+    }
+    return this.findByIdDefault(account.id, options)
+      .then(resAccount => {
+        if (!resAccount && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Account ${account.id} not found`)
+        }
+        return resAccount
+      })
+  }
+
+  /**
+   *
+   */
+  resolveByGateway(account, options: {[key: string]: any} = {}) {
+    return this.findOne(defaultsDeep({
+      where: {
+        gateway: account.gateway,
+        customer_id: account.customer_id
+      }
+    }, options))
+      .then(resAccount => {
+        if (!resAccount) {
+          throw new ModelError('E_NOT_FOUND', `Account with customer id ${account.customer_id} not found`)
+        }
+        return resAccount
+      })
+  }
+  /**
+   * Resolve by token Function
+   * @param account
+   * @param options
+   */
+  resolveByToken (account, options: {[key: string]: any} = {}) {
+    if (!(account instanceof Object)) {
+      return Promise.reject(new Error('resolveByToken requires an object with a token property'))
+    }
+    if (!(account.token)) {
+      return Promise.reject(new Error('resolveByToken requires an object with a token property'))
+    }
+    return this.findOne(defaultsDeep({
+      where: {
+        token: account.token
+      }
+    }, options))
+      .then(resAccount => {
+        if (!resAccount) {
+          throw new ModelError('E_NOT_FOUND', `Account with customer id ${account.customer_id} not found`)
+        }
+        return resAccount
+      })
+  }
+  /**
+   * Resolve by number Function
+   * @param account
+   * @param options
+   */
+  resolveByNumber (account, options: {[key: string]: any} = {}) {
+    return this.findByIdDefault(account, options)
+      .then(resAccount => {
+        if (!resAccount && options.reject !== false) {
+          throw new ModelError('E_NOT_FOUND', `Account ${account.token} not found`)
+        }
+        return resAccount
+      })
+  }
+  /**
+   * Resolve by string Function
+   * @param account
+   * @param options
+   */
+  resolveByString (account, options: {[key: string]: any} = {}) {
+    return this.findOne(defaultsDeep({
+      where: {
+        token: account
+      }
+    }, options))
+      .then(resAccount => {
+        if (!resAccount) {
+          throw new ModelError('E_NOT_FOUND', `Account with token ${account} not found`)
+        }
+        return resAccount
+      })
+  }
+  /**
+   * Primary Resolve Function
+   * @param account
+   * @param options
+   */
   resolve(account, options: {[key: string]: any} = {}) {
-    if (account instanceof this.instance) {
-      return Promise.resolve(account)
+    const resolvers = {
+      'instance': account instanceof this.instance,
+      'id': !!(account && isObject(account) && account.id),
+      'token': !!(account && isObject(account) && account.token),
+      'gateway': !!(account && isObject(account) && account.gateway && account.customer_id),
+      'create': !!(account && isObject(account) && options.create !== false),
+      'number': !!(account && isNumber(account)),
+      'string': !!(account && isString(account))
     }
-    else if (account && _.isObject(account) && account.id) {
-      return this.findById(account.id, options)
-        .then(resAccount => {
-          if (!resAccount) {
-            throw new ModelError('E_NOT_FOUND', `Account ${account.id} not found`)
-          }
-          return resAccount
-        })
-    }
-    else if (account && _.isObject(account) && account.gateway && account.customer_id) {
-      return this.findOne(_.defaultsDeep({
-        where: {
-          gateway: account.gateway,
-          customer_id: account.customer_id
-        }
-      }, options))
-        .then(resAccount => {
-          if (!resAccount) {
-            throw new ModelError('E_NOT_FOUND', `Account with customer id ${account.customer_id} not found`)
-          }
-          return resAccount
-        })
-    }
-    else if (account && _.isObject(account) && account.token) {
-      return this.findOne(_.defaultsDeep({
-        where: {
-          token: account.token
-        }
-      }, options))
-        .then(resAccount => {
-          if (!resAccount) {
-            throw new ModelError('E_NOT_FOUND', `Account token ${account.token} not found`)
-          }
-          return resAccount
-        })
-    }
-    else if (account && _.isNumber(account)) {
-      return this.findById(account, options)
-        .then(resAccount => {
-          if (!resAccount) {
-            throw new ModelError('E_NOT_FOUND', `Account ${account.token} not found`)
-          }
-          return resAccount
-        })
-    }
-    else if (account && _.isString(account)) {
-      return this.findOne(_.defaultsDeep({
-        where: {
-          token: account
-        }
-      }, options))
-        .then(resAccount => {
-          if (!resAccount) {
-            throw new ModelError('E_NOT_FOUND', `Account ${account} not found`)
-          }
-          return resAccount
-        })
-    }
-    else {
-      // TODO create proper error
-      const err = new Error(`Unable to resolve Account ${account}`)
-      return Promise.reject(err)
+
+    const type = Object.keys(resolvers).find((key) => resolvers[key])
+
+    switch (type) {
+      case 'instance': {
+        return this.resolveByInstance(account, options)
+      }
+      case 'id': {
+        return this.resolveById(account, options)
+      }
+      case 'token': {
+        return this.resolveByToken(account, options)
+      }
+      case 'gateway': {
+        return this.resolveByGateway(account, options)
+      }
+      case 'create': {
+        return this.create(account, options)
+      }
+      case 'number': {
+        return this.resolveByNumber(account, options)
+      }
+      case 'string': {
+        return this.resolveByString(account, options)
+      }
+      default: {
+        // TODO create proper error
+        const err = new Error(`Unable to resolve Account ${account}`)
+        return Promise.reject(err)
+      }
     }
   }
 }

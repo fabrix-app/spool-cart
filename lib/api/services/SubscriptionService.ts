@@ -2,9 +2,9 @@
 
 
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
-const shortid = require('shortid')
-const moment = require('moment')
+import { omit } from 'lodash'
+import * as shortid from 'shortid'
+import * as moment from 'moment'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { SUBSCRIPTION_CANCEL } from '../../enums'
 import { PAYMENT_PROCESSING_METHOD } from '../../enums'
@@ -121,7 +121,7 @@ export class SubscriptionService extends Service {
       customer_id: order.customer_id,
       email: order.email,
       line_items: items.map(item => {
-        item =  _.omit(item.get({plain: true}), [
+        item =  omit(item.get({plain: true}), [
           'id',
           'requires_subscription',
           'subscription_unit',
@@ -178,7 +178,7 @@ export class SubscriptionService extends Service {
     options = options || {}
     const Subscription =  this.app.models.Subscription
 
-    update = _.omit(update, ['id', 'created_at', 'updated_at'])
+    update = omit(update, ['id', 'created_at', 'updated_at'])
 
     let resSubscription
     return Subscription.resolve(subscription, options)
@@ -991,8 +991,7 @@ export class SubscriptionService extends Service {
    * @param options
    * @returns {*|Promise.<TResult>}
    */
-  willRenewDate(options) {
-    options = options || {}
+  willRenewDate(options: {[key: string]: any} = {}) {
 
     const start = moment()
       .add(this.app.config.get('cart.subscriptions.renewal_notice_days') || 0, 'days')
@@ -1057,18 +1056,15 @@ export class SubscriptionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  beforeCreate(subscription, options) {
-    options = options || {}
+  beforeCreate(subscription, options: {[key: string]: any} = {}) {
     subscription.token = subscription.token || `subscription_${shortid.generate()}`
 
     return this.app.models['Shop'].resolve(subscription.shop_id, {transaction: options.transaction || null })
       .then(shop => {
-        // console.log('SubscriptionService.beforeCreate', shop)
         subscription.shop_id = shop.id
         return subscription.recalculate({transaction: options.transaction || null})
       })
       .catch(err => {
-        // console.log('SubscriptionService.beforeCreate', err)
         return subscription.recalculate({transaction: options.transaction || null})
       })
   }
@@ -1079,8 +1075,7 @@ export class SubscriptionService extends Service {
    * @param options
    * @returns {*}
    */
-  beforeUpdate(subscription, options) {
-    options = options || {}
+  beforeUpdate(subscription, options: {[key: string]: any} = {}) {
     return subscription.recalculate({transaction: options.transaction || null})
   }
 
@@ -1090,8 +1085,7 @@ export class SubscriptionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  afterCreate(subscription, options) {
-    options = options || {}
+  afterCreate(subscription, options: {[key: string]: any} = {}) {
     this.app.services.EngineService.publish('subscription.created', subscription)
     return Promise.resolve(subscription)
   }
@@ -1102,8 +1096,7 @@ export class SubscriptionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  afterUpdate(subscription, options) {
-    options = options || {}
+  afterUpdate(subscription, options: {[key: string]: any} = {}) {
     this.app.services.EngineService.publish('subscription.updated', subscription)
     return Promise.resolve(subscription)
   }

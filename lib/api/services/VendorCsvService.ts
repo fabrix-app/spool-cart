@@ -1,9 +1,9 @@
 // tslint:disable:no-console
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-const csvParser = require('papaparse')
-const _ = require('lodash')
-const shortid = require('shortid')
-const fs = require('fs')
+import * as csvParser from 'papaparse'
+import * as _ from 'lodash'
+import * as shortid from 'shortid'
+import * as fs from 'fs'
 import { VENDOR_UPLOAD } from '../../enums'
 
 /**

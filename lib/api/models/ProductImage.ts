@@ -85,14 +85,12 @@ export class ProductImage extends Model {
           beforeCreate: (values, options) => {
             return app.services.ProxyCartService.buildImages(values.src, options)
               .then(sizes => {
-                // console.log(sizes)
                 values.full = sizes.full
                 values.thumbnail = sizes.thumbnail
                 values.small = sizes.small
                 values.medium = sizes.medium
                 values.large = sizes.large
 
-                // console.log('ProducImage.beforeCreate',values.dataValues)
               })
               .catch(err => {
                 return values

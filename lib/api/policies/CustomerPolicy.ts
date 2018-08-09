@@ -7,7 +7,6 @@ import * as multer from 'multer'
  */
 export class CustomerPolicy extends Policy {
   session(req, res, next) {
-    // console.log('Customer Policy', req.customer)
     let err
     if (!req.customer) {
       err = new Error('session requires a customer')

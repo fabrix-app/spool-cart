@@ -33,7 +33,6 @@ export class TaxService extends Service {
     const taxProvider = this.app.config.get(`generics.${obj.tax_provider}`)
       || this.app.config.get('generics.tax_provider')
 
-    // console.log('WORKING ON TAXES TAX FOR ORDER', obj, lineItems, sendFromTo)
     return this.app.services.TaxGenericService.taxForOrder({
       nexus_addresses: resolvedItemsFromTo.nexus_addresses,
       to_address: resolvedItemsFromTo.to_address,
