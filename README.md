@@ -16,8 +16,8 @@ Spool-Cart is the eCommerce component for [Spool-Engine](https://github.com/fabr
 ## Development Notes
 Spool-Cart currently only support sequelize on Postgres. To contribute to Proxy Cart, first create a Local Postgres Database named `Sequelize`. Then test the build with `npm test`. 
 
-[npm-image]: https://img.shields.io/npm/v/spool-cart.svg?style=flat-square
-[npm-url]: https://npmjs.org/package/spool-cart
+[npm-image]: https://img.shields.io/npm/v/@fabrix/spool-cart.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/@fabrix/spool-cart
 [ci-image]: https://img.shields.io/circleci/project/github/fabrix-app/spool-cart/master.svg
 [ci-url]: https://circleci.com/gh/fabrix-app/spool-cart/tree/master
 [daviddm-image]: http://img.shields.io/david/fabrix-app/spool-cart.svg?style=flat-square
