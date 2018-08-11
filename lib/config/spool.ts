@@ -41,9 +41,7 @@ export const spool = {
       /**
        * List of events emitted by the configure lifecycle method
        */
-      emit: [
-        'spool:cart:configured'
-      ]
+      emit: []
     },
     initialize: {
       listen: [
@@ -52,9 +50,7 @@ export const spool = {
         'spool:permissions:initialized',
         'spool:generics:initialized'
       ],
-      emit: [
-        'spool:cart:initialized'
-      ]
+      emit: []
     }
   }
 }

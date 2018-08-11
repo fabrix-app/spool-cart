@@ -851,10 +851,12 @@ export const routes = {
     }
   },
   '/cart/session': {
-    'GET': 'CartController.session',
-    config: {
-      prefix: 'cart.prefix',
-      app: { }
+    'GET': {
+      handler: 'CartController.session',
+      config: {
+        prefix: 'cart.prefix',
+        app: {}
+      }
     }
   },
   '/cart/logout': {
@@ -913,6 +915,7 @@ export const routes = {
     'POST': {
       handler: 'CartController.addItems',
       config: {
+        prefix: 'cart.prefix',
         app: {
           permissions: {
             resource_name: 'apiPostCartAddItemsRoute',
@@ -924,6 +927,7 @@ export const routes = {
     'PUT': {
       handler: 'CartController.addItems',
       config: {
+        prefix: 'cart.prefix',
         app: {
           permissions: {
             resource_name: 'apiPutCartAddItemsRoute',
@@ -960,45 +964,51 @@ export const routes = {
     }
   },
   '/cart/clear': {
-    'POST': 'CartController.clear',
-    config: {
-      prefix: 'cart.prefix',
-      app: {
-        permissions: {
-          resource_name: 'apiPostCartClearRoute',
-          roles: ['public', 'registered', 'admin']
+    'POST': {
+      handler: 'CartController.clear',
+      config: {
+        prefix: 'cart.prefix',
+        app: {
+          permissions: {
+            resource_name: 'apiPostCartClearRoute',
+            roles: ['public', 'registered', 'admin']
+          }
         }
       }
     }
   },
   '/cart/login': {
-    'POST': 'CartController.login',
-    config: {
-      prefix: 'cart.prefix',
-      app: {
-        permissions: {
-          resource_name: 'apiPostCartLoginRoute',
-          roles: ['public', 'registered', 'admin']
+    'POST': {
+      handler: 'CartController.login',
+      config: {
+        prefix: 'cart.prefix',
+        app: {
+          permissions: {
+            resource_name: 'apiPostCartLoginRoute',
+            roles: ['public', 'registered', 'admin']
+          }
         }
       }
     }
   },
   '/cart/:id/login': {
-    'POST': 'CartController.login',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostCartIdLoginRoute',
-          roles: ['public', 'registered']
+    'POST': {
+      handler: 'CartController.login',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCartIdLoginRoute',
+            roles: ['public', 'registered']
+          }
         }
       }
     }
@@ -1078,38 +1088,42 @@ export const routes = {
     }
   },
   '/cart/:id/customer': {
-    'GET': 'CartController.customer',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.number().required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCartIdCustomerRoute',
-          roles: ['admin']
+    'GET': {
+      handler: 'CartController.customer',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.number().required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCartIdCustomerRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/cart/:id/switch': {
-    'POST': 'CartController.switchCart',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostCartIdSwitchRoute',
-          roles: ['public', 'registered']
+    'POST': {
+      handler: 'CartController.switchCart',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCartIdSwitchRoute',
+            roles: ['public', 'registered']
+          }
         }
       }
     }
@@ -1260,34 +1274,38 @@ export const routes = {
   },
   // Collections
   '/collections': {
-    'GET': 'CollectionController.findAll',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        query: {
-          offset: joi.number(),
-          limit: joi.number(),
-          sort: joi.array().items(joi.array()),
-          where: joi.any(),
-          include: joi.array().items(joi.string())
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionsRoute',
-          roles: ['public', 'registered', 'admin']
+    'GET': {
+      handler: 'CollectionController.findAll',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionsRoute',
+            roles: ['public', 'registered', 'admin']
+          }
         }
       }
     }
   },
   '/collection': {
-    'POST': 'CollectionController.create',
-    config: {
-      prefix: 'cart.prefix',
-      app: {
-        permissions: {
-          resource_name: 'apiPostCollectionRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CollectionController.create',
+      config: {
+        prefix: 'cart.prefix',
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionRoute',
+            roles: ['admin']
+          }
         }
       }
     }
@@ -1403,47 +1421,49 @@ export const routes = {
   },
   // TODO Legacy
   '/collection/:id/addCollection/:collection': {
-    'POST': 'CollectionController.addCollection',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required(),
-          collection: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostCollectionIdAddCollectionCollectionRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CollectionController.addCollection',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            collection: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionIdAddCollectionCollectionRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/collection/:id/collections': {
     'GET': {
-      handler: 'CollectionController.collections'
-    },
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionIdCollectionsRoute',
-          roles: ['admin', 'registered', 'public']
+      handler: 'CollectionController.collections',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionIdCollectionsRoute',
+            roles: ['admin', 'registered', 'public']
+          }
         }
       }
     },
@@ -1514,25 +1534,27 @@ export const routes = {
   },
   // TODO legacy
   '/collection/:id/removeCollection/:collection': {
-    'POST': 'CollectionController.removeCollection',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required(),
-          collection: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiDeleteCollectionIdRemoveCollectionCollectionRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CollectionController.removeCollection',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            collection: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteCollectionIdRemoveCollectionCollectionRoute',
+            roles: ['admin']
+          }
         }
       }
     }
@@ -1663,25 +1685,27 @@ export const routes = {
   },
   // TODO legacy
   '/collection/:id/removeProduct/:product': {
-    'POST': 'CollectionController.removeProduct',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required(),
-          product: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostCollectionIdRemoveProductProductRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CollectionController.removeProduct',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            product: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionIdRemoveProductProductRoute',
+            roles: ['admin']
+          }
         }
       }
     }
@@ -1752,21 +1776,23 @@ export const routes = {
     // }
   },
   '/collection/:id/discounts': {
-    'GET': 'CollectionController.discounts',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionIdDiscountsRoute',
-          roles: ['admin']
+    'GET': {
+      handler: 'CollectionController.discounts',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionIdDiscountsRoute',
+            roles: ['admin']
+          }
         }
       }
     }
@@ -1947,21 +1973,23 @@ export const routes = {
     }
   },
   '/collection/:id/tags': {
-    'GET': 'CollectionController.tags',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionIdTagsRoute',
-          roles: ['admin', 'registered', 'public']
+    'GET': {
+      handler: 'CollectionController.tags',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionIdTagsRoute',
+            roles: ['admin', 'registered', 'public']
+          }
         }
       }
     }
@@ -2069,39 +2097,41 @@ export const routes = {
   },
   '/collection/:id/customers': {
     'GET': {
-      handler: 'CollectionController.customers'
-    },
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionIdCustomersRoute',
-          roles: ['admin']
+      handler: 'CollectionController.customers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionIdCustomersRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/collection/handle/:handle': {
-    'GET': 'CollectionController.findByHandle',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          handle: joi.string().required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionHandleRoute',
-          roles: ['public', 'registered', 'admin']
+    'GET': {
+      handler: 'CollectionController.findByHandle',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            handle: joi.string().required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionHandleRoute',
+            roles: ['public', 'registered', 'admin']
+          }
         }
       }
     },
@@ -2172,124 +2202,138 @@ export const routes = {
   },
   // TODO legacy
   '/collection/:id/removeCustomer/:customer': {
-    'POST': 'CollectionController.removeCustomer',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required(),
-          customer: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostCollectionIdRemoveCustomerCustomerRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CollectionController.removeCustomer',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            customer: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionIdRemoveCustomerCustomerRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/collection/count': {
-    'GET': 'CollectionController.count',
-    config: {
-      prefix: 'cart.prefix',
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionCountRoute',
-          roles: ['public', 'registered', 'admin']
+    'GET': {
+      handler: 'CollectionController.count',
+      config: {
+        prefix: 'cart.prefix',
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionCountRoute',
+            roles: ['public', 'registered', 'admin']
+          }
         }
       }
     }
   },
   '/collection/generalStats': {
-    'GET': 'CollectionController.generalStats',
-    config: {
-      prefix: 'cart.prefix',
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionGeneralStatsRoute',
-          roles: ['admin']
+    'GET': {
+      handler: 'CollectionController.generalStats',
+      config: {
+        prefix: 'cart.prefix',
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionGeneralStatsRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/collections/search': {
-    'GET': 'CollectionController.search',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        query: {
-          offset: joi.number(),
-          limit: joi.number(),
-          sort: joi.array().items(joi.array()),
-          where: joi.any().optional(),
-          term: joi.any(),
-          include: joi.array().items(joi.string())
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCollectionsSearchRoute',
-          roles: ['public', 'registered', 'admin']
+    'GET': {
+      handler: 'CollectionController.search',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any().optional(),
+            term: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionsSearchRoute',
+            roles: ['public', 'registered', 'admin']
+          }
         }
       }
     }
   },
   '/collection/uploadCSV': {
-    'POST': 'CollectionController.uploadCSV',
-    config: {
-      prefix: 'cart.prefix',
-      pre: ['CollectionPolicy.csv'],
-      app: {
-        permissions: {
-          resource_name: 'apiPostCollectionUploadCsvRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CollectionController.uploadCSV',
+      config: {
+        prefix: 'cart.prefix',
+        pre: ['CollectionPolicy.csv'],
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionUploadCsvRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/collection/processUpload/:id': {
-    'POST': 'CollectionController.processUpload',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          // This is a only ever a String
-          id: joi.string().required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostCollectionProcessUploadRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CollectionController.processUpload',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            // This is a only ever a String
+            id: joi.string().required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionProcessUploadRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   // Customer
   '/customers': {
-    'GET': 'CustomerController.findAll',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        query: {
-          offset: joi.number(),
-          limit: joi.number(),
-          sort: joi.array().items(joi.array()),
-          where: joi.any(),
-          include: joi.array().items(joi.string())
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCustomersRoute',
-          roles: ['admin']
+    'GET': {
+      handler: 'CustomerController.findAll',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCustomersRoute',
+            roles: ['admin']
+          }
         }
       }
     }
@@ -2333,51 +2377,57 @@ export const routes = {
     }
   },
   '/customer/create': {
-    'POST': 'CustomerController.create',
-    config: {
-      prefix: 'cart.prefix',
-      app: {
-        permissions: {
-          resource_name: 'apiPostCustomerCreateRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CustomerController.create',
+      config: {
+        prefix: 'cart.prefix',
+        app: {
+          permissions: {
+            resource_name: 'apiPostCustomerCreateRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/customer/processUpload/:id': {
-    'POST': 'CustomerController.processUpload',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          // This is a only ever a String
-          id: joi.string().required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiPostCustomerProcessUploadRoute',
-          roles: ['admin']
+    'POST': {
+      handler: 'CustomerController.processUpload',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            // This is a only ever a String
+            id: joi.string().required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCustomerProcessUploadRoute',
+            roles: ['admin']
+          }
         }
       }
     }
   },
   '/customer/token/:token': {
-    'GET': 'CustomerController.findByToken',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          token: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCustomerTokenTokenRoute',
-          roles: ['admin', 'registered']
+    'GET': {
+      handler: 'CustomerController.findByToken',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            token: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCustomerTokenTokenRoute',
+            roles: ['admin', 'registered']
+          }
         }
       }
     }
@@ -2490,22 +2540,22 @@ export const routes = {
   },
   '/customer/:id': {
     'GET': {
-      handler: 'CustomerController.findById'
-    },
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
-        }
-      },
-      app: {
-        permissions: {
-          resource_name: 'apiGetCustomerIdRoute',
-          roles: ['admin', 'registered']
+      handler: 'CustomerController.findById',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCustomerIdRoute',
+            roles: ['admin', 'registered']
+          }
         }
       }
     },
