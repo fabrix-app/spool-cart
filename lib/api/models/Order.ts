@@ -1219,6 +1219,8 @@ Order.prototype.groupTransactions = function(paymentDetails, options: {[key: str
       order_id: this.id,
       // Set the source if it is given
       source_id: detail.source ? detail.source.id : null,
+      // Set the account if it is given
+      account_id: detail.source ? detail.source.account_id : null,
       // Set the order currency
       currency: this.currency,
       // Set the amount for this transaction and handle if it is a split transaction
