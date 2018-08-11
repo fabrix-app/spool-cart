@@ -262,6 +262,14 @@ export class Transaction extends Model {
         // },
         allowNull: true
       },
+      account_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'Order',
+        //   key: 'id'
+        // },
+        allowNull: true
+      },
       // TODO Enable User
       // The unique identifier for the user.
       // user_id: {
@@ -392,6 +400,10 @@ export class Transaction extends Model {
     })
     models.Transaction.belongsTo(models.Customer, {
       // as: 'Customer',
+      // allowNull: true
+    })
+    models.Transaction.belongsTo(models.Account, {
+      // as: 'Source',
       // allowNull: true
     })
     models.Transaction.belongsTo(models.Source, {

@@ -290,6 +290,8 @@ export class TransactionService extends Service {
                   order_id: resOrder.id,
                   // Set the source if it is given
                   source_id: resSource ? resSource.id : null,
+                  // Set the account if it is given
+                  account_id: resSource ? resSource.account_id : null,
                   // Set the order currency
                   currency: resOrder.currency,
                   // Set the amount for this transaction and handle if it is a split transaction

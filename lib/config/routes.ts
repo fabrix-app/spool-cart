@@ -3438,32 +3438,34 @@ export const routes = {
   },
 
   '/customer/:id/account/:account/transactions': {
-    'GET': 'CustomerController.customerAccountTransactions',
-    config: {
-      prefix: 'cart.prefix',
-      validate: {
-        params: {
-          id: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required(),
-          account: joi.alternatives().try(
-            joi.number(),
-            joi.string()
-          ).required()
+    'GET': {
+      handler: 'CustomerController.accountTransactions',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            account: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          },
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
         },
-        query: {
-          offset: joi.number(),
-          limit: joi.number(),
-          sort: joi.array().items(joi.array()),
-          where: joi.any(),
-          include: joi.array().items(joi.string())
-        }
-      },
-      app: {
-        permissions: {
-          retransaction_name: 'apiGetCustomerIdAccountAccountTransactionsRoute',
-          roles: ['admin']
+        app: {
+          permissions: {
+            retransaction_name: 'apiGetCustomerIdAccountAccountTransactionsRoute',
+            roles: ['admin']
+          }
         }
       }
     }
@@ -9835,6 +9837,35 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiGetSubscriptionIdCustomerRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/subscription/:id/orders': {
+    'GET': {
+      handler: 'SubscriptionController.orders',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          },
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetSubscriptionIdOrdersRoute',
             roles: ['admin']
           }
         }

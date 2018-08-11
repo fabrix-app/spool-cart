@@ -1,9 +1,7 @@
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import * as Validator from '../../validator'
-const _ = require('lodash')
+import { defaults } from 'lodash'
 
 /**
  * @module SubscriptionController
@@ -161,7 +159,7 @@ export class SubscriptionController extends Controller {
     const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
     const where = req.jsonCriteria(req.query.where)
-    const defaults = _.defaults(where, {
+    const defaultWhere = defaults(where, {
       $or: [
         {
           token: {
@@ -176,7 +174,7 @@ export class SubscriptionController extends Controller {
       ]
     })
     Subscription.findAndCountDefault({
-      where: defaults,
+      where: defaultWhere,
       subscription: sort,
       offset: offset,
       req: req,
@@ -386,6 +384,50 @@ export class SubscriptionController extends Controller {
         if (!customer) {
           throw new ModelError('E_NOT_FOUND', `Subscription id ${ req.params.id } customer not found`)
         }
+        return this.app.services.PermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  orders(req, res) {
+    const orm = this.app.models
+    const Subscription = orm['Subscription']
+    const Order = orm['Order']
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    const where = req.jsonCriteria(req.query.where)
+
+    Subscription.findById(req.params.id, {
+      attributes: ['id', 'token']
+    })
+      .then(subscription => {
+        if (!subscription) {
+          throw new ModelError('E_NOT_FOUND', `Subscription id ${ req.params.id } not found`)
+        }
+        if (!subscription.token) {
+          throw new ModelError('E_NOT_FOUND', `Subscription token ${ req.params.id } token not found`)
+        }
+        return Order.findAndCountAll(defaults(where, {
+          where: {
+            subscription_token: subscription.token
+          },
+          order: sort,
+          offset: offset,
+          limit: limit
+        }))
+      })
+      .then(customer => {
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })
       .then(result => {
