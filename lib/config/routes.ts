@@ -3463,7 +3463,7 @@ export const routes = {
         },
         app: {
           permissions: {
-            retransaction_name: 'apiGetCustomerIdAccountAccountTransactionsRoute',
+            resource_name: 'apiGetCustomerIdAccountAccountTransactionsRoute',
             roles: ['admin']
           }
         }
