@@ -7946,6 +7946,7 @@ export const routes = {
     'POST': {
       handler: 'OrderController.create',
       config: {
+        prefix: 'cart.prefix',
         app: {
           permissions: {
             resource_name: 'apiPostOrderRoute',
@@ -9465,6 +9466,7 @@ export const routes = {
     'POST': {
       handler: 'OrderController.processUpload',
       config: {
+        prefix: 'cart.prefix',
         validate: {
           params: {
             // this will only ever be a string
