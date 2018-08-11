@@ -16,15 +16,15 @@ Spool-Cart is the eCommerce component for [Spool-Engine](https://github.com/fabr
 ## Development Notes
 Spool-Cart currently only support sequelize on Postgres. To contribute to Proxy Cart, first create a Local Postgres Database named `Sequelize`. Then test the build with `npm test`. 
 
-[npm-image]: https://img.shields.io/npm/v/spool-router.svg?style=flat-square
-[npm-url]: https://npmjs.org/package/spool-router
-[ci-image]: https://img.shields.io/circleci/project/github/fabrix-app/spool-router/master.svg
-[ci-url]: https://circleci.com/gh/fabrix-app/spool-router/tree/master
-[daviddm-image]: http://img.shields.io/david/fabrix-app/spool-router.svg?style=flat-square
-[daviddm-url]: https://david-dm.org/fabrix-app/spool-router
+[npm-image]: https://img.shields.io/npm/v/spool-cart.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/spool-cart
+[ci-image]: https://img.shields.io/circleci/project/github/fabrix-app/spool-cart/master.svg
+[ci-url]: https://circleci.com/gh/fabrix-app/spool-cart/tree/master
+[daviddm-image]: http://img.shields.io/david/fabrix-app/spool-cart.svg?style=flat-square
+[daviddm-url]: https://david-dm.org/fabrix-app/spool-cart
 [gitter-image]: http://img.shields.io/badge/+%20GITTER-JOIN%20CHAT%20%E2%86%92-1DCE73.svg?style=flat-square
 [gitter-url]: https://gitter.im/fabrix-app/fabrix
 [twitter-image]: https://img.shields.io/twitter/follow/FabrixApp.svg?style=social
 [twitter-url]: https://twitter.com/FabrixApp
-[coverage-image]: https://img.shields.io/codeclimate/coverage/github/fabrix-app/spool-router.svg?style=flat-square
-[coverage-url]: https://codeclimate.com/github/fabrix-app/spool-router/coverage
+[coverage-image]: https://img.shields.io/codeclimate/coverage/github/fabrix-app/spool-cart.svg?style=flat-square
+[coverage-url]: https://codeclimate.com/github/fabrix-app/spool-cart/coverage
