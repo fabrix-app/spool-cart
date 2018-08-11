@@ -1,26 +1,30 @@
 # spool-cart
 
-[![Waffle.io - Columns and their card count](https://badge.waffle.io/CaliStyle/spool-cart.svg?columns=all)](https://waffle.io/CaliStyle/spool-cart)
-
+[![Gitter][gitter-image]][gitter-url]
 [![NPM version][npm-image]][npm-url]
-[![Build status][ci-image]][ci-url]
+[![Build Status][ci-image]][ci-url]
+[![Test Coverage][coverage-image]][coverage-url]
 [![Dependency Status][daviddm-image]][daviddm-url]
-[![Code Climate][codeclimate-image]][codeclimate-url]
+[![Follow @FabrixApp on Twitter][twitter-image]][twitter-url]
 
 ## Node.js eCommerce built for speed, scalability, flexibility, and love from [Cali Style](https://cali-style.com)
-Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/calistyle/spool-engine). Connect your own [Merchant Processor, Shipping Provider, Fulfillment Service, Tax Provider](https://github.com/calistyle/spool-generics), and import your products. Attach it to Proxy Engine and you have a fully REST API based eCommerce solution!
+Spool-Cart is the eCommerce component for [Spool-Engine](https://github.com/fabrix-app/spool-engine). Connect your own [Merchant Processor, Shipping Provider, Fulfillment Service, Tax Provider](https://github.com/fabrix-app/spool-generics), and import your products. Attach it to Engine and you have a fully REST API based eCommerce solution!
 
 # Documentation
-[Proxy Cart Documentation](https://calistyle.github.io/cart-docs)
+[Spool-Cart Temporary Documentation](https://calistyle.github.io/cart-docs)
 
 ## Development Notes
-Proxy Cart currently only support sequelize on Postgres. To contribute to Proxy Cart, first create a Local Postgres Database named `ProxyCart`. Then test the build with `DIALECT=postgres npm test`. 
+Spool-Cart currently only support sequelize on Postgres. To contribute to Proxy Cart, first create a Local Postgres Database named `Sequelize`. Then test the build with `npm test`. 
 
-[npm-image]: https://img.shields.io/npm/v/spool-cart.svg?style=flat-square
-[npm-url]: https://npmjs.org/package/spool-cart
-[ci-image]: https://img.shields.io/circleci/project/github/CaliStyle/spool-cart/master.svg
-[ci-url]: https://circleci.com/gh/CaliStyle/spool-cart/tree/master
-[daviddm-image]: http://img.shields.io/david/calistyle/spool-cart.svg?style=flat-square
-[daviddm-url]: https://david-dm.org/calistyle/spool-cart
-[codeclimate-image]: https://img.shields.io/codeclimate/github/calistyle/spool-cart.svg?style=flat-square
-[codeclimate-url]: https://codeclimate.com/github/calistyle/spool-cart
+[npm-image]: https://img.shields.io/npm/v/spool-router.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/spool-router
+[ci-image]: https://img.shields.io/circleci/project/github/fabrix-app/spool-router/master.svg
+[ci-url]: https://circleci.com/gh/fabrix-app/spool-router/tree/master
+[daviddm-image]: http://img.shields.io/david/fabrix-app/spool-router.svg?style=flat-square
+[daviddm-url]: https://david-dm.org/fabrix-app/spool-router
+[gitter-image]: http://img.shields.io/badge/+%20GITTER-JOIN%20CHAT%20%E2%86%92-1DCE73.svg?style=flat-square
+[gitter-url]: https://gitter.im/fabrix-app/fabrix
+[twitter-image]: https://img.shields.io/twitter/follow/FabrixApp.svg?style=social
+[twitter-url]: https://twitter.com/FabrixApp
+[coverage-image]: https://img.shields.io/codeclimate/coverage/github/fabrix-app/spool-router.svg?style=flat-square
+[coverage-url]: https://codeclimate.com/github/fabrix-app/spool-router/coverage
