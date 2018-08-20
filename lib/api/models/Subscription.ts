@@ -43,6 +43,10 @@ export class SubscriptionResolver extends SequelizeResolver {
     )
     return this.findOne(options)
   }
+
+  /**
+   * Batch Edit Subscriptions
+   */
   batch(options, batch) {
     const self = this
 

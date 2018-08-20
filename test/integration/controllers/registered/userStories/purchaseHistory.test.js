@@ -5,7 +5,7 @@ const supertest = require('supertest')
 const _ = require('lodash')
 
 describe('Admin User Purchase History', () => {
-  let registeredUser, userID, customerID, cartID, shopID, shopProducts, orderID, transactionID
+  let registeredUser, userID, customerID, cartID, shopID, shopProducts, orderID, orderToken, transactionID
 
   before((done) => {
     shopID = global.shopID
@@ -62,6 +62,7 @@ describe('Admin User Purchase History', () => {
       .expect(200)
       .end((err, res) => {
         orderID = res.body.order.id
+        orderToken = res.body.order.token
 
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
@@ -141,6 +142,93 @@ describe('Admin User Purchase History', () => {
         done(err)
       })
   })
+  it('should get orders', (done) => {
+    registeredUser
+      .get('/customer/orders')
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+
+  it('should get order by token', (done) => {
+    registeredUser
+      .get(`/customer/order/${ orderToken }`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('BROKE', res.body)
+        assert.ok(res.body.id)
+        assert.ok(res.body.token)
+        assert.equal(res.body.customer_id, customerID)
+        assert.equal(res.body.payment_kind, 'immediate')
+        assert.equal(res.body.transaction_kind, 'sale')
+        assert.equal(res.body.fulfillment_kind, 'immediate')
+
+        assert.equal(res.body.currency, 'USD')
+        assert.equal(res.body.source_name, 'api')
+        assert.equal(res.body.processing_method, 'checkout')
+        assert.equal(res.body.financial_status, 'paid')
+
+        // This is a digital good
+        assert.equal(res.body.fulfillment_status, 'fulfilled')
+        assert.equal(res.body.status, 'closed')
+        assert.equal(_.isString(res.body.closed_at), true)
+
+        // Discounts
+        assert.equal(res.body.discounted_lines.length, 0)
+
+        // Pricing
+        assert.equal(res.body.total_line_items_price, shopProducts[11].price)
+        assert.equal(res.body.subtotal_price, shopProducts[11].price)
+        assert.equal(res.body.total_price, shopProducts[11].price)
+        assert.equal(res.body.total_due, 0)
+        assert.equal(res.body.total_discounts, 0)
+        assert.equal(res.body.total_captured, shopProducts[11].price)
+
+        // Order Items
+        assert.equal(res.body.order_items.length, 1)
+        assert.equal(res.body.total_items, 1)
+        assert.equal(res.body.order_items[0].price, shopProducts[11].price)
+        assert.equal(res.body.order_items[0].price_per_unit, shopProducts[11].price)
+        assert.equal(res.body.order_items[0].calculated_price, shopProducts[11].price)
+        assert.equal(res.body.order_items[0].total_discounts, 0)
+
+        res.body.order_items.forEach(item => {
+          assert.equal(item.order_id, orderID)
+          assert.equal(item.fulfillment_status, 'fulfilled')
+          assert.equal(item.fulfillment_id, res.body.fulfillments[0].id)
+        })
+
+        // Fulfillment
+        assert.equal(res.body.fulfillments.length, 1)
+        res.body.fulfillments.forEach(fulfillment => {
+          assert.equal(fulfillment.status, 'fulfilled')
+          assert.equal(fulfillment.order_id, orderID)
+        })
+        assert.equal(res.body.total_pending_fulfillments, 0)
+        assert.equal(res.body.total_sent_fulfillments, 0)
+        assert.equal(res.body.total_fulfilled_fulfillments, 1)
+        assert.equal(res.body.total_partial_fulfillments, 0)
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 1)
+        transactionID = res.body.transactions[0].id
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.kind, 'sale')
+          assert.equal(transaction.status, 'success')
+          assert.equal(transaction.source_name, 'web')
+          assert.equal(transaction.order_id, orderID)
+        })
+        assert.equal(res.body.total_pending, 0)
+        assert.equal(res.body.total_authorized, 0)
+        assert.equal(res.body.total_voided, 0)
+        assert.equal(res.body.total_cancelled, 0)
+        assert.equal(res.body.total_refunds, 0)
+        assert.equal(res.body.total_captured, shopProducts[11].price)
+        done(err)
+      })
+  })
+
   it('should have purchase history with product', done => {
     registeredUser
       .get(`/product/handle/${shopProducts[11].handle}`)

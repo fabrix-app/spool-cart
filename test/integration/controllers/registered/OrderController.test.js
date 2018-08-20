@@ -4,7 +4,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 
 describe('Registered User OrderController', () => {
-  let registeredUser, userID, customerID
+  let registeredUser, userID, customerID, orderID
 
   before((done) => {
 
@@ -33,6 +33,14 @@ describe('Registered User OrderController', () => {
     registeredUser
       .get('/orders')
       .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  it('should get orders', (done) => {
+    registeredUser
+      .get('/customer/orders')
+      .expect(200)
       .end((err, res) => {
         done(err)
       })
