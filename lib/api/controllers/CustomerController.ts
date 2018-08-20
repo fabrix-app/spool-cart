@@ -732,7 +732,41 @@ export class CustomerController extends Controller {
       res.send(401, err)
 
     }
-    Order.resolve(orderId)
+    Order.resolve(orderId, {
+      include: [
+        {
+          as: 'order_items',
+          model: this.app.models['OrderItem'].instance
+        },
+        {
+          model: this.app.models['Transaction'].instance,
+          as: 'transactions'
+        },
+        {
+          model: this.app.models['Fulfillment'].instance,
+          as: 'fulfillments',
+          include: [
+            {
+              model: this.app.models['OrderItem'].instance,
+              as: 'order_items',
+              attributes: ['id', 'quantity', 'fulfillment_status', 'fulfillment_service']
+            }
+          ]
+        },
+        {
+          model: this.app.models['Refund'].instance,
+          as: 'refunds'
+        },
+        // {
+        //   model: app.models['Event'],
+        //   as: 'events'
+        // },
+        {
+          model: this.app.models['Tag'].instance,
+          as: 'tags'
+        }
+      ]
+    })
       .then(order => {
         return this.app.services.PermissionsService.sanitizeResult(req, order)
       })

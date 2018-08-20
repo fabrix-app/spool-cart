@@ -145,7 +145,6 @@ describe('Admin User Purchase History', () => {
       .get(`/product/handle/${shopProducts[11].handle}`)
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE HERE', res.body)
         assert.equal(res.body.has_purchase_history, true)
         assert.equal(res.body.is_subscribed, true)
         done(err)
