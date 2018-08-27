@@ -1,7 +1,7 @@
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import * as Validator from '../../validator'
-const _ = require('lodash')
+import { defaultsDeep, isString, isNumber, orderBy, extend } from 'lodash'
 /**
  * @module CollectionController
  * @description Generated Fabrix Controller.
@@ -140,7 +140,7 @@ export class CollectionController extends Controller {
     const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
     const where = req.jsonCriteria(req.query.where)
-    const defaults = _.defaultsDeep(where, {
+    const defaults = defaultsDeep(where, {
       $or: [
         {
           title: {
@@ -250,7 +250,7 @@ export class CollectionController extends Controller {
     const CollectionService = this.app.services.CollectionService
 
     const collection = req.body || {}
-    if (_.isString(req.params.collection)) {
+    if (isString(req.params.collection)) {
       collection.handle = req.params.collection
     }
     else {
@@ -465,7 +465,7 @@ export class CollectionController extends Controller {
     .then(arr => {
 
       count = arr.count
-      models = _.orderBy(arr.rows, ['position'], ['asc'])
+      models = orderBy(arr.rows, ['position'], ['asc'])
 
       const productIds = models.map(model => model.model_id)
       return Product.findAllDefault({
@@ -477,9 +477,9 @@ export class CollectionController extends Controller {
     })
     .then(products => {
       products = products.map(product => {
-        return _.extend(product, {position: models.find(m => m.model_id === product.id).position})
+        return extend(product, {position: models.find(m => m.model_id === product.id).position})
       })
-      products = _.orderBy(products, ['position'], ['asc'])
+      products = orderBy(products, ['position'], ['asc'])
       // Paginate
       res.paginate(count, limit, offset, sort)
       return this.app.services.PermissionsService.sanitizeResult(req, products)

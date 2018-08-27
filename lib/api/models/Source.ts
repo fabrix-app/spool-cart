@@ -95,7 +95,7 @@ export class SourceResolver extends SequelizeResolver {
   resolveByString (source, options: {[key: string]: any} = {}) {
     return this.findOne(this.app.services.SequelizeService.mergeOptionDefaults(options, {
       where: {
-        code: source
+        token: source
       }
     }))
       .then(resUser => {

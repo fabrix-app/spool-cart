@@ -1,10 +1,7 @@
-
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const _ = require('lodash')
+import { defaultsDeep, extend, orderBy, isString, isNumber } from 'lodash'
 /**
  * @module ProductController
  * @description Product Controller.
@@ -95,7 +92,7 @@ export class ProductController extends Controller {
     const sort = req.query.sort || [['title', 'DESC']]
     const term = req.query.term
     const where = req.jsonCriteria(req.query.where)
-    const defaults = _.defaultsDeep(where, {
+    const defaults = defaultsDeep(where, {
       $or: [
         {
           title: {
@@ -366,7 +363,7 @@ export class ProductController extends Controller {
       })
       .then(arr => {
         count = arr.count
-        models = _.orderBy(arr.rows, ['position'], ['asc'])
+        models = orderBy(arr.rows, ['position'], ['asc'])
         const productIds = models.map(model => model.model_id)
         return Product.findAllDefault({
           where: {
@@ -377,9 +374,9 @@ export class ProductController extends Controller {
       })
       .then(products => {
         products = products.map(product => {
-          return _.extend(product, {position: models.find(m => m.model_id === product.id).position})
+          return extend(product, {position: models.find(m => m.model_id === product.id).position})
         })
-        products = _.orderBy(products, ['position'], ['asc'])
+        products = orderBy(products, ['position'], ['asc'])
         // Paginate
         res.paginate(count, limit, offset, sort)
         return this.app.services.PermissionsService.sanitizeResult(req, products)
@@ -869,7 +866,7 @@ export class ProductController extends Controller {
     const ProductService = this.app.services.ProductService
 
     const collection = req.body || {}
-    if (_.isString(req.params.collection)) {
+    if (isString(req.params.collection)) {
       collection.handle = req.params.collection
     }
     else {
@@ -1634,7 +1631,7 @@ export class ProductController extends Controller {
       return res.send(401, err)
     }
 
-    const defaults = _.defaultsDeep(where, {
+    const defaults = defaultsDeep(where, {
       product_id: productId,
       $or: [
         {

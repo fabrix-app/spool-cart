@@ -1,11 +1,7 @@
-
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const _ = require('lodash')
-
+import { defaults } from 'lodash'
 /**
  * @module OrderController
  * @description Order Controller.
@@ -148,7 +144,7 @@ export class OrderController extends Controller {
     const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
     const where = req.jsonCriteria(req.query.where)
-    const defaults = _.defaults(where, {
+    const defaultQuery = defaults(where, {
       $or: [
         {
           number: {
@@ -168,7 +164,7 @@ export class OrderController extends Controller {
       ]
     })
     Order.findAndCountDefault({
-      where: defaults,
+      where: defaultQuery,
       order: sort,
       offset: offset,
       req: req,

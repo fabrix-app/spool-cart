@@ -1,7 +1,5 @@
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
-const _ = require('lodash')
+import { defaults } from 'lodash'
 
 /**
  * @module VendorController
@@ -80,7 +78,7 @@ export class VendorController extends Controller {
     const sort = req.query.sort || [['name', 'ASC']]
     const term = req.query.term
     const where = req.jsonCriteria(req.query.where)
-    const defaults = _.defaults(where, {
+    const defaultQuery = defaults(where, {
       $or: [
         {
           name: {
@@ -90,7 +88,7 @@ export class VendorController extends Controller {
       ]
     })
     Vendor.findAndCountAll({
-      where: defaults,
+      where: defaultQuery,
       order: sort,
       offset: offset,
       req: req,

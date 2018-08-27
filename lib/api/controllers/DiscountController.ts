@@ -1,10 +1,7 @@
-
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const _ = require('lodash')
+import { defaults } from 'lodash'
 
 /**
  * @module DiscountController
@@ -118,7 +115,7 @@ export class DiscountController extends Controller {
     const sort = req.query.sort || [['name', 'ASC']]
     const term = req.query.term
     const where = req.jsonCriteria(req.query.where)
-    const defaults = _.defaults(where, {
+    const defaultQuery = defaults(where, {
       $or: [
         {
           name: {
@@ -131,7 +128,7 @@ export class DiscountController extends Controller {
       ]
     })
     Discount.findAndCountAll({
-      where: defaults,
+      where: defaultQuery,
       order: sort,
       offset: offset,
       req: req,
