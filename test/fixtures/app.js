@@ -82,6 +82,7 @@ const App = {
         require('@fabrix/spool-permissions').PermissionsSpool,
         require('@fabrix/spool-notifications').NotificationsSpool,
         require('@fabrix/spool-engine').EngineSpool,
+        require('@fabrix/spool-analytics').AnalyticsSpool,
         require('@fabrix/spool-cart-countries').CartCountriesSpool,
         require('../../dist').CartSpool // spool-cart
       ]

@@ -233,7 +233,7 @@ export class Transaction extends Model {
 
   static schema (app, Sequelize) {
     return {
-      // Unique identifier for a particular order.
+      // Unique identifier for a particular transaction.
       token: {
         type: Sequelize.STRING,
         unique: true
@@ -270,6 +270,12 @@ export class Transaction extends Model {
         // },
         allowNull: true
       },
+      foreign_key: {
+        type: Sequelize.STRING
+      },
+      foreign_id: {
+        type: Sequelize.STRING
+      },
       // TODO Enable User
       // The unique identifier for the user.
       // user_id: {
@@ -281,6 +287,11 @@ export class Transaction extends Model {
       // },
       // The amount of money that the transaction was for.
       amount: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      // The amount of money that the transaction was refunded for.
+      amount_refunded: {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
@@ -333,7 +344,7 @@ export class Transaction extends Model {
       // The kind of transaction:
       kind: {
         type: Sequelize.ENUM,
-        values: values(TRANSACTION_KIND),
+        values: Object.values(TRANSACTION_KIND),
         allowNull: false
       },
       // A transaction reciept attached to the transaction by the gateway.
@@ -348,12 +359,12 @@ export class Transaction extends Model {
       // A standardized error code, independent of the payment provider. Value can be null.
       error_code: {
         type: Sequelize.ENUM,
-        values: values(TRANSACTION_ERRORS)
+        values: Object.values(TRANSACTION_ERRORS)
       },
       // The status of the transaction. Valid values are: pending, failure, success or error.
       status: {
         type: Sequelize.ENUM,
-        values: values(TRANSACTION_STATUS),
+        values: Object.values(TRANSACTION_STATUS),
         defaultValue: TRANSACTION_STATUS.PENDING
       },
       // The three letter code (ISO 4217) for the currency used for the payment.

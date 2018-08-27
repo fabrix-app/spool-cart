@@ -1,5 +1,3 @@
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 // import * as Validator from '../../validator'

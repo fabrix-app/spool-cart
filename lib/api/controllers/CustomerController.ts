@@ -1,10 +1,7 @@
-
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 import * as Validator from '../../validator'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-const _ = require('lodash')
+import { isNumber, isString, defaults } from 'lodash'
 /**
  * @module CustomerController
  * @description Customer Controller.
@@ -61,7 +58,7 @@ export class CustomerController extends Controller {
     const sort = req.query.sort || [['last_name', 'ASC']]
     const term = req.query.term
     const where = req.jsonCriteria(req.query.where)
-    const defaults = _.defaults(where, {
+    const defaultQuery = defaults(where, {
       $or: [
         {
           first_name: {
@@ -86,7 +83,7 @@ export class CustomerController extends Controller {
       ]
     })
     Customer.findAndCountAll({
-      where: defaults,
+      where: defaultQuery,
       order: sort,
       offset: offset,
       req: req,
@@ -1538,7 +1535,12 @@ export class CustomerController extends Controller {
 
     // Set body variables just in case
     req.body.customer.id = customerId
-    req.body.source.id = sourceId
+    if (isString(sourceId)) {
+      req.body.source.token = sourceId
+    }
+    if (isNumber(sourceId)) {
+      req.body.source.id = sourceId
+    }
 
     Validator.validateSource.add(req.body.source)
       .then(values => {
@@ -1580,7 +1582,12 @@ export class CustomerController extends Controller {
 
     // Set body variables just in case
     req.body.customer.id = customerId
-    req.body.source.id = sourceId
+    if (isString(sourceId)) {
+      req.body.source.token = sourceId
+    }
+    if (isNumber(sourceId)) {
+      req.body.source.id = sourceId
+    }
 
     Validator.validateSource.remove(req.body.source)
       .then(values => {

@@ -1,5 +1,3 @@
-
-
 import { FabrixController as Controller } from '@fabrix/fabrix/dist/common'
 
 /**
