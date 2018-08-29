@@ -839,7 +839,46 @@ export class StoreAnalytic extends Analytic {
    * Formula: Revenue - Discounts = Discounts Redeemed
    */
   discountsRedeemed(options: {[key: string]: any} = {}) {
+    const start = moment()
+      .subtract(1, 'months')
+      .startOf('hour')
 
+    const end = moment(Date.now()).startOf('hour')
+
+    return this.app.models.Order.count({
+      where: {
+        created_at: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss')
+        },
+        financial_status: 'paid'
+      },
+      attributes: [
+        [this.app.models.Order.sequelize.literal('SUM(total_price)'), 'total'],
+        [this.app.models.Order.sequelize.literal('SUM(total_discounts)'), 'total_discounts'],
+        [this.app.models.Order.sequelize.literal('COUNT(id)'), 'count'],
+        'currency'
+      ],
+      group: ['currency']
+    })
+      .then(count => {
+        let data = count.map(c => {
+          const total = parseInt(c.total_discounts, 10)
+          return [parseInt(c.count, 10), total, c.currency]
+        })
+
+        if (data.length === 0) {
+          data = [[0, 0, this.app.config.get('cart.default_currency')]]
+        }
+
+        return this.publish([{
+          name: 'store.discountsRedeemed',
+          start: start.format('YYYY-MM-DD HH:mm:ss'),
+          end: end.format('YYYY-MM-DD HH:mm:ss'),
+          group_label: 'currency',
+          labels: ['total', 'gross', 'currency'],
+          data: data
+        }])
+      })
   }
 
   /**

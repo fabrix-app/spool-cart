@@ -81,6 +81,18 @@ describe('StoreAnalytic', () => {
       })
   })
 
+  it('should get Total Discounts Redeemed', (done) => {
+    global.app.analytics.StoreAnalytic.discountsRedeemed()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+
   it('should get MMR', (done) => {
     global.app.analytics.StoreAnalytic.MMR()
       .then(analytics => {
