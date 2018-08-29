@@ -1,1 +1,1 @@
-export { }
+export { StoreAnalytic } from './StoreAnalytic'

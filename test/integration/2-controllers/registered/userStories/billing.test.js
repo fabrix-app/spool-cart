@@ -59,7 +59,7 @@ describe('Registered User Billing Actions', () => {
       .expect(200)
       .end((err, res) => {
 
-        console.log('BROKE SOURCE', res.body)
+        // console.log('BROKE SOURCE', res.body)
 
         sourceToken = res.body.token
         // accountToken = res.body.account_id
@@ -87,7 +87,7 @@ describe('Registered User Billing Actions', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE SOURCE', res.body)
+        // console.log('BROKE SOURCE', res.body)
         // assert.equal(res.body.customer_id, createdCustomerID)
         assert.equal(res.body.token, sourceToken)
         // assert.equal(res.body.account_id, accountToken)

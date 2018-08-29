@@ -45,6 +45,10 @@ export const COUPON_MODELS = {
   PRODUCT: 'product',
 }
 
+export const CUSTOMER_DEFAULTS = {
+  CURRENCY: 'USD'
+}
+
 export const CUSTOMER_MODELS = {
   CUSTOMER: 'customer',
   USER: 'user'
