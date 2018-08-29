@@ -14,6 +14,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.activeCustomers')
         done()
       })
       .catch(err => {
@@ -26,6 +27,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.newCustomers')
         done()
       })
       .catch(err => {
@@ -38,6 +40,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.newSubscriptions')
         done()
       })
       .catch(err => {
@@ -50,6 +53,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.activeSubscriptions')
         done()
       })
       .catch(err => {
@@ -57,11 +61,25 @@ describe('StoreAnalytic', () => {
       })
   })
 
-  it('should get Reactivated Subscriptions', (done) => {
+  it.skip('should get Reactivated Subscriptions', (done) => {
     global.app.analytics.StoreAnalytic.reactivatedSubscriptions()
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.reactivatedSubscriptions')
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+
+  it('should get Cancelled  Subscriptions', (done) => {
+    global.app.analytics.StoreAnalytic.cancelledSubscriptions()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.cancelledSubscriptions')
         done()
       })
       .catch(err => {
@@ -74,6 +92,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.subscriptionDiscountsRedeemed')
         done()
       })
       .catch(err => {
@@ -86,6 +105,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.discountsRedeemed')
         done()
       })
       .catch(err => {
@@ -98,6 +118,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.MMR')
         done()
       })
       .catch(err => {
@@ -110,6 +131,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.ARR')
         done()
       })
       .catch(err => {
@@ -122,6 +144,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.ARPC')
         done()
       })
       .catch(err => {
@@ -134,17 +157,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
-        done()
-      })
-      .catch(err => {
-        done(err)
-      })
-  })
-  it('should get Failed Charges', (done) => {
-    global.app.analytics.StoreAnalytic.failedCharges()
-      .then(analytics => {
-        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
-        assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.NR')
         done()
       })
       .catch(err => {
@@ -157,6 +170,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.churn')
         done()
       })
       .catch(err => {
@@ -169,6 +183,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.MMRChurn')
         done()
       })
       .catch(err => {
@@ -181,6 +196,7 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.RLTV')
         done()
       })
       .catch(err => {
@@ -193,6 +209,33 @@ describe('StoreAnalytic', () => {
       .then(analytics => {
         console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.LTV')
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+
+  it('should get ARPC', (done) => {
+    global.app.analytics.StoreAnalytic.ARPC()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.ARPC')
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+
+  it('should get failedCharges', (done) => {
+    global.app.analytics.StoreAnalytic.failedCharges()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.failedCharges')
         done()
       })
       .catch(err => {

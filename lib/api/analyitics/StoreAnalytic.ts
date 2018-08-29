@@ -59,7 +59,12 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Subscription.instance
+            ? c.get('count') : c.count
+
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -133,8 +138,20 @@ export class StoreAnalytic extends Analytic {
       })
       .then(count => {
         let data = count.map((c, index) => {
-          const ct = resSales[index].get('count') - (c.get('count') || 0)
-          const total = resSales[index].get('total') - (c.get('total') || 0)
+
+          const cTotal = c instanceof this.app.models.Transaction.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof this.app.models.Transaction.instance
+            ? c.get('count') : c.count
+
+          const cTotal2 = resSales[index] instanceof this.app.models.Transaction.instance
+            ? resSales[index].get('total') : resSales[index].total
+          const cCount2 = resSales[index] instanceof this.app.models.Transaction.instance
+            ? resSales[index].get('count') : resSales[index].count
+
+          const ct = (cCount2 || 0) - (cCount || 0)
+          const total = (cTotal2 || 0) - (cTotal || 0)
+
           return [ct, total, c.currency]
         })
 
@@ -212,7 +229,12 @@ export class StoreAnalytic extends Analytic {
       })
       .then(count => {
         let data = count.map((c, i) => {
-          const amount = c.get('total') / resCustomers[i].get('count')
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+          const cCount = resCustomers[i] instanceof this.app.models.Customer.instance
+            ? resCustomers[i].get('count') : resCustomers[i].count
+
+          const amount = cTotal / cCount
           return [amount, c.currency]
         })
 
@@ -221,7 +243,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.ARPU',
+          name: 'store.ARPC',
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -258,7 +280,12 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10) * 12, parseInt(c.get('total'), 10) * 12, c.currency]
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Subscription.instance
+            ? c.get('count') : c.count
+
+          return [parseInt(cCount, 10) * 12, parseInt(cTotal, 10) * 12, c.currency]
         })
 
         if (data.length === 0) {
@@ -321,7 +348,10 @@ export class StoreAnalytic extends Analytic {
         }
 
         let data = resMMR.map((c, index) => {
-          const ltv = c.get('total') / (prevChurn.data[index][0] || 1)
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+
+          const ltv = cTotal / (prevChurn.data[index][0] || 1)
           // return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
           return [ltv, c.currency]
         })
@@ -374,7 +404,9 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof this.app.models.Customer.instance
+            ? c.get('total') : c.total
+          return [parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -444,7 +476,10 @@ export class StoreAnalytic extends Analytic {
 
         let data = resCancelled.map((c, index) => {
           prevChurn.data[index] = prevChurn.data[index] || [0, 0, c.currency]
-          const total = (resCancelled.get('total') / prevChurn.data[index].total) * 100
+          const cTotal = resCancelled instanceof this.app.models.Subscription.instance
+            ? resCancelled.get('total') : resCancelled.total
+
+          const total = (cTotal / prevChurn.data[index][0]) * 100
           return [total, c.currency]
         })
 
@@ -509,13 +544,18 @@ export class StoreAnalytic extends Analytic {
         })
       })
       .then(prevMMR => {
+
         prevMMR = prevMMR || {
           data: [[0, 0, this.app.config.get('cart.default_currency')]]
         }
 
         let data = resCancelled.map((c, index) => {
           prevMMR.data[index] = prevMMR.data[index] || [0, 0, c.currency]
-          const total = (resCancelled.get('total') / prevMMR.data[index].total) * 100
+
+          const cTotal = resCancelled instanceof  this.app.models.Subscription.instance
+            ? resCancelled.get('total') : resCancelled.total
+
+          const total = (cTotal / prevMMR.data[index][0]) * 100
           return [total, c.currency]
         })
 
@@ -524,7 +564,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.churn',
+          name: 'store.MMRChurn',
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -577,7 +617,11 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Customer.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Customer.instance
+            ? c.get('count') : c.count
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -622,7 +666,11 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Customer.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Customer.instance
+            ? c.get('count') : c.count
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -673,7 +721,11 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Subscription.instance
+            ? c.get('count') : c.count
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -718,7 +770,11 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Subscription.instance
+            ? c.get('count') : c.count
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -763,7 +819,12 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Subscription.instance
+            ? c.get('count') : c.count
+
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -809,7 +870,11 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Subscription.instance
+            ? c.get('count') : c.count
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -865,8 +930,13 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          const total = parseInt(c.total_discounts, 10)
-          return [parseInt(c.count, 10), total, c.currency]
+          const cTotal = c instanceof  this.app.models.Subscription.instance
+            ? c.get('total_discounts') : c.total_discounts
+          const cCount = c instanceof  this.app.models.Subscription.instance
+            ? c.get('count') : c.count
+
+          const total = parseInt(cTotal, 10)
+          return [parseInt(cCount, 10), total, c.currency]
         })
 
         if (data.length === 0) {
@@ -913,8 +983,13 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          const total = parseInt(c.total_discounts, 10)
-          return [parseInt(c.count, 10), total, c.currency]
+          const cTotal = c instanceof  this.app.models.Order.instance
+            ? c.get('total_discounts') : c.total_discounts
+          const cCount = c instanceof  this.app.models.Order.instance
+            ? c.get('count') : c.count
+
+          const total = parseInt(cTotal, 10)
+          return [parseInt(cCount, 10), total, c.currency]
         })
 
         if (data.length === 0) {
@@ -960,7 +1035,12 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         let data = count.map(c => {
-          return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+          const cTotal = c instanceof  this.app.models.Transaction.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Transaction.instance
+            ? c.get('count') : c.count
+
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
         })
 
         if (data.length === 0) {
@@ -968,7 +1048,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.cancelledSubscriptions',
+          name: 'store.failedCharges',
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
