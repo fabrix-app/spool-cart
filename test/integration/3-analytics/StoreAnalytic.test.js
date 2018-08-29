@@ -176,6 +176,18 @@ describe('StoreAnalytic', () => {
       })
   })
 
+  it('should get RLTV', (done) => {
+    global.app.analytics.StoreAnalytic.RLTV()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+
   it('should get LTV', (done) => {
     global.app.analytics.StoreAnalytic.LTV()
       .then(analytics => {

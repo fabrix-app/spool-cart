@@ -277,13 +277,13 @@ export class StoreAnalytic extends Analytic {
   }
 
   /**
-   * Lifetime Value (LTV):
+   * Recurring Lifetime Value (RLTV):
    * Lifetime value is a educated guess at how much you can expect to make from the average customer before they churn.
    * Knowing your LTV will help you decide how much you can spend to acquire and support each new customer.
    * The higher, the better.
    * Formula: Average Monthly Recurring Revenue Per Customer ÷ Customer Churn Rate = LTV
    */
-  LTV(options: {[key: string]: any} = {}) {
+  RLTV(options: {[key: string]: any} = {}) {
 
     const start = moment()
       .subtract(1, 'months')
@@ -300,7 +300,7 @@ export class StoreAnalytic extends Analytic {
         active: true
       },
       attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_due)'), 'total'],
+        [this.app.models.Subscription.sequelize.literal('AVG(total_due)'), 'total'],
         [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
         'currency'
       ],
@@ -328,6 +328,57 @@ export class StoreAnalytic extends Analytic {
 
         if (data.length === 0) {
           data = [[0, this.app.config.get('cart.default_currency')]]
+        }
+
+        return this.publish([{
+          name: 'store.RLTV',
+          start: start.format('YYYY-MM-DD HH:mm:ss'),
+          end: end.format('YYYY-MM-DD HH:mm:ss'),
+          group_label: 'currency',
+          labels: ['rltv', 'currency'],
+          data: data
+        }])
+      })
+
+  }
+
+  /**
+   * Lifetime Value (LTV):
+   * Lifetime value is a educated guess at how much you can expect to make from the average customer.
+   * Knowing your LTV will help you decide how much you can spend to acquire and support each new customer.
+   * The higher, the better.
+   * Formula: AVG(Active Customer Total Spent) of the last 30 days = LTV
+   */
+  LTV(options: {[key: string]: any} = {}) {
+    const start = moment()
+      .subtract(1, 'months')
+      .startOf('hour')
+
+    const end = moment(Date.now()).startOf('hour')
+
+    return this.app.models.Customer.findAll({
+      where: {
+        updated_at: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss')
+        },
+        total_spent: {
+          $gte: 1
+        }
+      },
+      attributes: [
+        [this.app.models.Customer.sequelize.literal('AVG(total_spent)'), 'total'],
+        [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
+        'currency'
+      ],
+      group: ['currency']
+    })
+      .then(count => {
+        let data = count.map(c => {
+          return [parseInt(c.get('total'), 10), c.currency]
+        })
+
+        if (data.length === 0) {
+          data = [[0, 0, this.app.config.get('cart.default_currency')]]
         }
 
         return this.publish([{
