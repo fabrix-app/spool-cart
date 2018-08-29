@@ -6,6 +6,7 @@ import { isObject, isString, isNumber, defaultsDeep, pick, extend, values } from
 import * as shortId from 'shortid'
 import { Customer as CustomerQuery } from '../utils/queryDefaults'
 import { CUSTOMER_STATE } from '../../enums'
+import { CUSTOMER_DEFAULTS } from '../../enums'
 
 export class CustomerResolver extends SequelizeResolver {
   /**
@@ -415,6 +416,11 @@ export class Customer extends Model {
       avg_spent: {
         type: Sequelize.INTEGER,
         defaultValue: 0
+      },
+      // The three letter code (ISO 4217) for the currency used for the payment.
+      currency: {
+        type: Sequelize.STRING,
+        defaultValue: app.config.get('cart.default_currency') || CUSTOMER_DEFAULTS.CURRENCY
       },
       // The total count of orders created
       total_orders: {
