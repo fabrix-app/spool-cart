@@ -1,6 +1,6 @@
 {
   "name": "@fabrix/spool-cart",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "Spool - eCommerce Spool for Fabrix",
   "homepage": "https://fabrix.app",
   "author": {
@@ -57,8 +57,8 @@
     "@fabrix/fabrix": "^1.1.4",
     "@fabrix/lint": "^1.0.0-alpha.3",
     "@fabrix/generics-render": "^1.1.1",
-    "@fabrix/spool-analytics": "^1.1.5",
-    "@fabrix/spool-engine": "^1.1.4",
+    "@fabrix/spool-analytics": "^1.1.7",
+    "@fabrix/spool-engine": "^1.1.6",
     "@fabrix/spool-cart-countries": "^1.1.0",
     "@fabrix/spool-email": "^1.1.0",
     "@fabrix/spool-express": "^1.1.5",
@@ -90,7 +90,7 @@
   "peerDependencies": {
     "@fabrix/fabrix": "^1.1.4",
     "@fabrix/spool-cart-countries": "^1.1.0",
-    "@fabrix/spool-engine": "^1.1.4",
+    "@fabrix/spool-engine": "^1.1.6",
     "@fabrix/spool-email": "^1.1.0",
     "@fabrix/spool-express": "^1.1.5",
     "@fabrix/spool-generics": "^1.1.2",
