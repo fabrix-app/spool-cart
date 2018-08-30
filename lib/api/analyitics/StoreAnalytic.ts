@@ -1057,4 +1057,123 @@ export class StoreAnalytic extends Analytic {
         }])
       })
   }
+
+
+
+  /**
+   * Abandoned Carts:
+   * Gross Carts that were never checked out in the last 30 days
+   * Formula: Gross Carts that were never checked out in the last 30 days
+   */
+  // TODO
+  abandonedCarts(options: {[key: string]: any} = {}) {
+    const start = moment()
+      .subtract(1, 'months')
+      .startOf('hour')
+
+    const start2 = moment()
+      .subtract(2, 'months')
+      .startOf('hour')
+
+    const end = moment(Date.now()).startOf('hour')
+
+    return this.app.models.Cart.findAll({
+      where: {
+        created_at: {
+          $lte: start.format('YYYY-MM-DD HH:mm:ss'),
+          $gte: start2.format('YYYY-MM-DD HH:mm:ss'),
+        },
+        total_items: {
+          $gte: 1
+        },
+        status: 'open'
+      },
+      attributes: [
+        [this.app.models.Cart.sequelize.literal('SUM(total_due)'), 'total'],
+        [this.app.models.Cart.sequelize.literal('COUNT(id)'), 'count'],
+        'currency'
+      ],
+      group: ['currency']
+    })
+      .then(count => {
+        let data = count.map(c => {
+          const cTotal = c instanceof  this.app.models.Cart.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Cart.instance
+            ? c.get('count') : c.count
+
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        })
+
+        if (data.length === 0) {
+          data = [[0, 0, this.app.config.get('cart.default_currency')]]
+        }
+
+        return this.publish([{
+          name: 'store.abandonedCarts',
+          start: start.format('YYYY-MM-DD HH:mm:ss'),
+          end: end.format('YYYY-MM-DD HH:mm:ss'),
+          group_label: 'currency',
+          labels: ['total', 'gross', 'currency'],
+          data: data
+        }])
+      })
+  }
+
+  /**
+   * Repeat Customers:
+   * Gross Customers who made more than one purchase in the last 30 days.
+   * Formula: Orders made by the same customers in 30 days.
+   */
+  // TODO
+  repeatCustomers(options: {[key: string]: any} = {}) {
+    const start = moment()
+      .subtract(30, 'days')
+      .startOf('hour')
+
+    const end = moment(Date.now()).startOf('hour')
+    // return this.app.models.Order.sequelize.query(
+    //   'SELECT * FROM projects',
+    //   { model: this.app.models.Order }
+    // )
+    return this.app.models.Order.findAll({
+      where: {
+        created_at: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss'),
+        },
+        financial_status: 'paid'
+      },
+      attributes: [
+        [this.app.models.Order.sequelize.literal('SUM(total_captured)'), 'total'],
+        [this.app.models.Order.sequelize.literal('COUNT(id)'), 'count'],
+        'currency'
+      ],
+      group: [
+        this.app.models.Order.sequelize.literal('currency HAVING COUNT(customer_id) > 1')
+      ]
+    })
+      .then(count => {
+        let data = count.map(c => {
+          const cTotal = c instanceof  this.app.models.Order.instance
+            ? c.get('total') : c.total
+          const cCount = c instanceof  this.app.models.Order.instance
+            ? c.get('count') : c.count
+
+          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        })
+
+        if (data.length === 0) {
+          data = [[0, 0, this.app.config.get('cart.default_currency')]]
+        }
+
+        return this.publish([{
+          name: 'store.repeatCustomers',
+          start: start.format('YYYY-MM-DD HH:mm:ss'),
+          end: end.format('YYYY-MM-DD HH:mm:ss'),
+          group_label: 'currency',
+          labels: ['total', 'gross', 'currency'],
+          data: data
+        }])
+      })
+  }
 }

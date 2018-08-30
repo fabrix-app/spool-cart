@@ -242,4 +242,29 @@ describe('StoreAnalytic', () => {
         done(err)
       })
   })
+  it('should get abandonedCarts', (done) => {
+    global.app.analytics.StoreAnalytic.abandonedCarts()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.abandonedCarts')
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+  it('should get repeatCustomers', (done) => {
+    global.app.analytics.StoreAnalytic.repeatCustomers()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.repeatCustomers')
+        done()
+      })
+      .catch(err => {
+        console.log('BROKE ERR', err)
+        done(err)
+      })
+  })
 })
