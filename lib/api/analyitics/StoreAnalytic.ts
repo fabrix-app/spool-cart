@@ -101,14 +101,7 @@ export class StoreAnalytic extends Analytic {
           $gte: start.format('YYYY-MM-DD HH:mm:ss')
         },
         status: 'success',
-        $or: [
-          {
-            kind: 'sale'
-          },
-          {
-            kind: 'capture'
-          }
-        ]
+        kind: ['sale', 'capture']
       },
       attributes: [
         [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
@@ -169,6 +162,88 @@ export class StoreAnalytic extends Analytic {
         }])
       })
   }
+
+
+  // /**
+  //  * Regular Revenue (RR):
+  //  * You can see how much money flowed into your business each day, minus any discount.
+  //  * Formula: Gross Volume (Non-recurring) - Refunds = Regular Revenue
+  //  */
+  // RR(options: {[key: string]: any} = {}) {
+  //   const start = moment()
+  //     .subtract(1, 'months')
+  //     .startOf('hour')
+  //
+  //   const end = moment(Date.now()).startOf('hour')
+  //
+  //   let resSales
+  //   return this.app.models.Transaction.findAll({
+  //     where: {
+  //       created_at: {
+  //         $gte: start.format('YYYY-MM-DD HH:mm:ss')
+  //       },
+  //       status: 'success',
+  //       kind: ['sale', 'capture']
+  //     },
+  //     attributes: [
+  //       [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+  //       [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
+  //       'currency'
+  //     ],
+  //     group: ['currency']
+  //   })
+  //     .then(count => {
+  //       resSales = count
+  //
+  //       return this.app.models.Transaction.findAll({
+  //         where: {
+  //           created_at: {
+  //             $gte: start.format('YYYY-MM-DD HH:mm:ss')
+  //           },
+  //           status: 'success',
+  //           kind: 'refund'
+  //         },
+  //         attributes: [
+  //           [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+  //           [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
+  //           'currency'
+  //         ],
+  //         group: ['currency']
+  //       })
+  //     })
+  //     .then(count => {
+  //       let data = count.map((c, index) => {
+  //
+  //         const cTotal = c instanceof this.app.models.Transaction.instance
+  //           ? c.get('total') : c.total
+  //         const cCount = c instanceof this.app.models.Transaction.instance
+  //           ? c.get('count') : c.count
+  //
+  //         const cTotal2 = resSales[index] instanceof this.app.models.Transaction.instance
+  //           ? resSales[index].get('total') : resSales[index].total
+  //         const cCount2 = resSales[index] instanceof this.app.models.Transaction.instance
+  //           ? resSales[index].get('count') : resSales[index].count
+  //
+  //         const ct = (cCount2 || 0) - (cCount || 0)
+  //         const total = (cTotal2 || 0) - (cTotal || 0)
+  //
+  //         return [ct, total, c.currency]
+  //       })
+  //
+  //       if (data.length === 0) {
+  //         data = [[0, 0, this.app.config.get('cart.default_currency')]]
+  //       }
+  //
+  //       return this.publish([{
+  //         name: 'store.NR',
+  //         start: start.format('YYYY-MM-DD HH:mm:ss'),
+  //         end: end.format('YYYY-MM-DD HH:mm:ss'),
+  //         group_label: 'currency',
+  //         labels: ['total', 'gross', 'currency'],
+  //         data: data
+  //       }])
+  //     })
+  // }
 
   /**
    * Fees: How much you are gathering in fees by credit card processing.

@@ -156,7 +156,6 @@ describe('Admin User Purchase History', () => {
       .get(`/customer/order/${ orderToken }`)
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE', res.body)
         assert.ok(res.body.id)
         assert.ok(res.body.token)
         assert.equal(res.body.customer_id, customerID)
