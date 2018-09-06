@@ -1,6 +1,3 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 import { omit } from 'lodash'
 import * as shortid from 'shortid'
@@ -15,6 +12,18 @@ import { ORDER_FINANCIAL } from '../../enums'
  * @description Subscription Service
  */
 export class SubscriptionService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
+
   generalStats() {
     const Subscription = this.app.models['Subscription']
     let totalSubscriptions = 0
@@ -157,7 +166,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} started`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -202,7 +211,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} updated`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -252,7 +261,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} was cancelled`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -320,7 +329,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} was activated`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -369,7 +378,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} was deactivated`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -434,7 +443,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} had items added`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -489,7 +498,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} had items removed`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -564,7 +573,7 @@ export class SubscriptionService extends Service {
             message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
             data: resSubscription
           }
-          return this.app.services.EngineService.publish(event.type, event, {
+          return this.publish(event.type, event, {
             save: true,
             transaction: options.transaction || null
           })
@@ -659,7 +668,7 @@ export class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
           data: resSubscription
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -833,7 +842,7 @@ export class SubscriptionService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('subscriptions.renew.complete', results)
+        this.app.services.EventsService.publish('subscriptions.renew.complete', results)
         return results
       })
       .catch(err => {
@@ -895,7 +904,7 @@ export class SubscriptionService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('subscriptions.retry.complete', results)
+        this.app.services.EventsService.publish('subscriptions.retry.complete', results)
         return results
       })
       .catch(err => {
@@ -978,7 +987,7 @@ export class SubscriptionService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('subscriptions.cancel.complete', results)
+        this.app.services.EventsService.publish('subscriptions.cancel.complete', results)
         return results
       })
       .catch(err => {
@@ -1041,7 +1050,7 @@ export class SubscriptionService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('subscriptions.renew.complete', results)
+        this.app.services.EventsService.publish('subscriptions.renew.complete', results)
         return results
       })
       .catch(err => {
@@ -1086,7 +1095,7 @@ export class SubscriptionService extends Service {
    * @returns {Promise.<T>}
    */
   afterCreate(subscription, options: {[key: string]: any} = {}) {
-    this.app.services.EngineService.publish('subscription.created', subscription)
+    this.app.services.EventsService.publish('subscription.created', subscription)
     return Promise.resolve(subscription)
   }
 
@@ -1097,7 +1106,7 @@ export class SubscriptionService extends Service {
    * @returns {Promise.<T>}
    */
   afterUpdate(subscription, options: {[key: string]: any} = {}) {
-    this.app.services.EngineService.publish('subscription.updated', subscription)
+    this.app.services.EventsService.publish('subscription.updated', subscription)
     return Promise.resolve(subscription)
   }
 }

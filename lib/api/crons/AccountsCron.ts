@@ -1,5 +1,5 @@
 
-import { Cron } from '@fabrix/spool-engine'
+import { Cron } from '@fabrix/spool-crons'
 
 export class AccountsCron extends Cron {
   /**

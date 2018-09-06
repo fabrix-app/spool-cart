@@ -1,6 +1,3 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { TRANSACTION_STATUS } from '../../enums'
@@ -10,6 +7,17 @@ import { TRANSACTION_KIND } from '../../enums'
  * @description Payment Service
  */
 export class PaymentService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    * Authorizes and amount
    * @param transaction
@@ -54,7 +62,7 @@ export class PaymentService extends Service {
           message: `Order ID ${ resTransaction.order_id} transaction authorize of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -119,7 +127,7 @@ export class PaymentService extends Service {
           message: `Order ID ${resTransaction.order_id} transaction capture of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -178,7 +186,7 @@ export class PaymentService extends Service {
           message: `Order ID ${resTransaction.order_id} transaction sale of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -221,7 +229,7 @@ export class PaymentService extends Service {
           message: `Order ID ${transaction.order_id} transaction ID ${ transaction.id } ${transaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(transaction.amount, transaction.currency)} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -287,7 +295,7 @@ export class PaymentService extends Service {
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } voided of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -356,7 +364,7 @@ export class PaymentService extends Service {
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } refund of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -417,7 +425,7 @@ export class PaymentService extends Service {
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } ${resTransaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -469,7 +477,7 @@ export class PaymentService extends Service {
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount, resTransaction.currency)} ${resTransaction.status}`,
           data: resTransaction
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })

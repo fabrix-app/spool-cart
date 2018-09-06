@@ -11,6 +11,17 @@ import { COLLECTION_UPLOAD } from '../../enums'
  * @description Collection Csv Service
  */
 export class CollectionCsvService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param file
@@ -19,7 +30,7 @@ export class CollectionCsvService extends Service {
   collectionCsv(file) {
     console.time('csv')
     const uploadID = shortid.generate()
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     const errors: any[] = []
     let errorsCount = 0, lineNumber = 1
 
@@ -45,13 +56,13 @@ export class CollectionCsvService extends Service {
         complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
-          EngineService.count('CollectionUpload', { where: { upload_id: uploadID }})
+          EventsService.count('CollectionUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.collections = count
               results.errors = errors
               results.errors_count = errorsCount
               // Publish the event
-              EngineService.publish('collection_upload.complete', results)
+              EventsService.publish('collection_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
@@ -289,7 +300,7 @@ export class CollectionCsvService extends Service {
           errors_count: errorsCount,
           errors: errors
         }
-        this.app.services.EngineService.publish('collection_process.complete', results)
+        this.app.services.EventsService.publish('collection_process.complete', results)
         return results
       })
   }

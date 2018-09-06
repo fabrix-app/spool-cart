@@ -1,9 +1,9 @@
-import { Event } from '@fabrix/spool-engine'
+import { Event } from '@fabrix/spool-events'
 
 export class OnSource extends Event {
   subscribe() {
-    this.app.services.EngineService.subscribe('OnSource.created', 'customer.source.created', this.created)
-    this.app.services.EngineService.subscribe('OnSource.updated', 'customer.source.updated', this.updated)
+    this.app.services.EventsService.subscribe('OnSource.created', 'customer.source.created', this.created)
+    this.app.services.EventsService.subscribe('OnSource.updated', 'customer.source.updated', this.updated)
   }
   created(msg, data, options) {
     options = options || {}

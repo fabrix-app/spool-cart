@@ -16,8 +16,8 @@ export class ShopController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Shop')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Shop')
       .then(count => {
         const counts = {
           shops: count

@@ -5,6 +5,18 @@ import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
  * @description Tax Service
  */
 export class TaxService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
+
   calculate(obj, lineItems, shippingAddress, resolver, options: {[key: string]: any} = {}) {
     let resObj
     return resolver.resolve(obj, {transaction: options.transaction || null})

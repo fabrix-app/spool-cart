@@ -473,18 +473,18 @@ export class ProductController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     let productCount = 0
     let variantCount = 0
     let imageCount = 0
-    EngineService.count('Product')
+    EventsService.count('Product')
       .then(count => {
         productCount = count
-        return EngineService.count('ProductVariant')
+        return EventsService.count('ProductVariant')
       })
       .then(count => {
         variantCount = count
-        return EngineService.count('ProductImage')
+        return EventsService.count('ProductImage')
       })
       .then(count => {
         imageCount = count

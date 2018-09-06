@@ -16,8 +16,8 @@ export class CollectionController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Collection')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Collection')
       .then(count => {
         const counts = {
           collections: count

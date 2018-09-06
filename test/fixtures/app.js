@@ -81,7 +81,8 @@ const App = {
         require('@fabrix/spool-passport').PassportSpool,
         require('@fabrix/spool-permissions').PermissionsSpool,
         require('@fabrix/spool-notifications').NotificationsSpool,
-        require('@fabrix/spool-engine').EngineSpool,
+        require('@fabrix/spool-events').EventsSpool,
+        require('@fabrix/spool-crons').CronsSpool,
         require('@fabrix/spool-analytics').AnalyticsSpool,
         require('@fabrix/spool-cart-countries').CartCountriesSpool,
         require('../../dist').CartSpool // spool-cart
@@ -421,16 +422,25 @@ const App = {
       //   config: {}
       // }
     },
-    engine: {
-      live_mode: false,
+    // engine: {
+    //   live_mode: false,
+    //   profile: 'testProfile',
+    //   crons_config: {
+    //     profiles: {
+    //       testProfile: [
+    //         'AccountsCron.expired',
+    //         'AccountsCron.willExpire'
+    //       ]
+    //     }
+    //   }
+    // },
+    crons: {
       profile: 'testProfile',
-      crons_config: {
-        profiles: {
-          testProfile: [
-            'AccountsCron.expired',
-            'AccountsCron.willExpire'
-          ]
-        }
+      profiles: {
+        testProfile: [
+          'AccountsCron.expired',
+          'AccountsCron.willExpire'
+        ]
       }
     }
   }

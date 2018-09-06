@@ -1,6 +1,3 @@
-
-
-
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 import * as _ from 'lodash'
 import * as shortid from 'shortid'
@@ -14,7 +11,17 @@ import { ORDER_FINANCIAL } from '../../enums'
  * @description Cart Service
  */
 export class CartService extends Service {
-
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param cart
@@ -235,7 +242,7 @@ export class CartService extends Service {
               message: `Customer Cart ${ resOrder.cart_token } checked out and created Order ${resOrder.name}`,
               data: resOrder
             }
-            return this.app.services.EngineService.publish(event.type, event, {
+            return this.publish(event.type, event, {
               save: true,
               transaction: options.transaction || null
             })

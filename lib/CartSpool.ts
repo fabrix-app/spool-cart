@@ -23,9 +23,16 @@ export class CartSpool extends Spool {
   async validate () {
 
     const requiredSpools = [
-      'router', 'express', 'sequelize', 'engine',
-      'permissions', 'passport', 'notifications',
-      'generics', 'cart-countries'
+      'router',
+      'express',
+      'sequelize',
+      'events',
+      'crons',
+      'permissions',
+      'passport',
+      'notifications',
+      'generics',
+      'cart-countries'
     ]
 
     const spools = Object.keys(this.app.spools)
@@ -35,8 +42,13 @@ export class CartSpool extends Spool {
     }
 
     // Configs
-    if (!this.app.config.get('engine')) {
-      return Promise.reject(new Error('No configuration found at config.engine!'))
+
+    if (!this.app.config.get('crons')) {
+      return Promise.reject(new Error('No configuration found at config.crons!'))
+    }
+
+    if (!this.app.config.get('events')) {
+      return Promise.reject(new Error('No configuration found at config.events!'))
     }
 
     if (!this.app.config.get('cart')) {

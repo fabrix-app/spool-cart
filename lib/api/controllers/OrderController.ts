@@ -17,8 +17,8 @@ export class OrderController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Order')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Order')
       .then(count => {
         const counts = {
           orders: count

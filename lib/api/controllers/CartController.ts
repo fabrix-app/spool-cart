@@ -68,8 +68,8 @@ export class CartController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Cart')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Cart')
       .then(count => {
         const counts = {
           carts: count

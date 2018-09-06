@@ -45,8 +45,8 @@ export class FulfillmentController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Fulfillment')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Fulfillment')
       .then(count => {
         const counts = {
           fulfillments: count

@@ -202,7 +202,7 @@ export class Order extends Model {
         },
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.get('engine.live_mode')
+        //     live_mode: app.config.get('cart.live_mode')
         //   }
         // },
         scopes: {
@@ -704,7 +704,7 @@ export class Order extends Model {
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.get('engine.live_mode')
+        defaultValue: app.config.get('cart.live_mode')
       }
     }
   }
@@ -1511,7 +1511,7 @@ Order.prototype.saveFinancialStatus = function(options: {[key: string]: any} = {
           message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
           data: this
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.app.services.EventsService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1584,7 +1584,7 @@ Order.prototype.saveFulfillmentStatus = function(options: {[key: string]: any} =
           message: `Order ${ this.name || 'ID ' + this.id } fulfillment status changed from "${previousStatus}" to "${currentStatus}"`,
           data: this
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.app.services.EventsService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })

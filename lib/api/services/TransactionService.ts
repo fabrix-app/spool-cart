@@ -10,6 +10,17 @@ import * as moment from 'moment'
  * @description Transaction Service
  */
 export class TransactionService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
 
   /**
    *
@@ -478,7 +489,7 @@ export class TransactionService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('transactions.retry.complete', results)
+        this.app.services.EventsService.publish('transactions.retry.complete', results)
         return results
       })
       .catch(err => {
@@ -537,7 +548,7 @@ export class TransactionService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('transactions.cancel.complete', results)
+        this.app.services.EventsService.publish('transactions.cancel.complete', results)
         return results
       })
       .catch(err => {

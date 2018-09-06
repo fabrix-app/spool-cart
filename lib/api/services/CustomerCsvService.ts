@@ -11,6 +11,17 @@ import { CUSTOMER_UPLOAD } from '../../enums'
  * @description Customer Csv Service
  */
 export class CustomerCsvService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param file
@@ -19,7 +30,7 @@ export class CustomerCsvService extends Service {
   customerCsv(file) {
     console.time('csv')
     const uploadID = shortid.generate()
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     const errors = []
     let errorsCount = 0, lineNumber = 1
     return new Promise((resolve, reject) => {
@@ -44,13 +55,13 @@ export class CustomerCsvService extends Service {
         complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
-          EngineService.count('CustomerUpload', { where: { upload_id: uploadID }})
+          EventsService.count('CustomerUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.customers = count
               results.errors = errors
               results.errors_count = errorsCount
               // Publish the event
-              EngineService.publish('customer_upload.complete', results)
+              EventsService.publish('customer_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
@@ -247,7 +258,7 @@ export class CustomerCsvService extends Service {
             errors_count: errorsCount,
             errors: errors,
           }
-          this.app.services.EngineService.publish('customer_process.complete', results)
+          this.app.services.EventsService.publish('customer_process.complete', results)
           return results
         })
     })

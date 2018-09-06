@@ -10,7 +10,17 @@ import * as _ from 'lodash'
  * @description Collection Service
  */
 export class CollectionService extends Service {
-
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    * Add a Collection
    * @param collection

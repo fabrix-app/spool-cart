@@ -24,8 +24,8 @@ export class SubscriptionController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Subscription')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Subscription')
       .then(count => {
         const counts = {
           subscriptions: count

@@ -2,6 +2,7 @@
 import * as joi from 'joi'
 
 export const cartSpoolConfig =  joi.object().keys({
+  live_mode: joi.boolean(),
   prefix: joi.string().allow('', null),
   // The Nexus of the operation
   nexus: joi.object().keys({

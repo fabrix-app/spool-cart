@@ -11,6 +11,17 @@ import { SUBSCRIPTION_UPLOAD } from '../../enums'
  * @description Subscription Csv Service
  */
 export class SubscriptionCsvService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param file
@@ -19,7 +30,7 @@ export class SubscriptionCsvService extends Service {
   subscriptionCsv(file) {
     console.time('csv')
     const uploadID = shortid.generate()
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     const errors = []
     let errorsCount = 0, lineNumber = 1
     return new Promise((resolve, reject) => {
@@ -44,13 +55,13 @@ export class SubscriptionCsvService extends Service {
         complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
-          EngineService.count('SubscriptionUpload', { where: { upload_id: uploadID }})
+          EventsService.count('SubscriptionUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.subscriptions = count
               results.errors = errors
               results.errors_count = errorsCount
               // Publish the event
-              EngineService.publish('subscription_upload.complete', results)
+              EventsService.publish('subscription_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
@@ -188,7 +199,7 @@ export class SubscriptionCsvService extends Service {
           errors: errors,
           errors_count: errorsCount
         }
-        this.app.services.EngineService.publish('subscription_process.complete', results)
+        this.app.services.EventsService.publish('subscription_process.complete', results)
         return results
       })
   }
@@ -249,12 +260,12 @@ export class SubscriptionCsvService extends Service {
           message: `Customer imported subscription ${subscription.token} started`,
           data: subscription
         }
-        this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
-
-        return subscription
+      }).then(event => {
+        return resSubscription
       })
   }
 }

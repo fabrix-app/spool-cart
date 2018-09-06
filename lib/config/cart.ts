@@ -4,6 +4,7 @@
  * @see {@link https://github.com/CaliStyle/spool-cart}
  */
 export const cart = {
+  live_mode: true,
   prefix: null,
   // The default Shop address (Nexus)
   nexus: {

@@ -22,8 +22,8 @@ export class ReviewController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('ProductReview')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('ProductReview')
       .then(count => {
         const counts = {
           reviews: count

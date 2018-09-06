@@ -128,7 +128,7 @@ export class ProductVariant extends Model {
         // paranoid: !app.config.cart.allow.destroy_variant,
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.get('engine.live_mode')
+        //     live_mode: app.config.get('cart.live_mode')
         //   },
         //   // paranoid: false,
         //   order: [['position', 'ASC']]
@@ -396,7 +396,7 @@ export class ProductVariant extends Model {
       // If this product was created in Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.get('engine.live_mode')
+        defaultValue: app.config.get('cart.live_mode')
       }
     }
   }

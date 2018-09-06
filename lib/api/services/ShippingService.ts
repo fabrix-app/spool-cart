@@ -5,6 +5,18 @@ import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
  * @description Shipping Service
  */
 export class ShippingService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
+
   calculate(obj, lineItems, shippingAddress, resolver, options) {
     options = options || {}
     let resObj

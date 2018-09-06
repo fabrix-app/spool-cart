@@ -228,7 +228,7 @@ export class Subscription extends Model {
         },
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.get('engine.live_mode')
+        //     live_mode: app.config.get('cart.live_mode')
         //   }
         // },
         scopes: {
@@ -574,7 +574,7 @@ export class Subscription extends Model {
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.get('engine.live_mode')
+        defaultValue: app.config.get('cart.live_mode')
       }
     }
   }
@@ -694,6 +694,7 @@ Subscription.prototype.activate = function() {
   // Check if the dates need to be updated
   const d = moment().startOf('hour')
   const r = d.clone()
+  // console.log('BROKE', this.unit)
   if (this.unit === INTERVALS.DAY) {
     // d.setDate(d.getDay() + this.interval)
     d.add(this.interval, 'day')
