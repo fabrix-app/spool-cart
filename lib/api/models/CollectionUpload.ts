@@ -224,7 +224,7 @@ export class CollectionUpload extends Model {
       // }),
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.get('engine.live_mode')
+        defaultValue: app.config.get('cart.live_mode')
       }
     }
   }

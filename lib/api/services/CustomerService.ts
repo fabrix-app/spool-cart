@@ -9,7 +9,17 @@ import { CUSTOMER_STATE } from '../../enums'
  * @description Customer Service
  */
 export class CustomerService extends Service {
-
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param customer
@@ -205,7 +215,7 @@ export class CustomerService extends Service {
                     message: `Customer account ${account.foreign_id} created on ${ account.gateway }`,
                     data: account
                   }
-                  return this.app.services.EngineService.publish(event.type, event, {
+                  return this.publish(event.type, event, {
                     save: true,
                     transaction: options.transaction || null
                   })
@@ -273,7 +283,7 @@ export class CustomerService extends Service {
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id} created`,
           data: resCustomer
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -370,7 +380,7 @@ export class CustomerService extends Service {
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } updated`,
           data: resCustomer
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1076,7 +1086,7 @@ export class CustomerService extends Service {
     options = options || {}
     return this.setAddresses(customer, options)
       .then(customerAddresses => {
-        this.app.services.EngineService.publish('customer.created', customer)
+        this.publish('customer.created', customer)
         return customer
       })
   }
@@ -1089,7 +1099,7 @@ export class CustomerService extends Service {
    */
   afterUpdate(customer, options) {
     options = options || {}
-    this.app.services.EngineService.publish('customer.updated', customer)
+    this.publish('customer.updated', customer)
     let updateAccounts = false
     let updateAddresses = false
     const accountUpdates: {[key: string]: any} = {}
@@ -1245,7 +1255,7 @@ export class CustomerService extends Service {
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } enabled`,
           data: resCustomer
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1286,7 +1296,7 @@ export class CustomerService extends Service {
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } disabled`,
           data: resCustomer
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })

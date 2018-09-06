@@ -9,6 +9,17 @@ import { FULFILLMENT_STATUS } from '../../enums'
  * @description Fulfillment Service
  */
 export class FulfillmentService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param order
@@ -102,7 +113,7 @@ export class FulfillmentService extends Service {
           data: resFulfillment
         }
 
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })

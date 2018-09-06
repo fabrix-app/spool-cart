@@ -19,7 +19,7 @@ export class OrderCsvService extends Service {
   orderCsv(file) {
     console.time('csv')
     const uploadID = shortid.generate()
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     const errors = []
     let errorsCount = 0, lineNumber = 1
 
@@ -44,13 +44,13 @@ export class OrderCsvService extends Service {
         complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
-          EngineService.count('OrderUpload', { where: { upload_id: uploadID }})
+          EventsService.count('OrderUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.orders = count
               results.errors_count = errorsCount
               results.errors = errors
               // Publish the event
-              EngineService.publish('order_upload.complete', results)
+              EventsService.publish('order_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
@@ -192,7 +192,7 @@ export class OrderCsvService extends Service {
             upload_id: uploadId,
             orders: ordersTotal
           }
-          this.app.services.EngineService.publish('order_process.complete', results)
+          this.app.services.EventsService.publish('order_process.complete', results)
           return resolve(results)
         })
         .catch(err => {
@@ -246,7 +246,7 @@ export class OrderCsvService extends Service {
           message: 'Imported Order Created',
           data: order
         }
-        this.app.services.EngineService.publish(event.type, event, {
+        this.app.services.EventsService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })

@@ -12,8 +12,8 @@ export class TagController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Tag')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Tag')
       .then(count => {
         const counts = {
           tags: count

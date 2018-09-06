@@ -11,6 +11,18 @@ import { VENDOR_UPLOAD } from '../../enums'
  * @description Vendor CSV Service
  */
 export class VendorCsvService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
+
   /**
    *
    * @param file
@@ -20,7 +32,7 @@ export class VendorCsvService extends Service {
     // TODO validate csv
     console.time('csv')
     const uploadID = shortid.generate()
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     const errors = []
     let errorsCount = 0, lineNumber = 1
     return new Promise((resolve, reject) => {
@@ -45,13 +57,13 @@ export class VendorCsvService extends Service {
         complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
-          EngineService.count('VendorUpload', { where: { upload_id: uploadID }})
+          EventsService.count('VendorUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.vendors = count
               results.errors_count = errorsCount
               results.errors = errors
               // Publish the event
-              EngineService.publish('vendor_upload.complete', results)
+              EventsService.publish('vendor_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
@@ -210,7 +222,7 @@ export class VendorCsvService extends Service {
           vendors: vendorsTotal,
           errors: errors
         }
-        this.app.services.EngineService.publish('vendor_process.complete', results)
+        this.app.services.EventsService.publish('vendor_process.complete', results)
         return results
       })
   }
@@ -258,7 +270,7 @@ export class VendorCsvService extends Service {
           message: 'Imported Vendor Created',
           data: vendor
         }
-        this.app.services.EngineService.publish(event.type, event, {save: true})
+        this.publish(event.type, event, {save: true})
 
         return vendor
       })

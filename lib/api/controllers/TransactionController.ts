@@ -16,8 +16,8 @@ export class TransactionController extends Controller {
    * @param res
    */
   count(req, res) {
-    const EngineService = this.app.services.EngineService
-    EngineService.count('Transaction')
+    const EventsService = this.app.services.EventsService
+    EventsService.count('Transaction')
       .then(count => {
         const counts = {
           transactions: count

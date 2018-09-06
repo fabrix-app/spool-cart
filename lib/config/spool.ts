@@ -33,7 +33,7 @@ export const spool = {
        */
       listen: [
         'spool:sequelize:configured',
-        'spool:engine:configured',
+        // 'spool:engine:configured',
         'spool:generics:configured',
         'spool:permissions:configured'
       ],
@@ -46,7 +46,7 @@ export const spool = {
     initialize: {
       listen: [
         'spool:sequelize:initialized',
-        'spool:engine:initialized',
+        // 'spool:engine:initialized',
         'spool:permissions:initialized',
         'spool:generics:initialized'
       ],

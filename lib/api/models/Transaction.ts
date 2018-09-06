@@ -174,7 +174,7 @@ export class Transaction extends Model {
         description: 'A Transaction is a representation of a purchasing event.',
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.get('engine.live_mode')
+        //     live_mode: app.config.get('cart.live_mode')
         //   }
         // },
         scopes: {
@@ -392,7 +392,7 @@ export class Transaction extends Model {
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.get('engine.live_mode')
+        defaultValue: app.config.get('cart.live_mode')
       }
     }
   }

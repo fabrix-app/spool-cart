@@ -16,7 +16,17 @@ import { ORDER_CANCEL } from '../../enums'
  * @description Order Service
  */
 export class OrderService extends Service {
-
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    * Creates an Order
    */
@@ -372,7 +382,7 @@ export class OrderService extends Service {
                   message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } Order ${ resOrder.name } was created`,
                   data: resOrder
                 }
-                return this.app.services.EngineService.publish(event.type, event, {
+                return this.publish(event.type, event, {
                   save: true,
                   transaction: options.transaction || null
                 })
@@ -541,7 +551,7 @@ export class OrderService extends Service {
           message: `Order ${ resOrder.name } was ${resOrder.financial_status}`,
           data: resOrder
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -801,7 +811,7 @@ export class OrderService extends Service {
           message: `Order ${ resOrder.name } was ${resOrder.financial_status}`,
           data: resOrder
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1217,7 +1227,7 @@ export class OrderService extends Service {
           message: `Order ${resOrder.name} was cancelled`,
           data: resOrder
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1371,7 +1381,7 @@ export class OrderService extends Service {
           message: `Order ${resOrder.name} pricing overrides updated`,
           data: resOrder
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1464,7 +1474,7 @@ export class OrderService extends Service {
           message: `Item added to Order ${resOrder.name}`,
           data: resItem
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1575,7 +1585,7 @@ export class OrderService extends Service {
           message: `Items added to Order ${resOrder.name}`,
           data: resItems
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1669,7 +1679,7 @@ export class OrderService extends Service {
           message: `Item updated in Order ${resOrder.name}`,
           data: resItem
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -1764,7 +1774,7 @@ export class OrderService extends Service {
           message: `Item removed from Order ${resOrder.name}`,
           data: resItem
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -2372,7 +2382,7 @@ export class OrderService extends Service {
     //       errors: errors
     //     }
     //     this.app.log.info(results)
-    //     this.app.services.EngineService.publish('orders.cancel.complete', results)
+    //     this.app.services.EventsService.publish('orders.cancel.complete', results)
     //     return results
     //   })
     //   .catch(err => {
@@ -2469,13 +2479,13 @@ export class OrderService extends Service {
     if (!order.name && order.number) {
       order.name = `#${order.number}`
     }
-    // this.app.services.EngineService.publish('order.created', order)
+    // this.app.services.EventsService.publish('order.created', order)
     return order.save({transaction: options.transaction || null})
     // return Promise.resolve(order)
   }
 
   afterUpdate(order, options: {[key: string]: any} = {}) {
-    // this.app.services.EngineService.publish('order.updated', order)
+    // this.app.services.EventsService.publish('order.updated', order)
     return Promise.resolve(order)
   }
 }

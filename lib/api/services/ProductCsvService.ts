@@ -20,7 +20,7 @@ export class ProductCsvService extends Service {
   productCsv(file) {
     console.time('csv')
     const uploadID = shortid.generate()
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     const errors = []
     let errorsCount = 0, lineNumber = 1
 
@@ -46,14 +46,14 @@ export class ProductCsvService extends Service {
         complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
-          EngineService.count('ProductUpload', { where: { upload_id: uploadID }})
+          EventsService.count('ProductUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.products = count
               results.errors_count = errorsCount
               results.errors = errors
 
               // Publish the event
-              EngineService.publish('product_upload.complete', results)
+              EventsService.publish('product_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
@@ -536,7 +536,7 @@ export class ProductCsvService extends Service {
           errors_count: errorsCount,
           errors: errors
         }
-        this.app.services.EngineService.publish('product_process.complete', results)
+        this.app.services.EventsService.publish('product_process.complete', results)
         return results
       })
 
@@ -707,7 +707,7 @@ export class ProductCsvService extends Service {
   productMetaCsv(file) {
     console.time('csv')
     const uploadID = shortid.generate()
-    const EngineService = this.app.services.EngineService
+    const EventsService = this.app.services.EventsService
     const errors = []
     let errorsCount = 0, lineNumber = 1
     return new Promise((resolve, reject) => {
@@ -732,13 +732,13 @@ export class ProductCsvService extends Service {
         complete: (results, _file) => {
           console.timeEnd('csv')
           results.upload_id = uploadID
-          EngineService.count('ProductMetaUpload', { where: { upload_id: uploadID }})
+          EventsService.count('ProductMetaUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.products = count
               results.errors = errors
               results.errors_count = errorsCount
               // Publish the event
-              EngineService.publish('product_meta_upload.complete', results)
+              EventsService.publish('product_meta_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
@@ -936,7 +936,7 @@ export class ProductCsvService extends Service {
           errors_count: errorsCount,
           errors: errors
         }
-        this.app.services.EngineService.publish('product_metadata_process.complete', results)
+        this.app.services.EventsService.publish('product_metadata_process.complete', results)
         return results
       })
   }
@@ -1002,7 +1002,7 @@ export class ProductCsvService extends Service {
           errors_count: errorsCount,
           errors: errors
         }
-        this.app.services.EngineService.publish('product_associations_process.complete', results)
+        this.app.services.EventsService.publish('product_associations_process.complete', results)
         return results
       })
   }

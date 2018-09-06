@@ -9,6 +9,17 @@ import { DISCOUNT_STATUS } from '../../enums'
  * @description Discount Service
  */
 export class DiscountService extends Service {
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param discount
@@ -371,7 +382,7 @@ export class DiscountService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('discounts.end.complete', results)
+        this.app.services.EventsService.publish('discounts.end.complete', results)
         return results
       })
   }
@@ -422,7 +433,7 @@ export class DiscountService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('discounts.start.complete', results)
+        this.app.services.EventsService.publish('discounts.start.complete', results)
         return results
       })
   }

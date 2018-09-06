@@ -9,7 +9,17 @@ import { TRANSACTION_STATUS } from '../../enums'
  * @description 3rd Party Account Service
  */
 export class AccountService extends Service {
-
+  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+    if (this.app.services.EventsService) {
+      options.include = options.include ||  [{
+        model: this.app.models.EventItem.instance,
+        as: 'objects'
+      }]
+      return this.app.services.EventsService.publish(type, event, options)
+    }
+    this.app.log.debug('spool-events is not installed, please install it to use publish')
+    return Promise.resolve()
+  }
   /**
    *
    * @param customer
@@ -130,7 +140,7 @@ export class AccountService extends Service {
           message: `Customer account ${resAccount.foreign_id} was updated on ${resAccount.gateway}`,
           data: resAccount
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -195,7 +205,7 @@ export class AccountService extends Service {
                     message: `Customer source ${resSource.foreign_id} was created on ${ resSource.gateway }`,
                     data: resSource
                   }
-                  return this.app.services.EngineService.publish(event.type, event, {
+                  return this.publish(event.type, event, {
                     save: true,
                     transaction: options.transaction || null
                   })
@@ -218,7 +228,7 @@ export class AccountService extends Service {
               message: `Customer account ${account.foreign_id} was created on ${account.gateway}`,
               data: resAccount
             }
-            return this.app.services.EngineService.publish(event.type, event, {
+            return this.publish(event.type, event, {
               save: true,
               transaction: options.transaction || null
             })
@@ -295,7 +305,7 @@ export class AccountService extends Service {
           message: `Customer source ${resSource.foreign_id} was created on ${ resSource.gateway }`,
           data: resSource
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -418,7 +428,7 @@ export class AccountService extends Service {
           message: `Customer source ${resSource.foreign_id} was updated on ${ resSource.gateway }`,
           data: resSource
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -485,7 +495,7 @@ export class AccountService extends Service {
           message: `Customer source ${source.foreign_id} was removed on ${ source.gateway }`,
           data: resSource
         }
-        return this.app.services.EngineService.publish(event.type, event, {
+        return this.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
@@ -704,7 +714,7 @@ export class AccountService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('account.sourcesExpiredThisMonth.complete', results)
+        this.app.services.EventsService.publish('account.sourcesExpiredThisMonth.complete', results)
         return results
       })
       .catch(err => {
@@ -774,7 +784,7 @@ export class AccountService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.EngineService.publish('account.sourcesWillExpireNextMonth.complete', results)
+        this.app.services.EventsService.publish('account.sourcesWillExpireNextMonth.complete', results)
         return results
       })
       .catch(err => {

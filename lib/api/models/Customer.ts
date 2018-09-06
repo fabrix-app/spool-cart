@@ -269,7 +269,7 @@ export class Customer extends Model {
         },
         // defaultScope: {
         //   where: {
-        //     live_mode: app.config.get('engine.live_mode')
+        //     live_mode: app.config.get('cart.live_mode')
         //   }
         // },
         scopes: {
@@ -463,7 +463,7 @@ export class Customer extends Model {
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,
-        defaultValue: app.config.get('engine.live_mode')
+        defaultValue: app.config.get('cart.live_mode')
       }
     }
   }
@@ -893,7 +893,7 @@ Customer.prototype.logAccountBalance = function(
         message: `Customer ${ this.email || 'ID ' + this.id } account balance was ${type}ed by ${ currencySymbol } ${currency}`,
         data: this
       }
-      return this.app.services.EngineService.publish(event.type, event, {
+      return this.app.services.EventsService.publish(event.type, event, {
         save: true,
         transaction: options.transaction || null
       })
