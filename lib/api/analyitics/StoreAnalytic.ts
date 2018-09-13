@@ -383,7 +383,7 @@ export class StoreAnalytic extends Analytic {
    * Lifetime value is a educated guess at how much you can expect to make from the average customer before they churn.
    * Knowing your LTV will help you decide how much you can spend to acquire and support each new customer.
    * The higher, the better.
-   * Formula: Average Monthly Recurring Revenue Per Customer ÷ Customer Churn Rate = LTV
+   * Formula: Average Monthly Recurring Revenue Per Customer ÷ Customer Churn Rate = RLTV
    */
   RLTV(options: {[key: string]: any} = {}) {
 
@@ -1197,7 +1197,7 @@ export class StoreAnalytic extends Analytic {
 
   /**
    * Repeat Customers:
-   * Gross Customers who made more than one purchase in the last 30 days.
+   * Gross Customer Orders who made more than one purchase in the last 30 days.
    * Formula: Orders made by the same customers in 30 days.
    */
   // TODO

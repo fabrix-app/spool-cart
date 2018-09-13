@@ -9778,6 +9778,7 @@ export const routes = {
         }
       }
     },
+    // TODO Deprecate
     'POST': {
       handler: 'SubscriptionController.update',
       config: {
@@ -9793,6 +9794,26 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiPostSubscriptionIdRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'PUT': {
+      handler: 'SubscriptionController.update',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutSubscriptionIdRoute',
             roles: ['admin']
           }
         }
@@ -9873,6 +9894,7 @@ export const routes = {
     }
   },
   '/subscription/:id/activate': {
+    // TODO deprecate
     'POST': {
       handler: 'SubscriptionController.activate',
       config: {
@@ -9915,6 +9937,7 @@ export const routes = {
     }
   },
   '/subscription/:id/deactivate': {
+    // TODO Deprecate
     'POST': {
       handler: 'SubscriptionController.deactivate',
       config: {
