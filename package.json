@@ -58,7 +58,7 @@
     "@fabrix/generics-render": "^1.1.1",
     "@fabrix/lint": "^1.0.0-alpha.3",
     "@fabrix/spool-analytics": "^1.5.0",
-    "@fabrix/spool-cart-countries": "^1.1.0",
+    "@fabrix/spool-cart-countries": "^1.5.0",
     "@fabrix/spool-crons": "^1.5.0",
     "@fabrix/spool-email": "^1.5.0",
     "@fabrix/spool-events": "^1.5.0",
@@ -90,7 +90,7 @@
   },
   "peerDependencies": {
     "@fabrix/fabrix": "^1.5.3",
-    "@fabrix/spool-cart-countries": "^1.1.0",
+    "@fabrix/spool-cart-countries": "^1.5.0",
     "@fabrix/spool-crons": "^1.5.0",
     "@fabrix/spool-email": "^1.5.0",
     "@fabrix/spool-events": "^1.5.0",
