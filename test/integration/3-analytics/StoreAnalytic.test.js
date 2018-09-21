@@ -242,6 +242,19 @@ describe('StoreAnalytic', () => {
         done(err)
       })
   })
+
+  it('should get cancelledCharges', (done) => {
+    global.app.analytics.StoreAnalytic.cancelledCharges()
+      .then(analytics => {
+        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        assert.equal(analytics.length, 1)
+        assert.equal(analytics[0].name, 'store.cancelledCharges')
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
   it('should get abandonedCarts', (done) => {
     global.app.analytics.StoreAnalytic.abandonedCarts()
       .then(analytics => {
