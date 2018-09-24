@@ -114,7 +114,6 @@ export class StoreAnalytic extends Analytic {
     })
       .then(count => {
         resSales = count
-
         return this.app.models.Transaction.findAll({
           where: {
             created_at: {
@@ -132,6 +131,10 @@ export class StoreAnalytic extends Analytic {
         })
       })
       .then(count => {
+        if (count.length === 0) {
+          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+        }
+
         let data = count.map((c, index) => {
 
           const cTotal = parseInt(
@@ -318,6 +321,10 @@ export class StoreAnalytic extends Analytic {
         })
       })
       .then(count => {
+        if (count.length === 0) {
+          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+        }
+
         let data = count.map((c, i) => {
           const cTotal = c instanceof  this.app.models.Subscription.instance
             ? c.get('total') || 0
@@ -428,6 +435,10 @@ export class StoreAnalytic extends Analytic {
       group: ['currency']
     })
       .then(count => {
+        if (count.length === 0) {
+          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+        }
+
         resMMR = count
 
         return this.app.models.Analytic.findOne({
@@ -554,6 +565,10 @@ export class StoreAnalytic extends Analytic {
       group: ['currency']
     })
       .then(count => {
+        if (count.length === 0) {
+          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+        }
+
         resCancelled = count
 
         return this.app.models.Analytic.findOne({
@@ -629,6 +644,10 @@ export class StoreAnalytic extends Analytic {
       group: ['currency']
     })
       .then(count => {
+        if (count.length === 0) {
+          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+        }
+
         resCancelled = count
 
         return this.app.models.Analytic.findOne({
