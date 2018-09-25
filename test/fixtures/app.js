@@ -22,7 +22,7 @@ if (DIALECT === 'postgres') {
     database: 'Sequelize',
     host: '127.0.0.1',
     dialect: 'postgres',
-    logging: true,
+    logging: false,
     migrate: 'drop'
   }
   stores.uploads = {

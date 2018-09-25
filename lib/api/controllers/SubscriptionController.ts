@@ -173,7 +173,7 @@ export class SubscriptionController extends Controller {
         }
       ]
     })
-    Subscription.findAndCountDefault({
+    Subscription.findAndCountAll({
       where: defaultWhere,
       subscription: sort,
       offset: offset,
