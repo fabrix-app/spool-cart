@@ -1,18 +1,17 @@
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-import * as _ from 'lodash'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
-import { PRODUCT_DEFAULTS } from '../../enums'
-import { VARIANT_DEFAULTS } from '../../enums'
 import * as fs from 'fs'
+import * as _ from 'lodash'
+import { PRODUCT_DEFAULTS, VARIANT_DEFAULTS } from '../../enums'
 
 /**
  * @module ProductService
  * @description Product Service
  */
 export class ProductService extends Service {
-  publish(type, event, options: {save?: boolean, transaction?: any, include?: any} = {}) {
+  publish(type, event, options: { save?: boolean, transaction?: any, include?: any } = {}) {
     if (this.app.services.EventsService) {
-      options.include = options.include ||  [{
+      options.include = options.include || [{
         model: this.app.models.EventItem.instance,
         as: 'objects'
       }]
@@ -26,7 +25,7 @@ export class ProductService extends Service {
    * @param item
    * @param options
    */
-  resolveItem(item, options: {[key: string]: any} = {}) {
+  resolveItem(item, options: { [key: string]: any } = {}) {
     const Product = this.app.models.Product
     const ProductVariant = this.app.models.ProductVariant
     const Image = this.app.models.ProductImage
@@ -187,7 +186,7 @@ export class ProductService extends Service {
 
     product = this.productDefaults(product)
     // The Default Product
-    const create: {[key: string]: any} = {
+    const create: { [key: string]: any } = {
       host: product.host,
       handle: product.handle,
       title: product.title,
@@ -249,7 +248,7 @@ export class ProductService extends Service {
 
     // Variants
     // Set a default variant based of off product
-    let variants: {[key: string]: any}[] = [{
+    let variants: { [key: string]: any }[] = [{
       title: product.title,
       sku: product.sku,
       vendors: product.vendors,
@@ -341,27 +340,27 @@ export class ProductService extends Service {
         resProduct = createdProduct
         if (product.tags && product.tags.length > 0) {
           product.tags = _.sortedUniq(product.tags.filter(n => n))
-          return Tag.transformTags(product.tags, {transaction: options.transaction || null})
+          return Tag.transformTags(product.tags, { transaction: options.transaction || null })
         }
         return
       })
       .then(tags => {
         if (tags && tags.length > 0) {
           // Add Tags
-          return resProduct.setTags(tags.map(tag => tag.id), {transaction: options.transaction || null})
+          return resProduct.setTags(tags.map(tag => tag.id), { transaction: options.transaction || null })
         }
         return
       })
       .then(productTags => {
         if (product.shops && product.shops.length > 0) {
           product.shops = _.sortedUniq(product.shops.filter(n => n))
-          return Shop.transformShops(product.shops, {transaction: options.transaction || null})
+          return Shop.transformShops(product.shops, { transaction: options.transaction || null })
         }
         return
       })
       .then(shops => {
         if (shops && shops.length > 0) {
-          return resProduct.setShops(shops, {transaction: options.transaction || null})
+          return resProduct.setShops(shops, { transaction: options.transaction || null })
         }
         return
       })
@@ -369,14 +368,14 @@ export class ProductService extends Service {
         if (product.collections && product.collections.length > 0) {
           // Resolve the collections
           product.collections = _.sortedUniq(product.collections.filter(n => n))
-          return Collection.transformCollections(product.collections, {transaction: options.transaction || null})
+          return Collection.transformCollections(product.collections, { transaction: options.transaction || null })
         }
         return
       })
       .then(collections => {
         if (collections && collections.length > 0) {
           return Product.sequelize.Promise.mapSeries(collections, collection => {
-            const through = collection.product_position ? {position: collection.product_position} : {}
+            const through = collection.product_position ? { position: collection.product_position } : {}
             return resProduct.addCollection(collection.id, {
               through: through,
               transaction: options.transaction || null
@@ -393,7 +392,7 @@ export class ProductService extends Service {
       })
       .then(productCollections => {
         if (product.vendors && product.vendors.length > 0) {
-          return Vendor.transformVendors(product.vendors, {transaction: options.transaction || null})
+          return Vendor.transformVendors(product.vendors, { transaction: options.transaction || null })
         }
         return
       })
@@ -416,11 +415,11 @@ export class ProductService extends Service {
             }
             delete image.variant
           }
-          return resProduct.createImage(image, {transaction: options.transaction || null})
+          return resProduct.createImage(image, { transaction: options.transaction || null })
         })
       })
       .then(createdImages => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return Product.findByIdDefault(resProduct.id, { transaction: options.transaction || null })
       })
   }
   /**
@@ -465,7 +464,7 @@ export class ProductService extends Service {
     //   throw new ModelError('E_NOT_FOUND', 'Product is missing id')
     // }
 
-    let resProduct, update: {[key: string]: any} = {}
+    let resProduct, update: { [key: string]: any } = {}
     return Product.resolve(product, {
       transaction: options.transaction || null
     })
@@ -474,35 +473,35 @@ export class ProductService extends Service {
           throw new Error('Product not found')
         }
         resProduct = _product
-        return resProduct.resolveVariants({transaction: options.transaction || null})
+        return resProduct.resolveVariants({ transaction: options.transaction || null })
       })
       .then(() => {
         if (product.collections) {
-          return resProduct.resolveCollections({transaction: options.transaction || null})
+          return resProduct.resolveCollections({ transaction: options.transaction || null })
         }
         return
       })
       .then(() => {
         // if (product.images) {
-        return resProduct.resolveImages({transaction: options.transaction || null})
+        return resProduct.resolveImages({ transaction: options.transaction || null })
         // }
         // return
       })
       .then(() => {
         if (product.metadata) {
-          return resProduct.resolveMetadata({transaction: options.transaction || null})
+          return resProduct.resolveMetadata({ transaction: options.transaction || null })
         }
         return
       })
       .then(() => {
         if (product.associations) {
-          return resProduct.resolveAssociations({transaction: options.transaction || null})
+          return resProduct.resolveAssociations({ transaction: options.transaction || null })
         }
         return
       })
       .then(() => {
         if (product.vendors) {
-          return resProduct.resolveVendors({transaction: options.transaction || null})
+          return resProduct.resolveVendors({ transaction: options.transaction || null })
         }
         return
       })
@@ -628,18 +627,18 @@ export class ProductService extends Service {
           // Set the product id of the variant
           variant.product_id = resProduct.id
           // Set the defaults
-          variant = this.variantDefaults(variant, resProduct.get({plain: true}))
+          variant = this.variantDefaults(variant, resProduct.get({ plain: true }))
 
           if (variant.images.length > 0) {
             // Update the master image if new/updated attributes are defined
             resProduct.images = resProduct.images.map(image => {
-              return _.extend(image, variant.images.find(i => i.id === image.id || i.src === image.src ))
+              return _.extend(image, variant.images.find(i => i.id === image.id || i.src === image.src))
             })
 
             // Create a list of new variant images
             variant.images = variant.images.filter(image => !image.id)
             // build the new images
-            variant.images = variant.images.map( image => {
+            variant.images = variant.images.map(image => {
               // image.variant = index
               image.product_id = resProduct.id
               return Image.build(image)
@@ -707,20 +706,20 @@ export class ProductService extends Service {
         })
 
         // Update changed attributes
-        return resProduct.updateAttributes(update, {transaction: options.transaction || null})
+        return resProduct.updateAttributes(update, { transaction: options.transaction || null })
       })
       .then(updateProduct => {
         // Transform any new Tags
         if (product.tags && product.tags.length > 0) {
           product.tags = _.sortedUniq(product.tags.filter(n => n))
-          return Tag.transformTags(product.tags, {transaction: options.transaction || null})
+          return Tag.transformTags(product.tags, { transaction: options.transaction || null })
         }
         return
       })
       .then(tags => {
         // Set Tags
         if (tags && tags.length > 0) {
-          return resProduct.setTags(tags.map(t => t.id), {transaction: options.transaction || null})
+          return resProduct.setTags(tags.map(t => t.id), { transaction: options.transaction || null })
         }
         return
       })
@@ -728,7 +727,7 @@ export class ProductService extends Service {
         if (product.collections && product.collections.length > 0) {
           // Resolve the collections
           product.collections = _.sortedUniq(product.collections.filter(n => n))
-          return Collection.transformCollections(product.collections, {transaction: options.transaction || null})
+          return Collection.transformCollections(product.collections, { transaction: options.transaction || null })
         }
         return
       })
@@ -736,7 +735,7 @@ export class ProductService extends Service {
         // Set the collections
         if (collections && collections.length > 0) {
           return Product.sequelize.Promise.mapSeries(collections, collection => {
-            const through = collection.product_position ? {position: collection.product_position} : {}
+            const through = collection.product_position ? { position: collection.product_position } : {}
             return resProduct.addCollection(collection.id, {
               through: through,
               hooks: false,
@@ -760,7 +759,7 @@ export class ProductService extends Service {
       })
       .then(metadata => {
         if (product.vendors && product.vendors.length > 0) {
-          return Vendor.transformVendors(product.vendors, {transaction: options.transaction || null})
+          return Vendor.transformVendors(product.vendors, { transaction: options.transaction || null })
         }
         return
       })
@@ -776,10 +775,10 @@ export class ProductService extends Service {
             return variant.save({
               transaction: options.transaction || null
             })
-                .catch(err => {
-                  this.app.log.error(err)
-                  return variant
-                })
+              .catch(err => {
+                this.app.log.error(err)
+                return variant
+              })
           }
           else {
             return resProduct.createVariant(variant, {
@@ -830,7 +829,7 @@ export class ProductService extends Service {
    * @param product
    * @param options
    */
-  removeProduct(product, options: {[key: string]: any} = {}) {
+  removeProduct(product, options: { [key: string]: any } = {}) {
     if (!product.id) {
       const err = new ModelError('E_NOT_FOUND', 'Product is missing id')
       return Promise.reject(err)
@@ -865,12 +864,12 @@ export class ProductService extends Service {
    * @param options
    */
   // TODO upload images
-  createVariant(product, variant, options: {[key: string]: any} = {}) {
+  createVariant(product, variant, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     const Variant = this.app.models['ProductVariant']
     let resProduct, resVariant, productOptions = []
 
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Could not find Product')
@@ -880,7 +879,7 @@ export class ProductService extends Service {
         variant.product_id = resProduct.id
         variant = this.variantDefaults(variant, resProduct)
 
-        return resProduct.createVariant(variant, {transaction: options.transaction || null})
+        return resProduct.createVariant(variant, { transaction: options.transaction || null })
         // return this.resolveVariant(variant, options)
       })
       .then(_variant => {
@@ -911,10 +910,10 @@ export class ProductService extends Service {
       .then(updatedVariants => {
         resProduct.options = productOptions
         resProduct.total_variants = updatedVariants.length
-        return resProduct.save({transaction: options.transaction || null})
+        return resProduct.save({ transaction: options.transaction || null })
       })
       .then(updatedProduct => {
-        return Variant.findByIdDefault(resVariant.id, {transaction: options.transaction || null})
+        return Variant.findByIdDefault(resVariant.id, { transaction: options.transaction || null })
       })
   }
 
@@ -943,8 +942,9 @@ export class ProductService extends Service {
     options = options || {}
     const Product = this.app.models['Product']
     const Variant = this.app.models['ProductVariant']
-    let  resProduct, resVariant, productOptions = []
-    return Product.resolve(product, {transaction: options.transaction || null})
+    const Image = this.app.models['ProductImage']
+    let resProduct, resVariant, productOptions = []
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new Error('Product did not resolve')
@@ -956,7 +956,9 @@ export class ProductService extends Service {
         resVariant = foundVariant
         resVariant = _.extend(resVariant, _.omit(variant, ['id', 'sku']))
         resVariant = this.variantDefaults(resVariant, resProduct)
-        return resVariant.save({transaction: options.transaction || null})
+        return resVariant.resolveImages({ transaction: options.transaction || null })
+      }).then(() => {
+        return resVariant.save({ transaction: options.transaction || null })
       })
       .then(_variant => {
         return Variant.findAll({
@@ -976,15 +978,15 @@ export class ProductService extends Service {
           productOptions = _.union(productOptions, keys)
         })
         return Product.sequelize.Promise.mapSeries(updates, _variant => {
-          return _variant.save({transaction: options.transaction || null})
+          return _variant.save({ transaction: options.transaction || null })
         })
       })
       .then(updatedVariants => {
         resProduct.options = product.options
-        return resProduct.save({transaction: options.transaction || null})
+        return resProduct.save({ transaction: options.transaction || null })
       })
       .then(updatedProduct => {
-        return Variant.findByIdDefault(resVariant.id, {transaction: options.transaction || null})
+        return Variant.findByIdDefault(resVariant.id, { transaction: options.transaction || null })
       })
 
   }
@@ -1003,16 +1005,16 @@ export class ProductService extends Service {
    * @param id
    * @param options
    */
-  removeVariant(id, options: {[key: string]: any} = {}) {
+  removeVariant(id, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     const Variant = this.app.models.ProductVariant
     let resVariant, resProduct
     let updates
     let productOptions = []
-    return Variant.resolve(id, {transaction: options.transaction || null})
+    return Variant.resolve(id, { transaction: options.transaction || null })
       .then(foundVariant => {
         resVariant = foundVariant
-        return Product.resolve(resVariant.product_id, {transaction: options.transaction || null})
+        return Product.resolve(resVariant.product_id, { transaction: options.transaction || null })
       })
       .then(product => {
         resProduct = product
@@ -1037,16 +1039,16 @@ export class ProductService extends Service {
           productOptions = _.union(productOptions, keys)
         })
         return Variant.sequelize.Promise.mapSeries(updates, variant => {
-          return variant.save({transaction: options.transaction || null})
+          return variant.save({ transaction: options.transaction || null })
         })
       })
       .then(updatedVariants => {
         resProduct.options = productOptions
         resProduct.total_variants = updatedVariants.length
-        return resProduct.save({transaction: options.transaction || null})
+        return resProduct.save({ transaction: options.transaction || null })
       })
       .then(updatedProduct => {
-        return resVariant.destroy({transaction: options.transaction || null})
+        return resVariant.destroy({ transaction: options.transaction || null })
       })
       .then(destroyed => {
         return resVariant
@@ -1073,7 +1075,7 @@ export class ProductService extends Service {
    * @param id
    * @param options
    */
-  removeImage(id, options: {[key: string]: any} = {}) {
+  removeImage(id, options: { [key: string]: any } = {}) {
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
 
@@ -1114,7 +1116,7 @@ export class ProductService extends Service {
         })
       })
       .then(() => {
-        return Product.findByIdDefault(resDestroy.product_id, {transaction: options.transaction || null})
+        return Product.findByIdDefault(resDestroy.product_id, { transaction: options.transaction || null })
       })
   }
 
@@ -1125,19 +1127,19 @@ export class ProductService extends Service {
    * @param options
    */
   // TODO
-  addImage(product, variant, image, options: {[key: string]: any} = {}) {
+  addImage(product, variant, image, options: { [key: string]: any } = {}) {
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
     const Variant = this.app.models['Variant']
     let resProduct, resImage, resVariant
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(foundProduct => {
         if (!foundProduct) {
           throw new Error('Product could not be resolved')
         }
         resProduct = foundProduct
         if (variant) {
-          return Variant.resolve(variant, {transaction: options.transaction || null})
+          return Variant.resolve(variant, { transaction: options.transaction || null })
         }
         else {
           return null
@@ -1152,8 +1154,8 @@ export class ProductService extends Service {
           position: options.position || null,
           alt: options.alt || null
         }, {
-          transaction: options.transaction
-        })
+            transaction: options.transaction
+          })
       })
       .then(createdImage => {
         if (!createdImage) {
@@ -1184,20 +1186,20 @@ export class ProductService extends Service {
       })
   }
 
-  createImage(product, variant, filePath, options: {[key: string]: any} = {}) {
+  createImage(product, variant, filePath, options: { [key: string]: any } = {}) {
     const image = fs.readFileSync(filePath)
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
     const Variant = this.app.models['ProductVariant']
     let resProduct, resImage, resVariant
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new Error('Product could not be resolved')
         }
         resProduct = _product
         if (variant) {
-          return Variant.resolve(variant, {transaction: options.transaction || null})
+          return Variant.resolve(variant, { transaction: options.transaction || null })
         }
         else {
           return null
@@ -1214,8 +1216,8 @@ export class ProductService extends Service {
           position: options.position || null,
           alt: options.alt || null
         }, {
-          transaction: options.transaction
-        })
+            transaction: options.transaction
+          })
       })
       .then(createdImage => {
         if (!createdImage) {
@@ -1257,29 +1259,29 @@ export class ProductService extends Service {
     const Product = this.app.models['Product']
     const Tag = this.app.models['Tag']
     let resProduct, resTag
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Tag.resolve(tag, {transaction: options.transaction || null})
+        return Tag.resolve(tag, { transaction: options.transaction || null })
       })
       .then(_tag => {
         if (!_tag) {
           throw new ModelError('E_NOT_FOUND', 'Tag not found')
         }
         resTag = _tag
-        return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})
+        return resProduct.hasTag(resTag.id, { transaction: options.transaction || null })
       })
       .then(hasTag => {
         if (!hasTag) {
-          return resProduct.addTag(resTag.id, {transaction: options.transaction || null})
+          return resProduct.addTag(resTag.id, { transaction: options.transaction || null })
         }
         return resProduct
       })
       .then(_tag => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return Product.findByIdDefault(resProduct.id, { transaction: options.transaction || null })
       })
   }
 
@@ -1295,29 +1297,29 @@ export class ProductService extends Service {
     const Product = this.app.models['Product']
     const Tag = this.app.models['Tag']
     let resProduct, resTag
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Tag.resolve(tag, {transaction: options.transaction || null})
+        return Tag.resolve(tag, { transaction: options.transaction || null })
       })
       .then(_tag => {
         if (!_tag) {
           throw new ModelError('E_NOT_FOUND', 'Tag not found')
         }
         resTag = _tag
-        return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})
+        return resProduct.hasTag(resTag.id, { transaction: options.transaction || null })
       })
       .then(hasTag => {
         if (hasTag) {
-          return resProduct.removeTag(resTag.id, {transaction: options.transaction || null})
+          return resProduct.removeTag(resTag.id, { transaction: options.transaction || null })
         }
         return false
       })
       .then(newTag => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return Product.findByIdDefault(resProduct.id, { transaction: options.transaction || null })
       })
   }
 
@@ -1339,7 +1341,7 @@ export class ProductService extends Service {
     }
 
 
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
@@ -1347,18 +1349,18 @@ export class ProductService extends Service {
         resProduct = _product
         // If this product object also provided a sku
         if (product.sku) {
-          return ProductVariant.resolve(product, {transaction: options.transaction || null})
+          return ProductVariant.resolve(product, { transaction: options.transaction || null })
         }
         // Return the default Variant
         else {
-          return resProduct.getDefaultVariant({transaction: options.transaction || null})
+          return resProduct.getDefaultVariant({ transaction: options.transaction || null })
         }
       })
       .then(_variant => {
         if (_variant) {
           resVariant = _variant
         }
-        return Product.resolve(association, {transaction: options.transaction || null})
+        return Product.resolve(association, { transaction: options.transaction || null })
       })
       .then(_association => {
         if (!_association) {
@@ -1371,7 +1373,7 @@ export class ProductService extends Service {
         }
         // Return the default Variant
         else {
-          return resAssociationProduct.getDefaultVariant({transaction: options.transaction || null})
+          return resAssociationProduct.getDefaultVariant({ transaction: options.transaction || null })
         }
       })
       .then(_variantAssociation => {
@@ -1383,7 +1385,7 @@ export class ProductService extends Service {
           variant_id: resVariant.id,
           associated_variant_id: resAssociationVariant.id,
           // position:
-        } : { }
+        } : {}
 
         if (association.position !== 'undefined') {
           through.position = association.position
@@ -1405,7 +1407,7 @@ export class ProductService extends Service {
         return false
       })
       .then(_newAssociation => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return Product.findByIdDefault(resProduct.id, { transaction: options.transaction || null })
       })
   }
 
@@ -1426,7 +1428,7 @@ export class ProductService extends Service {
       throw new ModelError('E_NOT_FOUND', 'Product or Association was not provided')
     }
 
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
@@ -1442,7 +1444,7 @@ export class ProductService extends Service {
         if (_variant) {
           resVariant = _variant
         }
-        return Product.resolve(association, {transaction: options.transaction || null})
+        return Product.resolve(association, { transaction: options.transaction || null })
       })
       .then(_association => {
         if (!_association) {
@@ -1464,7 +1466,7 @@ export class ProductService extends Service {
         through = resVariant && resAssociationVariant ? {
           variant_id: resVariant.id,
           associated_variant_id: resAssociationVariant.id,
-        } : { }
+        } : {}
 
         // Check if the association exists
         return resProduct.hasAssociation(resAssociationProduct.id, {
@@ -1482,7 +1484,7 @@ export class ProductService extends Service {
         return false
       })
       .then(_newAssociation => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return Product.findByIdDefault(resProduct.id, { transaction: options.transaction || null })
       })
   }
 
@@ -1503,13 +1505,13 @@ export class ProductService extends Service {
       throw new ModelError('E_NOT_FOUND', 'Variant or Association was not provided')
     }
 
-    return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
+    return ProductVariant.resolve(productVariant, { transaction: options.transaction || null })
       .then(_productVariant => {
         if (!_productVariant) {
           throw new ModelError('E_NOT_FOUND', 'ProductVariant not found')
         }
         resProductVariant = _productVariant
-        return ProductVariant.resolve(association, {transaction: options.transaction || null})
+        return ProductVariant.resolve(association, { transaction: options.transaction || null })
       })
       .then(_association => {
         if (!_association) {
@@ -1537,7 +1539,7 @@ export class ProductService extends Service {
         return false
       })
       .then(newAssociation => {
-        return ProductVariant.findByIdDefault(resProductVariant.id, {transaction: options.transaction || null})
+        return ProductVariant.findByIdDefault(resProductVariant.id, { transaction: options.transaction || null })
       })
   }
 
@@ -1557,13 +1559,13 @@ export class ProductService extends Service {
       throw new ModelError('E_NOT_FOUND', 'Variant or Association was not provided')
     }
 
-    return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
+    return ProductVariant.resolve(productVariant, { transaction: options.transaction || null })
       .then(_productVariant => {
         if (!_productVariant) {
           throw new ModelError('E_NOT_FOUND', 'ProductVariant not found')
         }
         resProductVariant = _productVariant
-        return ProductVariant.resolve(association, {transaction: options.transaction || null})
+        return ProductVariant.resolve(association, { transaction: options.transaction || null })
       })
       .then(_association => {
         if (!_association) {
@@ -1591,7 +1593,7 @@ export class ProductService extends Service {
         return false
       })
       .then(removedAssociation => {
-        return ProductVariant.findByIdDefault(resProductVariant.id, {transaction: options.transaction || null})
+        return ProductVariant.findByIdDefault(resProductVariant.id, { transaction: options.transaction || null })
       })
   }
 
@@ -1631,24 +1633,24 @@ export class ProductService extends Service {
     const Product = this.app.models['Product']
     const Collection = this.app.models['Collection']
     let resProduct, resCollection
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Collection.resolve(collection, {transaction: options.transaction || null})
+        return Collection.resolve(collection, { transaction: options.transaction || null })
       })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
         }
         resCollection = _collection
-      //   return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
-      // })
-      // .then(hasCollection => {
-        const through = collection.product_position ? {position: collection.product_position} : {}
-      //   if (!hasCollection) {
+        //   return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
+        // })
+        // .then(hasCollection => {
+        const through = collection.product_position ? { position: collection.product_position } : {}
+        //   if (!hasCollection) {
 
         return resProduct.addCollection(resCollection.id, {
           through: through,
@@ -1678,24 +1680,24 @@ export class ProductService extends Service {
     const Product = this.app.models['Product']
     const Collection = this.app.models['Collection']
     let resProduct, resCollection
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Collection.resolve(collection, {transaction: options.transaction || null})
+        return Collection.resolve(collection, { transaction: options.transaction || null })
       })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resCollection = _collection
-        return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
+        return resProduct.hasCollection(resCollection.id, { transaction: options.transaction || null })
       })
       .then(hasCollection => {
         if (hasCollection) {
-          return resProduct.removeCollection(resCollection.id, {transaction: options.transaction || null})
+          return resProduct.removeCollection(resCollection.id, { transaction: options.transaction || null })
         }
         return resProduct
       })
@@ -1716,24 +1718,24 @@ export class ProductService extends Service {
     options = options || {}
     const Product = this.app.models['Product']
     let resProduct, resShop
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return this.app.models['Shop'].resolve(shop, {transaction: options.transaction || null})
+        return this.app.models['Shop'].resolve(shop, { transaction: options.transaction || null })
       })
       .then(_shop => {
         if (!_shop) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resShop = _shop
-        return resProduct.hasShop(resShop.id, {transaction: options.transaction || null})
+        return resProduct.hasShop(resShop.id, { transaction: options.transaction || null })
       })
       .then(hasShop => {
         if (!hasShop) {
-          return resProduct.addShop(resShop.id, {transaction: options.transaction || null})
+          return resProduct.addShop(resShop.id, { transaction: options.transaction || null })
         }
         return resProduct
       })
@@ -1754,24 +1756,24 @@ export class ProductService extends Service {
     options = options || {}
     const Product = this.app.models['Product']
     let resProduct, resShop
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return this.app.models['Shop'].resolve(shop, {transaction: options.transaction || null})
+        return this.app.models['Shop'].resolve(shop, { transaction: options.transaction || null })
       })
       .then(_shop => {
         if (!_shop) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resShop = _shop
-        return resProduct.hasShop(resShop.id, {transaction: options.transaction || null})
+        return resProduct.hasShop(resShop.id, { transaction: options.transaction || null })
       })
       .then(hasShop => {
         if (hasShop) {
-          return resProduct.removeShop(resShop.id, {transaction: options.transaction || null})
+          return resProduct.removeShop(resShop.id, { transaction: options.transaction || null })
         }
         return resProduct
       })
@@ -1793,24 +1795,24 @@ export class ProductService extends Service {
     const Product = this.app.models['Product']
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Vendor.resolve(vendor, {transaction: options.transaction || null})
+        return Vendor.resolve(vendor, { transaction: options.transaction || null })
       })
       .then(_vendor => {
         if (!_vendor) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resVendor = _vendor
-        return resProduct.hasVendor(resVendor.id, {transaction: options.transaction || null})
+        return resProduct.hasVendor(resVendor.id, { transaction: options.transaction || null })
       })
       .then(hasVendor => {
         if (!hasVendor) {
-          return resProduct.addVendor(resVendor.id, {transaction: options.transaction || null})
+          return resProduct.addVendor(resVendor.id, { transaction: options.transaction || null })
         }
         return resProduct
       })
@@ -1832,24 +1834,24 @@ export class ProductService extends Service {
     const Product = this.app.models['Product']
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
-    return Product.resolve(product, {transaction: options.transaction || null})
+    return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
         if (!_product) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Vendor.resolve(vendor, {transaction: options.transaction || null})
+        return Vendor.resolve(vendor, { transaction: options.transaction || null })
       })
       .then(_vendor => {
         if (!_vendor) {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resVendor = _vendor
-        return resProduct.hasVendor(resVendor.id, {transaction: options.transaction || null})
+        return resProduct.hasVendor(resVendor.id, { transaction: options.transaction || null })
       })
       .then(hasVendor => {
         if (hasVendor) {
-          return resProduct.removeVendor(resVendor.id, {transaction: options.transaction || null})
+          return resProduct.removeVendor(resVendor.id, { transaction: options.transaction || null })
         }
         return resProduct
       })
@@ -1975,15 +1977,15 @@ export class ProductService extends Service {
     }
 
     // If the option is set on parent
-    if (_.isObject(product.option)  && _.isNil(variant.option)) {
+    if (_.isObject(product.option) && _.isNil(variant.option)) {
       variant.option = product.option
     }
     // If the barcode is set on parent
-    if (_.isString(product.barcode)  && _.isNil(variant.barcode)) {
+    if (_.isString(product.barcode) && _.isNil(variant.barcode)) {
       variant.barcode = product.barcode
     }
     // If the compare at price is set on parent
-    if (_.isNumber(product.compare_at_price)  && _.isNil(variant.compare_at_price)) {
+    if (_.isNumber(product.compare_at_price) && _.isNil(variant.compare_at_price)) {
       variant.compare_at_price = product.compare_at_price
     }
     if (_.isNumber(variant.price) && _.isNil(variant.compare_at_price)) {
@@ -1994,15 +1996,15 @@ export class ProductService extends Service {
       variant.currency = product.currency
     }
     // If the fulfillment_service is set on parent
-    if (_.isString(product.fulfillment_service)  && _.isNil(variant.fulfillment_service)) {
+    if (_.isString(product.fulfillment_service) && _.isNil(variant.fulfillment_service)) {
       variant.fulfillment_service = product.fulfillment_service
     }
     // If the requires_shipping is set on parent
-    if (_.isBoolean(product.requires_shipping)  && _.isNil(variant.requires_shipping)) {
+    if (_.isBoolean(product.requires_shipping) && _.isNil(variant.requires_shipping)) {
       variant.requires_shipping = product.requires_shipping
     }
     // If the requires_shipping is set on parent
-    if (_.isBoolean(product.requires_taxes)  && _.isNil(variant.requires_taxes)) {
+    if (_.isBoolean(product.requires_taxes) && _.isNil(variant.requires_taxes)) {
       variant.requires_taxes = product.requires_taxes
     }
     // If the requires_subscription set on parent
