@@ -859,7 +859,12 @@ describe('Admin User ProductController', () => {
     adminUser
       .post(`/product/${createdProductID}/variant/${createdVariantID}`)
       .send({
-        price: 100001
+        price: 100001,
+        images: [{
+          position: 0,
+          src: 'https://www.w3schools.com/w3css/img_lights.jpg',
+          alt: 'Northern Lights'
+        }]
       })
       .expect(200)
       .end((err, res) => {
