@@ -3,6 +3,7 @@
 const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
+const qs = require('qs')
 
 describe('Admin User ProductController', () => {
   let adminUser, userID, customerID
@@ -576,6 +577,20 @@ describe('Admin User ProductController', () => {
       })
   })
 
+  it('should add association to product', (done) => {
+    adminUser
+      .post(`/product/${createdProductID}/associations`)
+      .send(qs.stringify({
+        associations: [1, 2]
+      }))
+      .expect(200)
+      .end((err, res) => {
+        console.log('BROKE ASSOC', res.body)
+        assert.ok(res.body.length)
+        done(err)
+      })
+  })
+
   // TODO complete test
   it('should show relations of product', (done) => {
     adminUser
@@ -921,6 +936,20 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-pages'], '1')
         // console.log('Show Associations', createdVariantID, res.body)
         assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
+
+  it('should add association to product variant', (done) => {
+    adminUser
+      .post(`/product/variant/${createdVariantID}/associations`)
+      .send(qs.stringify({
+        associations: [1, 2]
+      }))
+      .expect(200)
+      .end((err, res) => {
+        console.log('BROKE ASSOC', res.body)
+        assert.ok(res.body.length)
         done(err)
       })
   })

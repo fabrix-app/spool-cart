@@ -978,6 +978,101 @@ export class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   * Add an association to a product
+   * @param req
+   * @param res
+   */
+  addAssociations(req, res) {
+    const ProductService = this.app.services.ProductService
+    const ProductAssociation = this.app.models['ProductAssociation']
+    const ProductVariant = this.app.models['ProductVariant']
+
+    const productId = req.params.id
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    let resAssociations
+    ProductService.addAssociations(productId, req.body.associations)
+      .then(_product => {
+        return ProductAssociation.findAndCountAll({
+          where: {
+            product_id: productId,
+          }
+        })
+      })
+      .then(associations => {
+        resAssociations = associations
+        return ProductVariant.findAll({
+          where: {
+            id: resAssociations.rows.map(a => a.associated_variant_id).filter(v => v)
+          }
+        })
+      })
+      .then(associations => {
+        // Paginate
+        // res.paginate(resAssociations.count, limit, offset, sort)
+        return this.app.services.PermissionsService.sanitizeResult(req, associations)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   * Add an association to a product
+   * @param req
+   * @param res
+   */
+  addVariantAssociations(req, res) {
+    const ProductService = this.app.services.ProductService
+    const ProductVariant = this.app.models['ProductVariant']
+    const ProductAssociation = this.app.models['ProductAssociation']
+
+    const variantId = (req.params.variant || req.params.id)
+
+    if (!variantId) {
+      const err = new Error('A product variant id is required')
+      return res.send(401, err)
+    }
+
+    let resAssociations
+    ProductService.addVariantAssociations(req.params.id, variantId, req.body.associations)
+      .then(products => {
+        return ProductAssociation.findAndCountAll({
+          where: {
+            variant_id: variantId,
+          }
+        })
+      })
+      .then(associations => {
+        resAssociations = associations
+        return ProductVariant.findAll({
+          where: {
+            id: resAssociations.rows.map(a => a.associated_variant_id).filter(v => v)
+          }
+        })
+      })
+      .then(associations => {
+        // Paginate
+        // res.paginate(resAssociations.count, limit, offset, sort)
+        return this.app.services.PermissionsService.sanitizeResult(req, associations)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
   /**
    * Remove an association from a product
    * @param req

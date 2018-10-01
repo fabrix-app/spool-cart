@@ -355,7 +355,7 @@ export class StoreAnalytic extends Analytic {
   /**
    * Annual Run Rate (ARR):
    * ARR is the current value of your business projected out over the next year. When you hear someone refer to a $10M business, they’re generally referring to ARR.
-   * Formula: Monthly Recurring Revenue x 12 = ARR
+   * Formula: (30 day Recurring Revenue + 30 day Net Revenue) x 12 = ARR
    */
   ARR(options: {[key: string]: any} = {}) {
     const start = moment()
@@ -363,30 +363,70 @@ export class StoreAnalytic extends Analytic {
       .startOf('hour')
 
     const end = moment(Date.now()).startOf('hour')
-    return this.app.models.Subscription.findAll({
+    let resSales
+    return this.app.models.Transaction.findAll({
       where: {
-        renews_on: {
+        created_at: {
           $gte: start.format('YYYY-MM-DD HH:mm:ss')
         },
-        active: true
+        status: 'success',
+        kind: ['sale', 'capture']
       },
       attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_due)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+        [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+        [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
         'currency'
       ],
       group: ['currency']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          const cCount = c instanceof  this.app.models.Subscription.instance
-            ? c.get('count') || 0
-            : c.count || 0
+      .then( count => {
+      //   resSales = count
+      //   return this.app.models.Subscription.findAll({
+      //     where: {
+      //       renews_on: {
+      //         $gte: start.format('YYYY-MM-DD HH:mm:ss')
+      //       },
+      //       active: true
+      //     },
+      //     attributes: [
+      //       [this.app.models.Subscription.sequelize.literal('SUM(total_due)'), 'total'],
+      //       [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+      //       'currency'
+      //     ],
+      //     group: ['currency']
+      //   })
+      // })
+      // .then(count => {
 
-          return [parseInt(cCount, 10) * 12, parseInt(cTotal, 10) * 12, c.currency]
+        let data = count.map((c, index) => {
+
+          const cTotal = parseInt(
+            c instanceof this.app.models.Transaction.instance
+              ? (c.get('total') || 0)
+              : (c.total || 0)
+            , 10)
+          const cCount = parseInt(
+            c instanceof this.app.models.Transaction.instance
+              ? (c.get('count') || 0)
+              : (c.count || 0)
+            , 10)
+
+          // const cTotal2 = parseInt(
+          //   resSales[index] instanceof this.app.models.Transaction.instance
+          //     ? (resSales[index].get('total') || 0)
+          //     : (resSales[index].total || 0)
+          //   , 10)
+          //
+          // const cCount2 = parseInt(
+          //   resSales[index] instanceof this.app.models.Transaction.instance
+          //     ? (resSales[index].get('count') || 0)
+          //     : (resSales[index].count || 0)
+          //   , 10)
+
+          const ct = (cCount || 0) * 12// ((cCount2 || 0) + (cCount || 0)) * 12
+          const total = (cTotal || 0) * 12 // ((cTotal2 || 0) + (cTotal || 0)) * 12
+
+          return [ct, total, c.currency]
         })
 
         if (data.length === 0) {
