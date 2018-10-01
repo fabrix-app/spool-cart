@@ -1323,6 +1323,30 @@ export class ProductService extends Service {
       })
   }
 
+  addAssociations(product, associations = [], options: {[key: string]: any} = {}) {
+    const Product = this.app.models['Product']
+    let resProduct
+    return Product.resolve(product, options)
+      .then(_product => {
+        resProduct = _product
+        return Product.sequelize.Promise.mapSeries(associations, a => {
+          return this.addAssociation(resProduct, a, options)
+        })
+      })
+  }
+
+  addVariantAssociations(product, variant, associations = [], options: {[key: string]: any} = {}) {
+    const ProductVariant = this.app.models['ProductVariant']
+    let resVariant
+    return ProductVariant.resolve(variant, options)
+      .then(_variant => {
+        resVariant = _variant
+        return ProductVariant.sequelize.Promise.mapSeries(associations, a => {
+          return this.addVariantAssociation(resVariant, a, options)
+        })
+      })
+  }
+
   /**
    *
    * @param product
@@ -1330,8 +1354,8 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addAssociation(product, association, options) {
-    options = options || {}
+  addAssociation(product, association, options: {[key: string]: any} = {}) {
+
     const Product = this.app.models['Product']
     const ProductVariant = this.app.models['ProductVariant']
     let resProduct, resVariant, resAssociationProduct, resAssociationVariant, through
@@ -1339,7 +1363,6 @@ export class ProductService extends Service {
     if (!product || !association) {
       throw new ModelError('E_NOT_FOUND', 'Product or Association was not provided')
     }
-
 
     return Product.resolve(product, { transaction: options.transaction || null })
       .then(_product => {
@@ -1403,6 +1426,9 @@ export class ProductService extends Service {
             transaction: options.transaction || null,
             through: through
           })
+            .then(() => {
+              return resProduct.save({transaction: options.transaction || null})
+            })
         }
         return false
       })
@@ -1418,8 +1444,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeAssociation(product, association, options) {
-    options = options || {}
+  removeAssociation(product, association, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     const ProductVariant = this.app.models['ProductVariant']
     let resProduct, resVariant, resAssociationProduct, resAssociationVariant, through
@@ -1496,8 +1521,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addVariantAssociation(productVariant, association, options) {
-    options = options || {}
+  addVariantAssociation(productVariant, association, options: {[key: string]: any} = {}) {
     const ProductVariant = this.app.models['ProductVariant']
     let resProductVariant, resAssociation
 
@@ -1535,6 +1559,9 @@ export class ProductService extends Service {
               associated_product_id: resAssociation.product_id
             }
           })
+            .then(() => {
+              return resProductVariant.save({transaction: options.transaction || null})
+            })
         }
         return false
       })
@@ -1550,8 +1577,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeVariantAssociation(productVariant, association, options) {
-    options = options || {}
+  removeVariantAssociation(productVariant, association, options: {[key: string]: any} = {}) {
     const ProductVariant = this.app.models['ProductVariant']
     let resProductVariant, resAssociation
 
@@ -1604,8 +1630,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addCollections(product, collections, options) {
-    options = options || {}
+  addCollections(product, collections, options: {[key: string]: any} = {}) {
     if (!Array.isArray(collections)) {
       collections = [collections]
     }
@@ -1628,8 +1653,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addCollection(product, collection, options) {
-    options = options || {}
+  addCollection(product, collection, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     const Collection = this.app.models['Collection']
     let resProduct, resCollection
@@ -1675,8 +1699,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeCollection(product, collection, options) {
-    options = options || {}
+  removeCollection(product, collection, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     const Collection = this.app.models['Collection']
     let resProduct, resCollection
@@ -1714,8 +1737,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addShop(product, shop, options) {
-    options = options || {}
+  addShop(product, shop, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     let resProduct, resShop
     return Product.resolve(product, { transaction: options.transaction || null })
@@ -1752,8 +1774,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  removeShop(product, shop, options) {
-    options = options || {}
+  removeShop(product, shop, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     let resProduct, resShop
     return Product.resolve(product, { transaction: options.transaction || null })
@@ -1790,8 +1811,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addVendor(product, vendor, options) {
-    options = options || {}
+  addVendor(product, vendor, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
@@ -1829,8 +1849,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  removeVendor(product, vendor, options) {
-    options = options || {}
+  removeVendor(product, vendor, options: {[key: string]: any} = {}) {
     const Product = this.app.models['Product']
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
