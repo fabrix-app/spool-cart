@@ -6368,6 +6368,7 @@ export const routes = {
       }
     }
   },
+
   '/product/:id/association/:association': {
     'POST': {
       handler: 'ProductController.addAssociation',
@@ -6825,6 +6826,37 @@ export const routes = {
           permissions: {
             resource_name: 'apiGetProductIdVariantVariantAssociationsRoute',
             roles: ['admin', 'registered', 'public']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'ProductController.addVariantAssociations',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            variant: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          },
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostProductIdVariantVariantAssociationsRoute',
+            roles: ['admin']
           }
         }
       }
@@ -7573,6 +7605,26 @@ export const routes = {
           }
         }
       }
+    },
+    'POST': {
+      handler: 'ProductController.addAssociations',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostProductIdAssociationsRoute',
+            roles: ['admin']
+          }
+        }
+      }
     }
   },
   '/product/variant/:id/associations': {
@@ -7592,6 +7644,26 @@ export const routes = {
           permissions: {
             resource_name: 'apiGetProductIdVariantAssociationsRoute',
             roles: ['public', 'registered', 'admin']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'ProductController.addVariantAssociations',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostProductIdVariantAssociationsRoute',
+            roles: ['admin']
           }
         }
       }
