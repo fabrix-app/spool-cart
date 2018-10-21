@@ -1078,6 +1078,9 @@ export class ProductService extends Service {
   removeImage(id, options: { [key: string]: any } = {}) {
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
+    const Variant = this.app.models['Variant']
+
+    let isVariant = false
 
     let resDestroy
     return Image.findById(id, {
@@ -1089,11 +1092,17 @@ export class ProductService extends Service {
           throw new Error('Image not found')
         }
         resDestroy = _image
+        let where
+
+        if (_image.variant_id) {
+          where = { variant_id: resDestroy.variant_id }
+          isVariant = true
+        } else {
+          where = { product_id: resDestroy.product_id }
+        }
 
         return Image.findAll({
-          where: {
-            product_id: resDestroy.product_id
-          },
+          where,
           order: [['position', 'ASC']],
           transaction: options.transaction || null
         })
@@ -1116,6 +1125,9 @@ export class ProductService extends Service {
         })
       })
       .then(() => {
+        if (isVariant) {
+          return Variant.findByIdDefault(resDestroy.variant_id, { transaction: options.transaction || null })
+        }
         return Product.findByIdDefault(resDestroy.product_id, { transaction: options.transaction || null })
       })
   }
@@ -1323,7 +1335,7 @@ export class ProductService extends Service {
       })
   }
 
-  addAssociations(product, associations = [], options: {[key: string]: any} = {}) {
+  addAssociations(product, associations = [], options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     let resProduct
     return Product.resolve(product, options)
@@ -1335,7 +1347,7 @@ export class ProductService extends Service {
       })
   }
 
-  addVariantAssociations(product, variant, associations = [], options: {[key: string]: any} = {}) {
+  addVariantAssociations(product, variant, associations = [], options: { [key: string]: any } = {}) {
     const ProductVariant = this.app.models['ProductVariant']
     let resVariant
     return ProductVariant.resolve(variant, options)
@@ -1354,7 +1366,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addAssociation(product, association, options: {[key: string]: any} = {}) {
+  addAssociation(product, association, options: { [key: string]: any } = {}) {
 
     const Product = this.app.models['Product']
     const ProductVariant = this.app.models['ProductVariant']
@@ -1427,7 +1439,7 @@ export class ProductService extends Service {
             through: through
           })
             .then(() => {
-              return resProduct.save({transaction: options.transaction || null})
+              return resProduct.save({ transaction: options.transaction || null })
             })
         }
         return false
@@ -1444,7 +1456,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeAssociation(product, association, options: {[key: string]: any} = {}) {
+  removeAssociation(product, association, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     const ProductVariant = this.app.models['ProductVariant']
     let resProduct, resVariant, resAssociationProduct, resAssociationVariant, through
@@ -1521,7 +1533,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addVariantAssociation(productVariant, association, options: {[key: string]: any} = {}) {
+  addVariantAssociation(productVariant, association, options: { [key: string]: any } = {}) {
     const ProductVariant = this.app.models['ProductVariant']
     let resProductVariant, resAssociation
 
@@ -1560,7 +1572,7 @@ export class ProductService extends Service {
             }
           })
             .then(() => {
-              return resProductVariant.save({transaction: options.transaction || null})
+              return resProductVariant.save({ transaction: options.transaction || null })
             })
         }
         return false
@@ -1577,7 +1589,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeVariantAssociation(productVariant, association, options: {[key: string]: any} = {}) {
+  removeVariantAssociation(productVariant, association, options: { [key: string]: any } = {}) {
     const ProductVariant = this.app.models['ProductVariant']
     let resProductVariant, resAssociation
 
@@ -1630,7 +1642,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addCollections(product, collections, options: {[key: string]: any} = {}) {
+  addCollections(product, collections, options: { [key: string]: any } = {}) {
     if (!Array.isArray(collections)) {
       collections = [collections]
     }
@@ -1653,7 +1665,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addCollection(product, collection, options: {[key: string]: any} = {}) {
+  addCollection(product, collection, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     const Collection = this.app.models['Collection']
     let resProduct, resCollection
@@ -1699,7 +1711,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  removeCollection(product, collection, options: {[key: string]: any} = {}) {
+  removeCollection(product, collection, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     const Collection = this.app.models['Collection']
     let resProduct, resCollection
@@ -1737,7 +1749,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addShop(product, shop, options: {[key: string]: any} = {}) {
+  addShop(product, shop, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     let resProduct, resShop
     return Product.resolve(product, { transaction: options.transaction || null })
@@ -1774,7 +1786,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  removeShop(product, shop, options: {[key: string]: any} = {}) {
+  removeShop(product, shop, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     let resProduct, resShop
     return Product.resolve(product, { transaction: options.transaction || null })
@@ -1811,7 +1823,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addVendor(product, vendor, options: {[key: string]: any} = {}) {
+  addVendor(product, vendor, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
@@ -1849,7 +1861,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  removeVendor(product, vendor, options: {[key: string]: any} = {}) {
+  removeVendor(product, vendor, options: { [key: string]: any } = {}) {
     const Product = this.app.models['Product']
     const Vendor = this.app.models['Vendor']
     let resProduct, resVendor
