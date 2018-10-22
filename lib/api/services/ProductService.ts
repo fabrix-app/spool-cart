@@ -1078,7 +1078,7 @@ export class ProductService extends Service {
   removeImage(id, options: { [key: string]: any } = {}) {
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
-    const Variant = this.app.models['Variant']
+    const Variant = this.app.models['ProductVariant']
 
     let isVariant = false
 
