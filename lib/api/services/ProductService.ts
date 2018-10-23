@@ -1080,8 +1080,6 @@ export class ProductService extends Service {
     const Product = this.app.models['Product']
     const Variant = this.app.models['ProductVariant']
 
-    let isVariant = false
-
     let resDestroy
     return Image.findById(id, {
       transaction: options.transaction || null
@@ -1092,17 +1090,12 @@ export class ProductService extends Service {
           throw new Error('Image not found')
         }
         resDestroy = _image
-        let where
-
-        if (_image.variant_id) {
-          where = { variant_id: resDestroy.variant_id }
-          isVariant = true
-        } else {
-          where = { product_id: resDestroy.product_id }
-        }
+        console.log('BRK 3', resDestroy)
 
         return Image.findAll({
-          where,
+          where: {
+            product_id: resDestroy.product_id
+          },
           order: [['position', 'ASC']],
           transaction: options.transaction || null
         })
@@ -1125,8 +1118,8 @@ export class ProductService extends Service {
         })
       })
       .then(() => {
-        if (isVariant) {
-          return Variant.findByIdDefault(resDestroy.variant_id, { transaction: options.transaction || null })
+        if (options.variant) {
+          return Variant.findByIdDefault(resDestroy.product_variant_id, { transaction: options.transaction || null })
         }
         return Product.findByIdDefault(resDestroy.product_id, { transaction: options.transaction || null })
       })

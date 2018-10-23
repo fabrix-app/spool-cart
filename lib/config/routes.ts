@@ -7381,6 +7381,30 @@ export const routes = {
     }
   },
   '/product/:id/variant/:variant': {
+    'GET': {
+      handler: 'ProductController.variant',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            variant: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetProductIdVariantVariantRoute',
+            roles: ['admin', 'registered', 'public']
+          }
+        }
+      }
+    },
     'POST': {
       handler: 'ProductController.updateVariant',
       config: {
@@ -7587,7 +7611,7 @@ export const routes = {
   },
   '/product/:id/variant/:variant/image/:image': {
     'DELETE': {
-      handler: 'ProductController.removeImage',
+      handler: 'ProductController.removeVariantImage',
       config: {
         prefix: 'cart.prefix',
         validate: {
