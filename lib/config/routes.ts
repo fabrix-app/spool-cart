@@ -7585,6 +7585,36 @@ export const routes = {
       }
     }
   },
+  '/product/:id/variant/:variant/image/:image': {
+    'DELETE': {
+      handler: 'ProductController.removeImage',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            variant: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            image: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteProductIdVariantVariantImageImageRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
   '/product/:id/associations': {
     'GET': {
       handler: 'ProductController.associations',
