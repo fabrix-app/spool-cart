@@ -810,7 +810,25 @@ export class ProductController extends Controller {
    */
   removeImage(req, res) {
     const ProductService = this.app.services.ProductService
-    ProductService.removeImage(req.params.image)
+    ProductService.removeImage(req.params.image, {product: req.params.product})
+      .then(product => {
+        return this.app.services.PermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeVariantImage(req, res) {
+    const ProductService = this.app.services.ProductService
+    ProductService.removeImage(req.params.image, {variant: req.params.variant})
       .then(product => {
         return this.app.services.PermissionsService.sanitizeResult(req, product)
       })
@@ -1670,6 +1688,30 @@ export class ProductController extends Controller {
         // Paginate
         res.paginate(reviews.count, limit, offset, sort)
         return this.app.services.PermissionsService.sanitizeResult(req, reviews.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  variant(req, res) {
+    const orm = this.app.models
+    const ProductVariant = orm['ProductVariant']
+
+    ProductVariant.findByIdDefault(req.params.variant, { req: req })
+      .then(variant => {
+        if (!variant) {
+          throw new ModelError('E_NOT_FOUND', 'variant not found')
+        }
+        return this.app.services.PermissionsService.sanitizeResult(req, variant)
       })
       .then(result => {
         return res.json(result)

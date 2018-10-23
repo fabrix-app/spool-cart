@@ -586,7 +586,7 @@ describe('Admin User ProductController', () => {
       }))
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE ASSOC', res.body)
+        // console.log('BROKE ASSOC', res.body)
         assert.ok(res.body.length)
         done(err)
       })
@@ -865,6 +865,7 @@ describe('Admin User ProductController', () => {
       .attach('file', 'test/fixtures/test.jpg')
       .expect(200)
       .end((err, res) => {
+
         // console.log('UPLOADED IMAGE',res.body)
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.product_variant_id, createdVariantID)
@@ -888,7 +889,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.sku, 'bscb-1')
         assert.equal(res.body.price, 100001)
         console.log(res.body);
-        // firstVariantImageId = res.body.images[0].id
+        firstVariantImageId = res.body.images[0].id
         done(err)
       })
   })
@@ -898,7 +899,9 @@ describe('Admin User ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, createdProductID)
+        // console.log('BRK', err, res.body)
+        assert.equal(res.body.id, createdVariantID)
+        assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.images.length, 0)
         const images = _.map(res.body.images, 'id')
         assert.equal(images.indexOf(firstVariantImageId), -1)
@@ -911,6 +914,9 @@ describe('Admin User ProductController', () => {
       .get(`/product/${createdProductID}/variant/${createdVariantID}`)
       .expect(200)
       .end((err, res) => {
+        // console.log('BRK 2', err, res.body)
+        assert.equal(res.body.id, createdVariantID)
+        assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.images.length, 0)
         done(err)
       })
@@ -979,7 +985,7 @@ describe('Admin User ProductController', () => {
       }))
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE ASSOC', res.body)
+        // console.log('BROKE ASSOC', res.body)
         assert.ok(res.body.length)
         done(err)
       })
@@ -1015,7 +1021,7 @@ describe('Admin User ProductController', () => {
         assert.deepEqual(res.body.options, ['width', 'size', 'hover'])
         assert.equal(res.body.total_variants, 3)
         assert.equal(res.body.variants.length, 3)
-        assert.equal(res.body.images.length, 4)
+        assert.equal(res.body.images.length, 3)
         done(err)
       })
   })
