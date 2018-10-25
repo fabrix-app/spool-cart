@@ -1,0 +1,6 @@
+{
+    "tslint.jsEnable": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": false
+    },
+}
