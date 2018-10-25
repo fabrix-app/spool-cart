@@ -386,7 +386,13 @@ describe('Admin User ProductController', () => {
                 }
               ]
             }
-          ]
+          ],
+          property_pricing: {
+            long_snowboard: {
+              name: 'long_snowboard',
+              price: 2100
+            }
+          }
         }
       ])
       .expect(200)
@@ -430,6 +436,10 @@ describe('Admin User ProductController', () => {
           assert.equal(image.position, imagePos)
           imagePos++
         })
+        
+        // Property Based Pricing
+        assert.equal(res.body[0].property_pricing.long_snowboard.name, 'long_snowboard')
+        assert.equal(res.body[0].property_pricing.long_snowboard.price, 2100)
 
         done(err)
       })
@@ -471,6 +481,11 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.collections.map(c => c.handle).indexOf('free-shipping') > -1, true)
         // assert.equal(res.body.collections[0].title, 'free-shipping')
         // assert.equal(res.body.collections[0].handle, 'free-shipping')
+
+
+        // Property Based Pricing
+        assert.equal(res.body.property_pricing.long_snowboard.name, 'long_snowboard')
+        assert.equal(res.body.property_pricing.long_snowboard.price, 2100)
 
         done(err)
       })
