@@ -16,11 +16,11 @@ export const product = joi.object().keys({
     /[\s\S]*/,
     joi.object().keys({
       name: joi.string().required(),
-      group: joi.string(),
       price: joi.number().required(),
+      group: joi.string(),
       image: joi.string(),
       multi_select: joi.boolean()
-    })
+    }).optionalKeys('group', 'image', 'multi_select')
   ),
   host: joi.string(),
   handle: joi.string(),
