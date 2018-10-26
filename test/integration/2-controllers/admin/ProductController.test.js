@@ -436,7 +436,7 @@ describe('Admin User ProductController', () => {
           assert.equal(image.position, imagePos)
           imagePos++
         })
-        
+
         // Property Based Pricing
         assert.equal(res.body[0].property_pricing.long_snowboard.name, 'long_snowboard')
         assert.equal(res.body[0].property_pricing.long_snowboard.price, 2100)
@@ -829,6 +829,12 @@ describe('Admin User ProductController', () => {
         title: 'Burton Super Custom Board',
         option: { size: '700in', hover: '1000 feet' },
         price: 100000,
+        property_pricing: {
+          long_snowboard: {
+            name: 'long_snowboard',
+            price: 2100
+          }
+        }
       })
       .expect(200)
       .end((err, res) => {
@@ -836,6 +842,10 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.sku, 'bscb-1')
         assert.equal(res.body.price, 100000)
+
+        // property based pricing
+        assert.equal(res.body.property_pricing.long_snowboard.name, 'long_snowboard')
+        assert.equal(res.body.property_pricing.long_snowboard.price, 2100)
         done(err)
       })
   })
