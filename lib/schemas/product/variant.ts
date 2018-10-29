@@ -13,12 +13,16 @@ export const variant =  joi.object().keys({
   collection: joi.any(),
   fulfillment_service: joi.string(),
   option: joi.object(),
-  property_pricing: joi.object().keys({
-    name: joi.string().required(),
-    group: joi.string(),
-    price: joi.number().required(),
-    image: joi.string()
-  }),
+  property_pricing: joi.object().pattern(
+    /[\s\S]*/,
+    joi.object().keys({
+      name: joi.string().required(),
+      group: joi.string(),
+      price: joi.number().required(),
+      image: joi.string(),
+      multi_select: joi.boolean()
+    })
+  ),
   published: joi.boolean(),
   published_scope: joi.string(),
   requires_shipping: joi.boolean(),
