@@ -897,6 +897,26 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+
+  it('should make get product variant images', (done) => {
+    adminUser
+      .get(`/product/${createdProductID}/variant/${createdVariantID}/images`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.equal(res.headers['x-pagination-total'], '1')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
+        assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
   it('should make updateVariant post adminUser', (done) => {
     adminUser
       .post(`/product/${createdProductID}/variant/${createdVariantID}`)
@@ -946,6 +966,22 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+  it('should make add variant image post adminUser', (done) => {
+    adminUser
+      .post(`/product/${createdProductID}/variant/${createdVariantID}/images`)
+      .send({
+        position: 0,
+        src: 'https://www.w3schools.com/w3css/img_lights.jpg',
+        alt: 'Northern Lights'
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.product_id, createdProductID)
+        assert.equal(res.body.product_variant_id, createdVariantID)
+        firstVariantImageId = res.body.id
+        done(err)
+      })
+  })
   it('should make get product variants', (done) => {
     adminUser
       .get(`/product/${createdProductID}/variants`)
@@ -968,21 +1004,39 @@ describe('Admin User ProductController', () => {
 
 
   // TODO complete test
-  it('should add association to product variant', (done) => {
+  // LEGACY
+  it.skip('should add association to product variant', (done) => {
     adminUser
-      .post(`/product/variant/${createdVariantID}/addAssociation/1`)
+      .post(`/product/${createdProductID}/variant/${createdVariantID}/addAssociation/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(err, res.body)
-        assert.equal(res.body.id, createdVariantID)
+        // console.log('BRK', err, res.body)
+        // assert.equal(res.body[0].id, 1)
+        done(err)
+      })
+  })
+  it('should add association to product variant', (done) => {
+    adminUser
+      .post(`/product/${createdProductID}/variant/${createdVariantID}/associations`)
+      .send({
+        associations: [
+          {
+            variant_id: 1
+          }
+        ]
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('BRK 2', err, res.body)
+        assert.equal(res.body[0].id, 1)
         done(err)
       })
   })
   // TODO complete test
   it('should show associations of a product variant', (done) => {
     adminUser
-      .get(`/product/variant/${createdVariantID}/associations`)
+      .get(`/product/${createdProductID}/variant/${createdVariantID}/associations`)
       .expect(200)
       .end((err, res) => {
         assert.ok(res.headers['x-pagination-total'])
@@ -1016,9 +1070,20 @@ describe('Admin User ProductController', () => {
       })
   })
 
+  // it('should remove association to product variant', (done) => {
+  //   adminUser
+  //     .post(`/product/variant/${createdVariantID}/removeAssociation/1`)
+  //     .send({})
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.equal(res.body.id, createdVariantID)
+  //       done(err)
+  //     })
+  // })
+
   it('should remove association to product variant', (done) => {
     adminUser
-      .post(`/product/variant/${createdVariantID}/removeAssociation/1`)
+      .delete(`/product/${createdProductID}/variant/${createdVariantID}/association/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -1046,7 +1111,7 @@ describe('Admin User ProductController', () => {
         assert.deepEqual(res.body.options, ['width', 'size', 'hover'])
         assert.equal(res.body.total_variants, 3)
         assert.equal(res.body.variants.length, 3)
-        assert.equal(res.body.images.length, 3)
+        assert.equal(res.body.images.length, 4)
         done(err)
       })
   })

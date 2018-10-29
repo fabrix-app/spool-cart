@@ -7531,6 +7531,65 @@ export const routes = {
       }
     }
   },
+  '/product/:id/variant/:variant/images': {
+    'POST': {
+      handler: 'ProductController.addVariantImage',
+      config: {
+        prefix: 'cart.prefix',
+        pre: [],
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            variant: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostProductIdVariantVariantImagesRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'GET': {
+      handler: 'ProductController.variantImages',
+      config: {
+        prefix: 'cart.prefix',
+        pre: [],
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            variant: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          },
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetProductIdVariantVariantImagesRoute',
+            roles: ['admin', 'registered', 'public']
+          }
+        }
+      }
+    }
+  },
   '/product/:id/image/:image/add': {
     'POST': {
       handler: 'ProductController.addImage',
