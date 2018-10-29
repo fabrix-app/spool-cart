@@ -759,9 +759,10 @@ export class ProductController extends Controller {
    */
   addImage(req, res) {
     const ProductService = this.app.services.ProductService
-    const image = req.file
+    // const image = req.file
     const product = req.params.id
     const variant = req.params.variant
+    const image  = req.body
 
     if (!image) {
       const err = new Error('Image File failed to upload, check input type is file and try again.')
@@ -769,9 +770,33 @@ export class ProductController extends Controller {
     }
 
     // this.app.log.debug(image)
-    ProductService.addImage(product, variant, image.path, req.body)
+    ProductService.addImage(product, variant, image.src, req.body)
       .then(_image => {
         return this.app.services.PermissionsService.sanitizeResult(req, _image)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addVariantImage(req, res) {
+    const ProductService = this.app.services.ProductService
+
+    const product = req.params.id
+    const variant = req.params.variant
+    const image  = req.body
+
+    ProductService.addImage(product, variant, image.src, req.body)
+      .then(_variant => {
+        return this.app.services.PermissionsService.sanitizeResult(req, _variant)
       })
       .then(result => {
         return res.json(result)
@@ -1829,6 +1854,46 @@ export class ProductController extends Controller {
       order: sort,
       where: {
         product_id: productId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(images => {
+        // Paginate
+        res.paginate(images.count, limit, offset, sort)
+        return this.app.services.PermissionsService.sanitizeResult(req, images.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  variantImages(req, res) {
+    const Image = this.app.models['ProductImage']
+    const productId = req.params.id
+    const variantId = req.params.variant
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    if (!variantId) {
+      const err = new Error('A variant id is required')
+      return res.send(401, err)
+    }
+
+    Image.findAndCountAll({
+      order: sort,
+      where: {
+        product_id: productId,
+        product_variant_id: variantId
       },
       offset: offset,
       limit: limit

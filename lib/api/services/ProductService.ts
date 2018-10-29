@@ -1090,7 +1090,7 @@ export class ProductService extends Service {
           throw new Error('Image not found')
         }
         resDestroy = _image
-        console.log('BRK 3', resDestroy)
+        // console.log('BRK 3', resDestroy)
 
         return Image.findAll({
           where: {
@@ -1135,7 +1135,8 @@ export class ProductService extends Service {
   addImage(product, variant, image, options: { [key: string]: any } = {}) {
     const Image = this.app.models['ProductImage']
     const Product = this.app.models['Product']
-    const Variant = this.app.models['Variant']
+    const Variant = this.app.models['ProductVariant']
+
     let resProduct, resImage, resVariant
     return Product.resolve(product, { transaction: options.transaction || null })
       .then(foundProduct => {
