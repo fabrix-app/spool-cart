@@ -1243,7 +1243,7 @@ export class ProductController extends Controller {
   variantAssociations(req, res) {
     const ProductVariant = this.app.models['ProductVariant']
     const ProductAssociation = this.app.models['ProductAssociation']
-    const variantId = req.params.id
+    const variantId = req.params.variant || req.params.id
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['position', 'ASC']]

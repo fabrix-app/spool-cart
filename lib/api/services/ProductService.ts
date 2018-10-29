@@ -1090,7 +1090,6 @@ export class ProductService extends Service {
           throw new Error('Image not found')
         }
         resDestroy = _image
-        // console.log('BRK 3', resDestroy)
 
         return Image.findAll({
           where: {
@@ -1527,6 +1526,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
+  // TODO refactor
   addVariantAssociation(productVariant, association, options: { [key: string]: any } = {}) {
     const ProductVariant = this.app.models['ProductVariant']
     let resProductVariant, resAssociation
@@ -1541,7 +1541,15 @@ export class ProductService extends Service {
           throw new ModelError('E_NOT_FOUND', 'ProductVariant not found')
         }
         resProductVariant = _productVariant
-        return ProductVariant.resolve(association, { transaction: options.transaction || null })
+        const id = association.variant_id
+          ? association.variant_id : association.product_variant_id
+          ? association.product_variant_id : association.id
+          ? association.id : association
+
+        if (!id) {
+          throw new ModelError('E_BAD_REQUEST', `Association id (${id}) could not be reconciled`)
+        }
+        return ProductVariant.resolve(id, { transaction: options.transaction || null })
       })
       .then(_association => {
         if (!_association) {

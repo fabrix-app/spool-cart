@@ -386,7 +386,13 @@ describe('Admin User ProductController', () => {
                 }
               ]
             }
-          ]
+          ],
+          property_pricing: {
+            long_snowboard: {
+              name: 'long_snowboard',
+              price: 2100
+            }
+          }
         }
       ])
       .expect(200)
@@ -431,6 +437,10 @@ describe('Admin User ProductController', () => {
           imagePos++
         })
 
+        // Property Based Pricing
+        assert.equal(res.body[0].property_pricing.long_snowboard.name, 'long_snowboard')
+        assert.equal(res.body[0].property_pricing.long_snowboard.price, 2100)
+
         done(err)
       })
   })
@@ -471,6 +481,11 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.collections.map(c => c.handle).indexOf('free-shipping') > -1, true)
         // assert.equal(res.body.collections[0].title, 'free-shipping')
         // assert.equal(res.body.collections[0].handle, 'free-shipping')
+
+
+        // Property Based Pricing
+        assert.equal(res.body.property_pricing.long_snowboard.name, 'long_snowboard')
+        assert.equal(res.body.property_pricing.long_snowboard.price, 2100)
 
         done(err)
       })
@@ -814,6 +829,12 @@ describe('Admin User ProductController', () => {
         title: 'Burton Super Custom Board',
         option: { size: '700in', hover: '1000 feet' },
         price: 100000,
+        property_pricing: {
+          long_snowboard: {
+            name: 'long_snowboard',
+            price: 2100
+          }
+        }
       })
       .expect(200)
       .end((err, res) => {
@@ -821,6 +842,10 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.sku, 'bscb-1')
         assert.equal(res.body.price, 100000)
+
+        // property based pricing
+        assert.equal(res.body.property_pricing.long_snowboard.name, 'long_snowboard')
+        assert.equal(res.body.property_pricing.long_snowboard.price, 2100)
         done(err)
       })
   })
@@ -951,7 +976,6 @@ describe('Admin User ProductController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('BRK!', res.body)
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.product_variant_id, createdVariantID)
         firstVariantImageId = res.body.id
@@ -981,14 +1005,14 @@ describe('Admin User ProductController', () => {
 
   // TODO complete test
   // LEGACY
-  it('should add association to product variant', (done) => {
+  it.skip('should add association to product variant', (done) => {
     adminUser
       .post(`/product/${createdProductID}/variant/${createdVariantID}/addAssociation/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(err, res.body)
-        assert.equal(res.body.id, createdVariantID)
+        // console.log('BRK', err, res.body)
+        // assert.equal(res.body[0].id, 1)
         done(err)
       })
   })
@@ -996,12 +1020,16 @@ describe('Admin User ProductController', () => {
     adminUser
       .post(`/product/${createdProductID}/variant/${createdVariantID}/associations`)
       .send({
-        product_variant_id: 1
+        associations: [
+          {
+            variant_id: 1
+          }
+        ]
       })
       .expect(200)
       .end((err, res) => {
-        // console.log(err, res.body)
-        assert.equal(res.body.id, createdVariantID)
+        console.log('BRK 2', err, res.body)
+        assert.equal(res.body[0].id, 1)
         done(err)
       })
   })
@@ -1083,7 +1111,7 @@ describe('Admin User ProductController', () => {
         assert.deepEqual(res.body.options, ['width', 'size', 'hover'])
         assert.equal(res.body.total_variants, 3)
         assert.equal(res.body.variants.length, 3)
-        assert.equal(res.body.images.length, 3)
+        assert.equal(res.body.images.length, 4)
         done(err)
       })
   })

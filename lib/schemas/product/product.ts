@@ -10,12 +10,18 @@ export const product = joi.object().keys({
   id: joi.any(),
   sku: joi.string(),
   option: joi.object(),
-  property_pricing: joi.object().keys({
-    name: joi.string().required(),
-    group: joi.string(),
-    price: joi.number().required(),
-    image: joi.string()
-  }),
+  // I used pattern because there's no way to match "values"
+  // this way, any key that is a string will be expected to match the property_pricing schema
+  property_pricing: joi.object().pattern(
+    /[\s\S]*/,
+    joi.object().keys({
+      name: joi.string().required(),
+      group: joi.string(),
+      price: joi.number().required(),
+      image: joi.string(),
+      multi_select: joi.boolean()
+    })
+  ),
   host: joi.string(),
   handle: joi.string(),
   title: joi.string(),
