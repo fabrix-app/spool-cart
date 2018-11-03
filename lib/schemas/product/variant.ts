@@ -13,6 +13,7 @@ export const variant =  joi.object().keys({
   collection: joi.any(),
   fulfillment_service: joi.string(),
   option: joi.object(),
+  position: joi.number(),
   property_pricing: joi.object().pattern(
     /[\s\S]*/,
     joi.object().keys({
