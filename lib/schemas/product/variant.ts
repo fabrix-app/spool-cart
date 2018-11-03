@@ -17,9 +17,9 @@ export const variant =  joi.object().keys({
     /[\s\S]*/,
     joi.object().keys({
       name: joi.string().required(),
-      group: joi.string(),
+      group: joi.string().allow('', null).optional(),
       price: joi.number().required(),
-      image: joi.string(),
+      image: joi.string().allow('', null).optional(),
       multi_select: joi.boolean()
     })
   ),
