@@ -1,6 +1,6 @@
 {
   "name": "@fabrix/spool-cart",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "description": "Spool - eCommerce Spool for Fabrix",
   "homepage": "https://fabrix.app",
   "author": {
@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@fabrix/fabrix": "^1.5.9",
-    "@fabrix/generics-render": "^1.1.1",
+    "@fabrix/generics-render": "^1.5.0",
     "@fabrix/lint": "^1.0.0-alpha.3",
     "@fabrix/spool-analytics": "^1.5.0",
     "@fabrix/spool-cart-countries": "^1.5.0",

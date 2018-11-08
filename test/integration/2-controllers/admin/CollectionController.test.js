@@ -197,6 +197,23 @@ describe('Admin User CollectionController', () => {
         done(err)
       })
   })
+
+  // TODO complete test
+  it('should list collection analytics', (done) => {
+    adminUser
+      .get(`/collection/${collectionID}/analytics`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BRK ANALYTICS', err, res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.ok(res.body[0].total)
+        assert.ok(res.body[0].value)
+        assert.ok(res.body[0].count)
+        done(err)
+      })
+  })
+
   // TODO complete test
   it('should remove product from collection', (done) => {
     adminUser
@@ -296,6 +313,7 @@ describe('Admin User CollectionController', () => {
         done(err)
       })
   })
+
   // it('should should remove collection from collection', (done) => {
   //   adminUser
   //     .del(`/collection/${collectionID}/collection/${collection2ID}`)

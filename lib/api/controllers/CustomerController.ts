@@ -2175,4 +2175,112 @@ export class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+
+
+
+
+  /**
+   * add a customer to a customer
+   * @param req
+   * @param res
+   */
+  addCustomer(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.addCustomer(req.params.id, req.params.customer)
+      .then(customer => {
+        return this.app.services.PermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   * add a customer to a customer
+   * @param req
+   * @param res
+   */
+  addCustomers(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.addCustomers(req.params.id, req.body)
+      .then(customers => {
+        return this.app.services.PermissionsService.sanitizeResult(req, customers)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  customers(req, res) {
+    const Customer = this.app.models['Customer']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id or a customer in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    Customer.findAndCountAll({
+      // TODO fix for sqlite
+      include: [{
+        model: this.app.models['Customer'].instance,
+        as: 'customers',
+        attributes: ['id'],
+        where: {
+          id: customerId
+        }
+      }],
+      offset: offset,
+      // TODO sequelize breaks if limit is set here
+      limit: limit,
+      order: sort
+    })
+      .then(customers => {
+        // Paginate
+        res.paginate(customers.count, limit, offset, sort)
+        return this.app.services.PermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   * remove a customer from a customer
+   * @param req
+   * @param res
+   */
+  removeCustomer(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.removeCustomer(req.params.id, req.params.customer)
+      .then(customer => {
+        return this.app.services.PermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }

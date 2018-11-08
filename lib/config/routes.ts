@@ -1775,6 +1775,28 @@ export const routes = {
     //
     // }
   },
+  '/collection/:id/analytics': {
+    'GET': {
+      handler: 'CollectionController.analytics',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionIdAnalyticsRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
   '/collection/:id/discounts': {
     'GET': {
       handler: 'CollectionController.discounts',
