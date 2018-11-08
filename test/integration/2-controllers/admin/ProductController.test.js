@@ -490,6 +490,23 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+
+  // TODO complete test
+  it('should list product analytics', (done) => {
+    adminUser
+      .get(`/product/${createdProductID}/analytics`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BRK ANALYTICS', err, res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].total, 0)
+        assert.equal(res.body[0].value, 0)
+        assert.equal(res.body[0].count, 0)
+        done(err)
+      })
+  })
+  
   it('should add tag to product', (done) => {
     adminUser
       .post(`/product/${createdProductID}/addTag/test`)

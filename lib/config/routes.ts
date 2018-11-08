@@ -5719,6 +5719,29 @@ export const routes = {
       }
     }
   },
+
+  '/product/:id/analytics': {
+    'GET': {
+      handler: 'ProductController.analytics',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetProductIdAnalyticsRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
   '/product/tag/:tag': {
     'GET': {
       handler: 'ProductController.findByTag',

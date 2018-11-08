@@ -1910,5 +1910,28 @@ export class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  analytics(req, res) {
+    const productId = req.params.id
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    this.app.services.ProductService.analytics(productId, {})
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+
+  }
 }
 

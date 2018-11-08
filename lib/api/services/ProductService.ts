@@ -1894,6 +1894,68 @@ export class ProductService extends Service {
       })
   }
 
+
+  /**
+   * Sales Analytics for a given Product
+   * @param product
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  analytics(product, options: {[key: string]: any} = {}) {
+    const Product = this.app.models['Product']
+    const OrderItem = this.app.models['OrderItem']
+    let resProduct
+    return Product.resolve(product)
+      .then(_product => {
+        if (!_product) {
+          throw new ModelError('E_NOT_FOUND', 'Product not found')
+        }
+        resProduct = _product
+
+        return OrderItem.findAll({
+          where: {
+            product_id: resProduct.id
+          },
+          attributes: [
+            [OrderItem.sequelize.literal('SUM(calculated_price)'), 'total'],
+            [OrderItem.sequelize.literal('SUM(price)'), 'value'],
+            [OrderItem.sequelize.literal('COUNT(id)'), 'count'],
+            // 'currency'
+          ],
+          // group: ['currency']
+        })
+          .then(count => {
+            let data = count.map(c => {
+              const cTotal = c instanceof OrderItem.instance
+                ? c.get('total') || 0
+                : c.total || 0
+              const cValue = c instanceof OrderItem.instance
+                ? c.get('value') || 0
+                : c.value || 0
+              const cCount = c instanceof OrderItem.instance
+                ? c.get('count') || 0
+                : c.count || 0
+
+              return {
+                count: parseInt(cCount, 10),
+                total: parseInt(cTotal, 10),
+                value: parseInt(cValue, 10)
+              }
+            })
+
+            if (data.length === 0) {
+              data = [{
+                count: 0,
+                total: 0,
+                value: 0
+              }]
+            }
+
+            return data
+          })
+      })
+  }
+
   /**
    *
    * @param product
