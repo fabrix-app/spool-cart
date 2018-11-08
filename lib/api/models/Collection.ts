@@ -768,3 +768,23 @@ Collection.prototype.resolveDiscounts = function(options: {[key: string]: any} =
       })
   }
 }
+
+Collection.prototype.resolveProducts = function(options: {[key: string]: any} = {}) {
+  if (
+    this.products
+    && this.product.every(p => p instanceof this.app.models['Product'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getProducts(options)
+      .then(_products => {
+        _products = _products || []
+        this.products = _products
+        this.setDataValue('products', _products)
+        this.set('products', _products)
+        return this
+      })
+  }
+}

@@ -642,5 +642,71 @@ export class CollectionService extends Service {
         // return Collection.findByIdDefault(resCollection.id)
       })
   }
+
+  /**
+   * Sales Analytics for a given Collection
+   * @param collection
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  analytics(collection, options: {[key: string]: any} = {}) {
+    const Collection = this.app.models['Collection']
+    const OrderItem = this.app.models['OrderItem']
+    let resCollection
+    return Collection.resolve(collection)
+      .then(_collection => {
+        if (!_collection) {
+          throw new ModelError('E_NOT_FOUND', 'Collection not found')
+        }
+        resCollection = _collection
+        return resCollection.resolveProducts({ attributes: ['id']})
+      })
+      .then((_collection) => {
+        const ids = resCollection.products.map(p => p.id)
+        console.log(ids)
+
+        return OrderItem.findAll({
+          where: {
+            product_id: ids
+          },
+          attributes: [
+            [OrderItem.sequelize.literal('SUM(calculated_price)'), 'total'],
+            [OrderItem.sequelize.literal('SUM(price)'), 'value'],
+            [OrderItem.sequelize.literal('COUNT(id)'), 'count'],
+            // 'currency'
+          ],
+          // group: ['currency']
+        })
+          .then(count => {
+            let data = count.map(c => {
+              const cTotal = c instanceof OrderItem.instance
+                ? c.get('total') || 0
+                : c.total || 0
+              const cValue = c instanceof OrderItem.instance
+                ? c.get('value') || 0
+                : c.value || 0
+              const cCount = c instanceof OrderItem.instance
+                ? c.get('count') || 0
+                : c.count || 0
+
+              return {
+                count: parseInt(cCount, 10),
+                total: parseInt(cTotal, 10),
+                value: parseInt(cValue, 10)
+              }
+            })
+
+            if (data.length === 0) {
+              data = [{
+                count: 0,
+                total: 0,
+                value: 0
+              }]
+            }
+
+            return data
+          })
+      })
+  }
 }
 

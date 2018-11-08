@@ -791,5 +791,28 @@ export class CollectionController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  analytics(req, res) {
+    const collectionId = req.params.id
+
+    if (!collectionId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    this.app.services.CollectionService.analytics(collectionId, {})
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+
+  }
 }
 
