@@ -534,7 +534,7 @@ describe('Admin User ProductController', () => {
   })
   it('should add collection to product', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/addCollection/test`)
+      .post(`/product/${createdProductID}/collection/test`)
       .send({
         product_position: 1
       })

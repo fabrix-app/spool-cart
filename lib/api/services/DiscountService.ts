@@ -762,7 +762,10 @@ export class DiscountService extends Service {
           throw new Error('Discount did not resolve')
         }
         resDiscount = _discount
-        return Collection.resolve(collection, {transaction: options.transaction || null})
+        return Collection.resolve(collection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
       .then(_collection => {
         if (!_collection) {
@@ -802,7 +805,10 @@ export class DiscountService extends Service {
           throw new Error('Discount did not resolve')
         }
         resDiscount = _discount
-        return Collection.resolve(collection, {transaction: options.transaction || null})
+        return Collection.resolve(collection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
       .then(_collection => {
         if (!_collection) {

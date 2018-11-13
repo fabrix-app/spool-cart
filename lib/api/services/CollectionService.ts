@@ -27,11 +27,13 @@ export class CollectionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  add(collection, options) {
-    options = options || {}
+  add(collection, options: {[key: string]: any} = {}) {
     const Collection = this.app.models.Collection
 
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: false
+    })
       .then(resCollection => {
         if (!resCollection) {
           // Create a new Collection
@@ -181,7 +183,10 @@ export class CollectionService extends Service {
     const update = _.omit(collection, ['id', 'created_at', 'updated_at', 'collections', 'images', 'tags'])
 
     let resCollection
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new Error('Collection could not be resolved')
@@ -280,13 +285,18 @@ export class CollectionService extends Service {
     const Collection = this.app.models['Collection']
     // const ItemCollection = this.app.models['ItemCollection']
     let resCollection, resSubCollection
-    return Collection.resolve(collection, {transaction: options.transaction || null})
-      .then(_collection => {
+    return Collection.resolveOrCreate(collection, {
+      transaction: options.transaction || null
+    })
+      .then(([_collection, _created]) => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
         }
         resCollection = _collection
-        return Collection.resolve(subCollection, {transaction: options.transaction || null})
+        return Collection.resolve(subCollection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
       .then(_subCollection => {
         if (!_subCollection) {
@@ -330,13 +340,19 @@ export class CollectionService extends Service {
     options = options || {}
     const Collection = this.app.models['Collection']
     let resCollection, resSubCollection
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
         }
         resCollection = _collection
-        return Collection.resolve(subCollection, {transaction: options.transaction || null})
+        return Collection.resolve(subCollection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
       .then(_subCollection => {
         if (!_subCollection) {
@@ -392,7 +408,10 @@ export class CollectionService extends Service {
     const Collection = this.app.models['Collection']
     const Product = this.app.models['Product']
     let resCollection, resProduct
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
@@ -440,7 +459,10 @@ export class CollectionService extends Service {
     const Collection = this.app.models['Collection']
     const Product = this.app.models['Product']
     let resCollection, resProduct
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
@@ -479,7 +501,10 @@ export class CollectionService extends Service {
     const Collection = this.app.models['Collection']
     const Tag = this.app.models['Tag']
     let resCollection, resTag
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
@@ -517,7 +542,10 @@ export class CollectionService extends Service {
     const Collection = this.app.models['Collection']
     const Tag = this.app.models['Tag']
     let resCollection, resTag
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
@@ -579,7 +607,10 @@ export class CollectionService extends Service {
     const Collection = this.app.models['Collection']
     const Customer = this.app.models['Customer']
     let resCollection, resCustomer
-    return Collection.resolve(collection, {transaction: options.transaction || null})
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
@@ -610,13 +641,17 @@ export class CollectionService extends Service {
    *
    * @param collection
    * @param customer
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  removeCustomer(collection, customer) {
+  removeCustomer(collection, customer, options: {[key: string]: any} = {}) {
     const Collection = this.app.models['Collection']
     const Customer = this.app.models['Customer']
     let resCollection, resCustomer
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
@@ -653,7 +688,10 @@ export class CollectionService extends Service {
     const Collection = this.app.models['Collection']
     const OrderItem = this.app.models['OrderItem']
     let resCollection
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {
+      transaction: options.transaction || null,
+      reject: true
+    })
       .then(_collection => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')

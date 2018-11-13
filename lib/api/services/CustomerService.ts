@@ -639,6 +639,7 @@ export class CustomerService extends Service {
    *
    * @param customer
    * @param collection
+   * @param options
    * @returns {Promise.<TResult>}
    */
   addCollection(customer, collection, options: {[key: string]: any} = {}) {
@@ -651,7 +652,10 @@ export class CustomerService extends Service {
           throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
         resCustomer = _customer
-        return Collection.resolve(collection)
+        return Collection.resolve(collection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
       .then(_collection => {
         if (!_collection) {
@@ -675,19 +679,26 @@ export class CustomerService extends Service {
    *
    * @param customer
    * @param collection
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  removeCollection(customer, collection) {
+  removeCollection(customer, collection, options: {[key: string]: any} = {}) {
     const Customer = this.app.models['Customer']
     const Collection = this.app.models['Collection']
     let resCustomer, resCollection
-    return Customer.resolve(customer, {create: false})
+    return Customer.resolve(customer, {
+      transaction: options.transaction || null,
+      create: false
+    })
       .then(_customer => {
         if (!_customer) {
           throw new ModelError('E_NOT_FOUND', 'Customer not found')
         }
         resCustomer = _customer
-        return Collection.resolve(collection)
+        return Collection.resolve(collection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
       .then(_collection => {
         if (!_collection) {

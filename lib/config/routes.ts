@@ -1317,7 +1317,10 @@ export const routes = {
         prefix: 'cart.prefix',
         validate: {
           params: {
-            id: joi.number().required()
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
           }
         },
         app: {
@@ -1328,6 +1331,7 @@ export const routes = {
         }
       }
     },
+    // TODO Deprecate
     'POST': {
       handler: 'CollectionController.update',
       config: {
@@ -2139,6 +2143,7 @@ export const routes = {
       }
     }
   },
+  // TODO Deprecate
   '/collection/handle/:handle': {
     'GET': {
       handler: 'CollectionController.findByHandle',

@@ -349,6 +349,7 @@ describe('Admin User CollectionController', () => {
         done(err)
       })
   })
+  // TODO deprecated
   it('It should get collection by handle', (done) => {
     adminUser
       .get('/collection/handle/awesome')
@@ -367,6 +368,47 @@ describe('Admin User CollectionController', () => {
         // assert.equal(res.body.discount_scope, 'global')
         // assert.equal(res.body.discount_type, 'fixed')
         // assert.equal(res.body.discount_rate, 100)
+        done(err)
+      })
+  })
+  it('It should get collection by handle', (done) => {
+    adminUser
+      .get('/collection/awesome')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.handle, 'awesome')
+        assert.equal(res.body.title, 'Awesome')
+        assert.equal(res.body.description, 'Test Description')
+        assert.equal(res.body.excerpt, 'When you\'re part of a team')
+        assert.equal(res.body.excerpt_html, "<p>When you're part of a team</p>\n")
+        assert.equal(res.body.body, 'Everything is Awesome')
+        assert.equal(res.body.body_html, '<p>Everything is Awesome</p>\n')
+        assert.equal(res.body.sort_order, 'price-asc')
+        // DISCOUNTS MIGRATED TO THEIR OWN OBJECT
+        // assert.equal(res.body.discount_scope, 'global')
+        // assert.equal(res.body.discount_type, 'fixed')
+        // assert.equal(res.body.discount_rate, 100)
+        done(err)
+      })
+  })
+  it('should get all collection collections by handle', (done) => {
+    adminUser
+      .get('/collection/awesome/collections')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
+        assert.ok(res.body)
         done(err)
       })
   })

@@ -34,14 +34,25 @@ export class CollectionController extends Controller {
    * @param res
    */
   findById(req, res) {
-    const orm = this.app.models
-    const Collection = orm['Collection']
-    Collection.findByIdDefault(req.params.id, {})
-      .then(collection => {
-        if (!collection) {
-          throw new ModelError('E_NOT_FOUND', `Collection id ${ req.params.id } not found`)
+    const Collection = this.app.models['Collection']
+    const collectionId = req.params.id
+    Promise.resolve()
+      .then(() => {
+        if (isNumber(collectionId)) {
+          return Collection.findByIdDefault(collectionId, {})
         }
-        return this.app.services.PermissionsService.sanitizeResult(req, collection)
+        else if (isString(collectionId)) {
+          return Collection.findByHandleDefault(collectionId, {})
+        }
+        else {
+          throw new Error('Unhandled Identifier')
+        }
+      })
+      .then((_collection) => {
+        if (!_collection) {
+          throw new ModelError('E_NOT_FOUND', `Collection ${ collectionId} not found`)
+        }
+        return this.app.services.PermissionsService.sanitizeResult(req, _collection)
       })
       .then(result => {
         return res.json(result)
@@ -52,14 +63,13 @@ export class CollectionController extends Controller {
   }
 
   findByHandle(req, res) {
-    const orm = this.app.models
-    const Collection = orm['Collection']
+    const Collection = this.app.models['Collection']
     Collection.findByHandleDefault(req.params.handle)
-      .then(collection => {
-        if (!collection) {
+      .then(_collection => {
+        if (!_collection) {
           throw new ModelError('E_NOT_FOUND', `Collection handle ${ req.params.handle } not found`)
         }
-        return this.app.services.PermissionsService.sanitizeResult(req, collection)
+        return this.app.services.PermissionsService.sanitizeResult(req, _collection)
       })
       .then(result => {
         return res.json(result)
@@ -310,19 +320,25 @@ export class CollectionController extends Controller {
 
     let count = 0
 
-    ItemCollection.findAndCountAll({
-      where: {
-        collection_id: collectionId,
-        model: 'collection'
-      },
-      attributes: ['model_id'],
-      limit: limit,
-      offset: offset
+    Collection.resolve(collectionId, {
+      attributes: ['id']
     })
+      .then(_collection => {
+
+        return ItemCollection.findAndCountAll({
+          where: {
+            collection_id: _collection.id,
+            model: 'collection'
+          },
+          attributes: ['model_id'],
+          limit: limit,
+          offset: offset
+        })
+      })
       .then(arr => {
         count = arr.count
         const collectionIds = arr.rows.map(model => model.model_id)
-        return Collection.findAll({
+        return Collection.findAllDefault({
           where: {
             id: collectionIds
           }
@@ -437,6 +453,8 @@ export class CollectionController extends Controller {
    */
   products(req, res) {
     const Product = this.app.models['Product']
+    const Collection = this.app.models['Collection']
+    const ItemCollection = this.app.models['ItemCollection']
     const collectionId = req.params.id
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
@@ -447,21 +465,24 @@ export class CollectionController extends Controller {
       return res.send(401, err)
     }
 
-    // const Collection = this.app.models['Collection']
-    const ItemCollection = this.app.models['ItemCollection']
-
     let count = 0, models = []
 
-    ItemCollection.findAndCountAll({
-      where: {
-        collection_id: collectionId,
-        model: 'product'
-      },
-      attributes: ['model_id', 'position'],
-      order: sort,
-      limit: limit,
-      offset: offset
+    Collection.resolve(collectionId, {
+      attributes: ['id']
     })
+      .then(_collection => {
+
+        return ItemCollection.findAndCountAll({
+          where: {
+            collection_id: _collection.id,
+            model: 'product'
+          },
+          attributes: ['model_id', 'position'],
+          order: sort,
+          limit: limit,
+          offset: offset
+        })
+      })
     .then(arr => {
 
       count = arr.count

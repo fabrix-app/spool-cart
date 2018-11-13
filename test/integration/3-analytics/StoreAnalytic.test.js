@@ -12,7 +12,7 @@ describe('StoreAnalytic', () => {
   it('should get Active Customers', (done) => {
     global.app.analytics.StoreAnalytic.activeCustomers()
       .then(analytics => {
-        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        // console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
         assert.equal(analytics[0].name, 'store.activeCustomers')
         done()
@@ -25,7 +25,7 @@ describe('StoreAnalytic', () => {
   it('should get New Customers', (done) => {
     global.app.analytics.StoreAnalytic.newCustomers()
       .then(analytics => {
-        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        // console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
         assert.equal(analytics[0].name, 'store.newCustomers')
         done()
@@ -38,7 +38,7 @@ describe('StoreAnalytic', () => {
   it('should get New Subscriptions', (done) => {
     global.app.analytics.StoreAnalytic.newSubscriptions()
       .then(analytics => {
-        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        // console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
         assert.equal(analytics[0].name, 'store.newSubscriptions')
         done()
@@ -51,7 +51,7 @@ describe('StoreAnalytic', () => {
   it('should get Active Subscriptions', (done) => {
     global.app.analytics.StoreAnalytic.activeSubscriptions()
       .then(analytics => {
-        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        // console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
         assert.equal(analytics[0].name, 'store.activeSubscriptions')
         done()
@@ -64,7 +64,7 @@ describe('StoreAnalytic', () => {
   it.skip('should get Reactivated Subscriptions', (done) => {
     global.app.analytics.StoreAnalytic.reactivatedSubscriptions()
       .then(analytics => {
-        console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
+        // console.log('BROKE ANALYTICS', analytics[0].data, analytics[0].labels)
         assert.equal(analytics.length, 1)
         assert.equal(analytics[0].name, 'store.reactivatedSubscriptions')
         done()
