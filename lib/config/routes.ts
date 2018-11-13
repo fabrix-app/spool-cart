@@ -1326,7 +1326,7 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiGetCollectionIdRoute',
-            roles: ['admin']
+            roles: ['admin', 'registered', 'public']
           }
         }
       }
