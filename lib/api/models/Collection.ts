@@ -118,7 +118,7 @@ export class CollectionResolver extends SequelizeResolver {
   resolveByString (collection, options: {[key: string]: any} = {}) {
     return this.findOne(defaultsDeep({
       where: {
-        token: collection
+        handle: collection
       }
     }, options))
       .then(resUser => {
@@ -129,138 +129,178 @@ export class CollectionResolver extends SequelizeResolver {
       })
   }
   // TODO, enable
-  // /**
-  //  * Primary Resolve Function
-  //  * @param collection
-  //  * @param options
-  //  */
-  // resolve(collection, options: {[key: string]: any} = {}) {
-  //   const resolvers = {
-  //     'instance': collection instanceof this.instance,
-  //     'id': !!(collection && isObject(collection) && collection.id),
-  //     'handle': !!(collection && isObject(collection) && collection.handle),
-  //     'number': !!(collection && isNumber(collection)),
-  //     'string': !!(collection && isString(collection))
-  //   }
-  //   const type = Object.keys(resolvers).find((key) => resolvers[key])
-  //
-  //   switch (type) {
-  //     case 'instance': {
-  //       return this.resolveByInstance(collection, options)
-  //     }
-  //     case 'id': {
-  //       return this.resolveById(collection, options)
-  //     }
-  //     case 'handle': {
-  //       return this.resolveByHandle(collection, options)
-  //     }
-  //     case 'number': {
-  //       return this.resolveByNumber(collection, options)
-  //     }
-  //     case 'string': {
-  //       return this.resolveByString(collection, options)
-  //
-  //     }
-  //     default: {
-  //       // TODO create proper error
-  //       const err = new Error(`Unable to resolve Collection ${collection}`)
-  //       return Promise.reject(err)
-  //     }
-  //   }
-  // }
   /**
-   *
+   * Primary Resolve Function
    * @param collection
    * @param options
-   * @returns {*}
    */
   resolve(collection, options: {[key: string]: any} = {}) {
-    const CollectionModel = this
-    if (collection instanceof CollectionModel.instance) {
-      return Promise.resolve(collection)
+    const resolvers = {
+      'instance': collection instanceof this.instance,
+      'id': !!(collection && isObject(collection) && collection.id),
+      'handle': !!(collection && isObject(collection) && collection.handle),
+      'number': !!(collection && isNumber(collection)),
+      'string': !!(collection && isString(collection))
     }
-    else if (collection && isObject(collection) && collection.id) {
-      return CollectionModel.findById(collection.id, options)
-        .then(foundCollection => {
-          if (!foundCollection) {
-            throw new ModelError('E_NOT_FOUND', `Collection ${collection.id} not found`)
-          }
-          return foundCollection
-        })
-    }
-    else if (collection && isObject(collection) && collection.handle) {
-      return CollectionModel.findOne(this.app.services.SequelizeService.mergeOptionDefaults(
-        options,
-        {
-          where: {
-            handle: collection.handle
-          }
-        }
-        )
-      )
-        .then(resCollection => {
-          if (resCollection) {
-            return resCollection
-          }
-          collection.title = collection.title || collection.handle
-          return this.app.services.CollectionService.create(collection, {transaction: options.transaction})
-        })
-    }
-    else if (collection && isObject(collection) && collection.title) {
-      return CollectionModel.findOne(options = this.app.services.SequelizeService.mergeOptionDefaults(
-        options,
-        {
-          where: {
-            handle: this.app.services.ProxyCartService.handle(collection.title)
-          }
-        }
-        )
-      )
-        .then(resCollection => {
-          if (resCollection) {
-            return resCollection
-          }
-          collection.handle = collection.handle || this.app.ProxyCartService.handle(collection.title)
-          return this.app.services.CollectionService.create(collection, {transaction: options.transaction})
-        })
-    }
-    else if (collection && isNumber(collection)) {
-      return CollectionModel.findById(collection, options)
-        .then(foundCollection => {
-          if (!foundCollection) {
-            throw new ModelError('E_NOT_FOUND', `Collection ${collection} not found`)
-          }
-          return foundCollection
-        })
-    }
-    else if (collection && isString(collection)) {
-      return CollectionModel.findOne(options = this.app.services.SequelizeService.mergeOptionDefaults(
-        options,
-        {
-          where: {
-            handle: this.app.services.ProxyCartService.handle(collection)
-          }
-        }
-        )
-      )
-        .then(resCollection => {
-          if (resCollection) {
-            return resCollection
-          }
-          return this.app.services.CollectionService.create({
-            handle: this.app.services.ProxyCartService.handle(collection),
-            title: collection
-          }, {
-            transaction: options.transaction || null
-          })
-        })
-    }
-    else {
-      // TODO make Proper Error
-      const err = new Error(`Not able to resolve collection ${collection}`)
-      return Promise.reject(err)
+    const type = Object.keys(resolvers).find((key) => resolvers[key])
+
+    switch (type) {
+      case 'instance': {
+        return this.resolveByInstance(collection, options)
+      }
+      case 'id': {
+        return this.resolveById(collection, options)
+      }
+      case 'handle': {
+        return this.resolveByHandle(collection, options)
+      }
+      case 'number': {
+        return this.resolveByNumber(collection, options)
+      }
+      case 'string': {
+        return this.resolveByString(collection, options)
+
+      }
+      default: {
+        // TODO create proper error
+        const err = new Error(`Unable to resolve Collection ${collection}`)
+        return Promise.reject(err)
+      }
     }
   }
+
+  resolveOrCreate(collection, options: {[key: string]: any} = {}) {
+    options.reject = false
+    return this.resolve(collection, options)
+      .then(_collection => {
+        if (!_collection) {
+          if (isString(collection)) {
+            collection = {
+              handle: this.app.services.ProxyCartService.handle(collection),
+              title: collection
+            }
+          }
+          if (!collection.title && collection.handle) {
+            collection.title = collection.handle
+          }
+          if (!collection.handle && collection.title) {
+            collection.handle =  this.app.services.ProxyCartService.handle(collection.title)
+          }
+          return this.create(collection, {transaction: options.transaction || null})
+            .then(_createdCollection => {
+              return [_createdCollection, true]
+            })
+        }
+        else if (_collection.isNewRecord && !_collection.id) {
+          return this.findOrCreate({
+            where: {
+              handle: _collection.handle
+            },
+            transaction: options.transaction || null,
+            defaults: _collection.get({plain: true})
+          })
+            .then(_resCollection => {
+              return _resCollection
+            })
+        }
+        else {
+          return [_collection, false]
+        }
+      })
+  }
+  // /**
+  //  *
+  //  * @param collection
+  //  * @param options
+  //  * @returns {*}
+  //  */
+  // resolve(collection, options: {[key: string]: any} = {}) {
+  //   const CollectionModel = this
+  //   if (collection instanceof CollectionModel.instance) {
+  //     return Promise.resolve(collection)
+  //   }
+  //   else if (collection && isObject(collection) && collection.id) {
+  //     return CollectionModel.findById(collection.id, options)
+  //       .then(foundCollection => {
+  //         if (!foundCollection) {
+  //           throw new ModelError('E_NOT_FOUND', `Collection ${collection.id} not found`)
+  //         }
+  //         return foundCollection
+  //       })
+  //   }
+  //   else if (collection && isObject(collection) && collection.handle) {
+  //     return CollectionModel.findOne(this.app.services.SequelizeService.mergeOptionDefaults(
+  //       options,
+  //       {
+  //         where: {
+  //           handle: collection.handle
+  //         }
+  //       }
+  //       )
+  //     )
+  //       .then(resCollection => {
+  //         if (resCollection) {
+  //           return resCollection
+  //         }
+  //         collection.title = collection.title || collection.handle
+  //         return this.app.services.CollectionService.create(collection, {transaction: options.transaction})
+  //       })
+  //   }
+  //   else if (collection && isObject(collection) && collection.title) {
+  //     return CollectionModel.findOne(options = this.app.services.SequelizeService.mergeOptionDefaults(
+  //       options,
+  //       {
+  //         where: {
+  //           handle: this.app.services.ProxyCartService.handle(collection.title)
+  //         }
+  //       }
+  //       )
+  //     )
+  //       .then(resCollection => {
+  //         if (resCollection) {
+  //           return resCollection
+  //         }
+  //         collection.handle = collection.handle || this.app.ProxyCartService.handle(collection.title)
+  //         return this.app.services.CollectionService.create(collection, {transaction: options.transaction})
+  //       })
+  //   }
+  //   else if (collection && isNumber(collection)) {
+  //     return CollectionModel.findById(collection, options)
+  //       .then(foundCollection => {
+  //         if (!foundCollection) {
+  //           throw new ModelError('E_NOT_FOUND', `Collection ${collection} not found`)
+  //         }
+  //         return foundCollection
+  //       })
+  //   }
+  //   else if (collection && isString(collection)) {
+  //     return CollectionModel.findOne(options = this.app.services.SequelizeService.mergeOptionDefaults(
+  //       options,
+  //       {
+  //         where: {
+  //           handle: this.app.services.ProxyCartService.handle(collection)
+  //         }
+  //       }
+  //       )
+  //     )
+  //       .then(resCollection => {
+  //         if (resCollection) {
+  //           return resCollection
+  //         }
+  //         return this.app.services.CollectionService.create({
+  //           handle: this.app.services.ProxyCartService.handle(collection),
+  //           title: collection
+  //         }, {
+  //           transaction: options.transaction || null
+  //         })
+  //       })
+  //   }
+  //   else {
+  //     // TODO make Proper Error
+  //     const err = new Error(`Not able to resolve collection ${collection}`)
+  //     return Promise.reject(err)
+  //   }
+  // }
   /**
    *
    * @param collections

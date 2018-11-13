@@ -168,8 +168,7 @@ export class ProductService extends Service {
    * @returns {Promise}
    */
   // TODO Create Images and Variant Images in one command
-  createProduct(product, options) {
-    options = options || {}
+  createProduct(product, options: {[key: string]: any} = {}) {
     const Product = this.app.models.Product
     const Tag = this.app.models.Tag
     const Variant = this.app.models.ProductVariant
@@ -1677,9 +1676,12 @@ export class ProductService extends Service {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Collection.resolve(collection, { transaction: options.transaction || null })
+        return Collection.resolveOrCreate(collection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
-      .then(_collection => {
+      .then(([_collection, _created]) => {
         if (!_collection) {
           throw new ModelError('E_NOT_FOUND', 'Collection not found')
         }
@@ -1723,7 +1725,10 @@ export class ProductService extends Service {
           throw new ModelError('E_NOT_FOUND', 'Product not found')
         }
         resProduct = _product
-        return Collection.resolve(collection, { transaction: options.transaction || null })
+        return Collection.resolve(collection, {
+          transaction: options.transaction || null,
+          reject: true
+        })
       })
       .then(_collection => {
         if (!_collection) {
