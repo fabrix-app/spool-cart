@@ -6,6 +6,7 @@ export const shop = joi.object().keys({
   address: address,
   currency: joi.string(),
   host: joi.string(),
+  handle: joi.string(),
   name: joi.string(),
   phone: joi.string(),
   primary_locale: joi.string(),

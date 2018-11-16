@@ -2,6 +2,7 @@ import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
 import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
 import * as _ from 'lodash'
+import * as fs from 'fs'
 // const COLLECTION_DISCOUNT_TYPE = require('../../lib').Enums.COLLECTION_DISCOUNT_TYPE
 // const COLLECTION_DISCOUNT_SCOPE = require('../../lib').Enums.COLLECTION_DISCOUNT_SCOPE
 
@@ -486,6 +487,202 @@ export class CollectionService extends Service {
       .then(_collection => {
         return resProduct
         // return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
+      })
+  }
+
+
+
+  /**
+   * @param collection
+   * @param images
+   */
+  removeImages(collection, images) {
+    if (!Array.isArray(images)) {
+      images = [images]
+    }
+    const Collection = this.app.models['Collection']
+    return Collection.sequelize.Promise.mapSeries(images, image => {
+      const collectionId = typeof collection.id !== 'undefined' ? collection.id : collection
+      const id = typeof image.id !== 'undefined' ? image.id : image
+      return this.removeImage(collectionId, id)
+    })
+  }
+
+  /**
+   * @param collectionId
+   * @param id
+   * @param options
+   */
+  removeImage(collectionId, id, options: { [key: string]: any } = {}) {
+    const Image = this.app.models['ItemImage']
+    const Collection = this.app.models['Collection']
+
+    let resDestroy
+    return Image.findOne({ where: { image_id: id }}, {
+      transaction: options.transaction || null
+    })
+      .then(_image => {
+        if (!_image) {
+          // TODO proper error
+          throw new Error(`Image ${id} not found`)
+        }
+        resDestroy = _image
+
+        return Image.findAll({
+          where: {
+            model_id: resDestroy.model_id,
+            model: 'collection'
+          },
+          order: [['position', 'ASC']],
+          transaction: options.transaction || null
+        })
+      })
+      .then(foundImages => {
+        foundImages = foundImages.filter(image => image.id !== id)
+        foundImages = foundImages.map((image, index) => {
+          image.position = index + 1
+          return image
+        })
+        return Image.sequelize.Promise.mapSeries(foundImages, image => {
+          return image.save({
+            transaction: options.transaction || null
+          })
+        })
+      })
+      .then(updatedImages => {
+        return resDestroy.destroy({
+          transaction: options.transaction || null
+        })
+      })
+      .then(() => {
+        return resDestroy
+      })
+      // .then(() => {
+      //   return Collection.findByIdDefault(resDestroy.collection_id, { transaction: options.transaction || null })
+      // })
+  }
+
+  /**
+   * @param collection
+   * @param images
+   */
+  addImages(collection, images) {
+    if (!Array.isArray(images)) {
+      images = [images]
+    }
+    const Collection = this.app.models['Collection']
+    return Collection.sequelize.Promise.mapSeries(images, image => {
+      const id = typeof image.id !== 'undefined' ? image.id : image
+      return this.addImage(collection, id)
+    })
+  }
+
+  /**
+   * @param collection
+   * @param variant
+   * @param image
+   * @param options
+   */
+  // TODO
+  addImage(collection, image, options: { [key: string]: any } = {}) {
+    const Image = this.app.models['ItemImage']
+    const Collection = this.app.models['Collection']
+
+    let resCollection, resImage
+    return Collection.resolve(collection, { transaction: options.transaction || null })
+      .then(foundCollection => {
+        if (!foundCollection) {
+          throw new Error('Collection could not be resolved')
+        }
+        resCollection = foundCollection
+
+        return resCollection.createImage({
+          src: image,
+          position: options.position || null,
+          alt: options.alt || null
+        }, {
+          transaction: options.transaction
+        })
+      })
+      .then(createdImage => {
+        if (!createdImage) {
+          throw new Error('Image Could not be created')
+        }
+        resImage = createdImage
+        return Image.findAll({
+          where: {
+            model_id: resCollection.id,
+            model: 'collection'
+          },
+          order: [['position', 'ASC']],
+          transaction: options.transaction || null
+        })
+      })
+      .then(foundImages => {
+        foundImages = foundImages.map((_image, index) => {
+          _image.position = index + 1
+          return _image
+        })
+        return Image.sequelize.Promise.mapSeries(foundImages, _image => {
+          return _image.save({
+            transaction: options.transaction || null
+          })
+        })
+      })
+      .then(updatedImages => {
+        return resImage.reload()
+      })
+  }
+
+  createImage(collection, filePath, options: { [key: string]: any } = {}) {
+    const image = fs.readFileSync(filePath)
+    const Image = this.app.models['ItemImage']
+    const Collection = this.app.models['Collection']
+    let resCollection, resImage
+    return Collection.resolve(collection, { transaction: options.transaction || null })
+      .then(_collection => {
+        if (!_collection) {
+          throw new Error('Collection could not be resolved')
+        }
+        resCollection = _collection
+        return this.app.services.ProxyCartService.uploadImage(image, filePath)
+      })
+      .then(uploadedImage => {
+        return resCollection.createImage({
+          src: uploadedImage.url,
+          position: options.position || null,
+          alt: options.alt || null
+        }, {
+          transaction: options.transaction
+        })
+      })
+      .then(createdImage => {
+        if (!createdImage) {
+          throw new Error('Image Could not be created')
+        }
+        resImage = createdImage
+        return Image.findAll({
+          where: {
+            model_id: resCollection.id,
+            model: 'collection'
+          },
+          order: [['position', 'ASC']],
+          transaction: options.transaction || null
+        })
+      })
+      .then(foundImages => {
+        foundImages = foundImages.map((_image, index) => {
+          _image.position = index + 1
+          return _image
+        })
+        return Image.sequelize.Promise.mapSeries(foundImages, _image => {
+          return _image.save({
+            transaction: options.transaction || null
+          })
+        })
+      })
+      .then(updatedImages => {
+        return resImage.reload()
       })
   }
 

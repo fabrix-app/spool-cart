@@ -6,7 +6,7 @@ const _  = require('lodash')
 const collections = require('../../../fixtures/collections')
 
 describe('Admin User CollectionController', () => {
-  let adminUser, userID, customerID, uploadID, collectionID, collection2ID
+  let adminUser, userID, customerID, uploadID, collectionID, collection2ID, firstImageID
 
   before((done) => {
 
@@ -324,6 +324,72 @@ describe('Admin User CollectionController', () => {
   //       done(err)
   //     })
   // })
+
+  it('Create a New image and add it to a collection', (done) => {
+    adminUser
+      .post(`/collection/${collectionID}/image/create`)
+      .attach('file', 'test/fixtures/test.jpg')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BRK upload', res.body)
+        firstImageID = res.body.id
+        assert.ok(res.body.id)
+        // assert.ok(res.body.position)
+        // assert.equal(res.body.collection_id, collectionID)
+        done(err)
+      })
+  })
+
+  it('should make get collection images', (done) => {
+    adminUser
+      .get(`/collection/${collectionID}/images`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.equal(res.headers['x-pagination-total'], '3')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
+        assert.equal(res.body.length, 3)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should make removeImage post adminUser', (done) => {
+    console.log()
+    adminUser
+      .del(`/collection/${collectionID}/image/${firstImageID}`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BRK DEL', res.body)
+        assert.equal(res.body.id, firstImageID)
+        // assert(res.body.position)
+
+        // assert.equal(res.body.id, collectionID)
+        // assert.equal(res.body.images.length, 2)
+        // const images = _.map(res.body.images, 'id')
+        // assert.equal(images.indexOf(firstImageID), -1)
+
+        done(err)
+      })
+  })
+  it('Image should be removed', (done) => {
+    adminUser
+      .get(`/collection/${collectionID}`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.images.length, 2)
+        const images = _.map(res.body.images, 'id')
+        assert.equal(images.indexOf(firstImageID), -1)
+        done(err)
+      })
+  })
+
 
   it('It should upload collection_upload.csv', (done) => {
     adminUser

@@ -771,6 +771,155 @@ export class CollectionController extends Controller {
       })
   }
 
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addImages(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addImages(req.params.id, req.body)
+      .then(collection => {
+        return this.app.services.PermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addImage(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addImage(req.params.id, req.params.image)
+      .then(collection => {
+        return this.app.services.PermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  createImage(req, res) {
+    const CollectionService = this.app.services.CollectionService
+    const image = req.file
+    const collection = req.params.id
+
+    if (!image) {
+      const err = new Error('Image File failed to upload, check input type is file and try again.')
+      return res.serverError(err)
+    }
+
+    CollectionService.createImage(collection, image.path, req.body)
+      .then(_image => {
+        return this.app.services.PermissionsService.sanitizeResult(req, _image)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeImages(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.removeImages(req.params.id, req.body)
+      .then(collection => {
+        return this.app.services.PermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeImage(req, res) {
+    const CollectionService = this.app.services.CollectionService
+    CollectionService.removeImage(req.params.id, req.params.image)
+      .then(collection => {
+        return this.app.services.PermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  images(req, res) {
+    const Image = this.app.models['Image']
+    const collectionId = req.params.id
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!collectionId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Image.findAndCountAll({
+      include: [
+        {
+          model: this.app.models['Collection'].instance,
+          as: 'collections',
+          where: {
+            id: collectionId
+          }
+        }
+      ],
+      order: sort,
+      offset: offset,
+      limit: limit
+    })
+      .then(images => {
+        // Paginate
+        res.paginate(images.count, limit, offset, sort)
+        return this.app.services.PermissionsService.sanitizeResult(req, images.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
   /**
    * upload CSV
    * @param req
