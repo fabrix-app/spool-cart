@@ -554,6 +554,9 @@ export class CollectionService extends Service {
           transaction: options.transaction || null
         })
       })
+      .then(() => {
+        return resDestroy
+      })
       // .then(() => {
       //   return Collection.findByIdDefault(resDestroy.collection_id, { transaction: options.transaction || null })
       // })
