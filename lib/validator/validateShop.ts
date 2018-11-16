@@ -11,5 +11,15 @@ export const validateShop = {
         return resolve(value)
       })
     })
+  },
+  update(data) {
+    return new Promise((resolve, reject) => {
+      joi.validate(data, shop, (err, value) => {
+        if (err) {
+          return reject(new TypeError(err))
+        }
+        return resolve(value)
+      })
+    })
   }
 }

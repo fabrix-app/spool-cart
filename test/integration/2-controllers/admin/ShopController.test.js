@@ -37,6 +37,27 @@ describe('Admin User ShopController', () => {
         done(err)
       })
   })
+  it('should make addShop post adminUser', (done) => {
+    adminUser
+      .post('/shop')
+      .send(
+        {
+          handle: 'shoppie',
+          name: 'Shoppie',
+          host: 'test.com',
+        }
+      )
+      .expect(200)
+      .end((err, res) => {
+        // Shop
+        assert.ok(res.body.id)
+        assert.equal(res.body.handle, 'shoppie')
+        assert.equal(res.body.name, 'Shoppie')
+        assert.equal(res.body.host, 'test.com')
+
+        done(err)
+      })
+  })
   it('should count all shops', (done) => {
     adminUser
       .get('/shop/count')

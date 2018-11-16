@@ -1536,6 +1536,192 @@ export const routes = {
       }
     }
   },
+
+  '/collection/:id/images': {
+    'GET': {
+      handler: 'CollectionController.images',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCollectionIdImagesRoute',
+            roles: ['admin', 'registered', 'public']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'CollectionController.addImages',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionIdImagesRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'PUT': {
+      handler: 'CollectionController.addImages',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutCollectionIdImagesRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'DELETE': {
+      handler: 'CollectionController.removeImages',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            collection: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteCollectionIdImagesRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+
+  '/collection/:id/image/create': {
+    'POST': {
+      handler: 'CollectionController.createImage',
+      config: {
+        prefix: 'cart.prefix',
+        pre: ['CollectionPolicy.image'],
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionIdImageCreateRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+
+  '/collection/:id/image/:image': {
+    'POST': {
+      handler: 'CollectionController.addImage',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            image: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostCollectionIdImageImageRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'PUT': {
+      handler: 'CollectionController.addImage',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            image: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutCollectionIdImageImageRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'DELETE': {
+      handler: 'CollectionController.removeImage',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            image: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteCollectionIdImageImageRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
   // TODO legacy
   '/collection/:id/removeCollection/:collection': {
     'POST': {
@@ -9938,6 +10124,196 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiPostShopRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id': {
+    'PUT': {
+      handler: 'ShopController.update',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutShopIdRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id/customers': {
+    'GET': {
+      handler: 'ShopController.customers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetShopIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'ShopController.addCustomer',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id/products': {
+    'GET': {
+      handler: 'ShopController.products',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetShopIdProductsRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'ShopController.addProduct',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdProductsRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id/orders': {
+    'GET': {
+      handler: 'ShopController.orders',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetShopIdOrdersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'ShopController.addOrder',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdOrdersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id/users': {
+    'GET': {
+      handler: 'ShopController.users',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetShopIdUsersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'POST': {
+      handler: 'ShopController.addUser',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdUsersRoute',
             roles: ['admin']
           }
         }

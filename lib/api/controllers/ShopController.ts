@@ -83,5 +83,70 @@ export class ShopController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  update(req, res) {
+    const ShopService = this.app.services.ShopService
+    const id = req.params.id
+
+    Validator.validateShop.update(req.body)
+      .then(values => {
+        return ShopService.update(id, req.body)
+      })
+      .then(shop => {
+        return this.app.services.PermissionsService.sanitizeResult(req, shop)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+
+  addCustomer(req, res) {
+
+  }
+  removeCustomer(req, res) {
+
+  }
+  customers(req, res) {
+
+  }
+
+  addOrder(req, res) {
+
+  }
+  removeOrder(req, res) {
+
+  }
+  orders(req, res) {
+
+  }
+
+  addProduct(req, res) {
+
+  }
+  removeProduct(req, res) {
+
+  }
+  products(req, res) {
+
+  }
+
+  addUser(req, res) {
+
+  }
+  removeUser(req, res) {
+
+  }
+  users(req, res) {
+
+  }
 }
 

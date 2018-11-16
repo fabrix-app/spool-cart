@@ -1,6 +1,6 @@
 import { FabrixService as Service } from '@fabrix/fabrix/dist/common'
-// const _ = require('lodash')
-// import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
+import { defaultsDeep } from 'lodash'
+import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 
 /**
  * @module ShopService
@@ -27,6 +27,25 @@ export class ShopService extends Service {
   create(data, options) {
     const Shop = this.app.models.Shop
     return Shop.create(data, options)
+  }
+
+  /**
+   *
+   * @param data
+   * @param options
+   * @returns {data}
+   */
+  update(shop, data, options) {
+    const Shop = this.app.models.Shop
+    return Shop.resolve(shop, { transaction: options.transaction || null })
+      .then(_shop => {
+        if (!_shop) {
+          throw new ModelError('E_NOT_FOUND', `Shop ${shop} not found`)
+        }
+        const resShop = defaultsDeep(_shop, data)
+
+        return resShop.save({ transaction: options.transaction || null })
+      })
   }
 }
 

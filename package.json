@@ -1,6 +1,6 @@
 {
   "name": "@fabrix/spool-cart",
-  "version": "1.5.13",
+  "version": "1.5.14",
   "description": "Spool - eCommerce Spool for Fabrix",
   "homepage": "https://fabrix.app",
   "author": {
@@ -49,7 +49,7 @@
     "remove-markdown": "^0.3.0",
     "request": "^2.88.0",
     "sharp": "0.17.1",
-    "shortid": "^2.2.13",
+    "shortid": "^2.2.14",
     "striptags": "^3.0.1",
     "utf8": "^3.0.0"
   },
