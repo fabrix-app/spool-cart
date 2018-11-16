@@ -493,31 +493,32 @@ export class CollectionService extends Service {
 
 
   /**
-   *
+   * @param collection
    * @param images
    */
-  removeImages(images) {
+  removeImages(collection, images) {
     if (!Array.isArray(images)) {
       images = [images]
     }
     const Collection = this.app.models['Collection']
     return Collection.sequelize.Promise.mapSeries(images, image => {
+      const collectionId = typeof collection.id !== 'undefined' ? collection.id : collection
       const id = typeof image.id !== 'undefined' ? image.id : image
-      return this.removeImage(id)
+      return this.removeImage(collectionId, id)
     })
   }
 
   /**
-   *
+   * @param collectionId
    * @param id
    * @param options
    */
-  removeImage(id, options: { [key: string]: any } = {}) {
+  removeImage(collectionId, id, options: { [key: string]: any } = {}) {
     const Image = this.app.models['ItemImage']
     const Collection = this.app.models['Collection']
 
     let resDestroy
-    return Image.findOne({ where: {image_id: id}}, {
+    return Image.findOne({ where: { image_id: id }}, {
       transaction: options.transaction || null
     })
       .then(_image => {

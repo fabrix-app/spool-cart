@@ -331,8 +331,9 @@ describe('Admin User CollectionController', () => {
       .attach('file', 'test/fixtures/test.jpg')
       .expect(200)
       .end((err, res) => {
-        // console.log('UPLOADED IMAGE',res.body)
         firstImageID = res.body.id
+        assert(res.body.id)
+        assert(res.body.position)
         // assert.equal(res.body.collection_id, collectionID)
         done(err)
       })
@@ -359,11 +360,14 @@ describe('Admin User CollectionController', () => {
   })
   // TODO complete test
   it('should make removeImage post adminUser', (done) => {
+    console.log()
     adminUser
       .del(`/collection/${collectionID}/image/${firstImageID}`)
       .expect(200)
       .end((err, res) => {
-        console.log('BRK DEL', res.body)
+        assert(res.body.id)
+        assert(res.body.position)
+        // console.log('BRK DEL', res.body)
         // assert.equal(res.body.id, collectionID)
         // assert.equal(res.body.images.length, 2)
         // const images = _.map(res.body.images, 'id')
@@ -377,7 +381,9 @@ describe('Admin User CollectionController', () => {
       .get(`/collection/${collectionID}`)
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.images.length, 3)
+        assert.equal(res.body.images.length, 2)
+        const images = _.map(res.body.images, 'id')
+        assert.equal(images.indexOf(firstImageID), -1)
         done(err)
       })
   })
