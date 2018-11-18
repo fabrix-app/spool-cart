@@ -10131,6 +10131,26 @@ export const routes = {
     }
   },
   '/shop/:id': {
+    'POST': {
+      handler: 'ShopController.login',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
     'PUT': {
       handler: 'ShopController.update',
       config: {
@@ -10146,6 +10166,72 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiPutShopIdRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id/login': {
+    'POST': {
+      handler: 'ShopController.login',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdLoginRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id/logout': {
+    'POST': {
+      handler: 'ShopController.logout',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdLogoutRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/shop/:id/switch': {
+    'POST': {
+      handler: 'ShopController.switchShop',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostShopIdSwitchRoute',
             roles: ['admin']
           }
         }
@@ -11522,6 +11608,59 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiGetUserReviewsRoute',
+            roles: ['admin', 'registered']
+          }
+        }
+      }
+    }
+  },
+
+  '/user/:id/shops': {
+    'GET': {
+      handler: 'UserController.shops',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          },
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetUserIdShopsRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/user/shops': {
+    'GET': {
+      handler: 'UserController.shops',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetUserShopsRoute',
             roles: ['admin', 'registered']
           }
         }

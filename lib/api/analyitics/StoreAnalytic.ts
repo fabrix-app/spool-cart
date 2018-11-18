@@ -74,7 +74,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.MMR',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }MMR`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -171,7 +171,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.NR',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }NR`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -253,7 +253,7 @@ export class StoreAnalytic extends Analytic {
   //       }
   //
   //       return this.publish([{
-  //         name: 'store.NR',
+  //         name: `store.${ options.shop_id ? options.shop_id + '.' : '' }NR`,
   //         start: start.format('YYYY-MM-DD HH:mm:ss'),
   //         end: end.format('YYYY-MM-DD HH:mm:ss'),
   //         group_label: 'currency',
@@ -342,7 +342,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.ARPC',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }ARPC`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -434,7 +434,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.ARR',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }ARR`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -483,7 +483,7 @@ export class StoreAnalytic extends Analytic {
 
         return this.app.models.Analytic.findOne({
           where: {
-            name: 'store.churn'
+            name: `store.${ options.shop_id ? options.shop_id + '.' : '' }churn`
           }
         })
       })
@@ -507,7 +507,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.RLTV',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }RLTV`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -561,7 +561,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.LTV',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }LTV`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -613,7 +613,7 @@ export class StoreAnalytic extends Analytic {
 
         return this.app.models.Analytic.findOne({
           where: {
-            name: 'store.activeSubscriptions',
+            name: `store.${ options.shop_id ? options.shop_id + '.' : '' }activeSubscriptions`,
             end: {
               $gte: start2.format('YYYY-MM-DD HH:mm:ss')
             }
@@ -640,7 +640,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.churn',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }churn`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -692,7 +692,7 @@ export class StoreAnalytic extends Analytic {
 
         return this.app.models.Analytic.findOne({
           where: {
-            name: 'store.MMR',
+            name: `store.${ options.shop_id ? options.shop_id + '.' : '' }MMR`,
             end: {
               $gte: start2.format('YYYY-MM-DD HH:mm:ss')
             }
@@ -720,7 +720,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.MMRChurn',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }MMRChurn`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -789,7 +789,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.activeCustomers',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }activeCustomers`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -842,7 +842,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.newCustomers',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }newCustomers`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -901,7 +901,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.reactivatedSubscriptions',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }reactivatedSubscriptions`,
           start: start1.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -951,7 +951,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.newSubscriptions',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }newSubscriptions`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1003,7 +1003,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.activeSubscriptions',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }activeSubscriptions`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1055,7 +1055,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.cancelledSubscriptions',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }cancelledSubscriptions`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1119,7 +1119,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.subscriptionDiscountsRedeemed',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }subscriptionDiscountsRedeemed`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1174,7 +1174,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.discountsRedeemed',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }discountsRedeemed`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1227,7 +1227,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.failedCharges',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }failedCharges`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1281,7 +1281,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.cancelledCharges',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }cancelledCharges`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1343,7 +1343,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.abandonedCarts',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }abandonedCarts`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',
@@ -1400,7 +1400,7 @@ export class StoreAnalytic extends Analytic {
         }
 
         return this.publish([{
-          name: 'store.repeatCustomers',
+          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }repeatCustomers`,
           start: start.format('YYYY-MM-DD HH:mm:ss'),
           end: end.format('YYYY-MM-DD HH:mm:ss'),
           group_label: 'currency',

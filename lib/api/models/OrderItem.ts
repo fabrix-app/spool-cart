@@ -191,6 +191,13 @@ export class OrderItem extends Model {
         //   key: 'id'
         // }
       },
+      shop_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'Shop',
+        //   key: 'id'
+        // }
+      },
       // The option that this Variant is
       option: {
         type: Sequelize.JSONB,
@@ -447,6 +454,9 @@ export class OrderItem extends Model {
     })
     models.OrderItem.belongsTo(models.Refund, {
       foreignKey: 'refund_id'
+    })
+    models.OrderItem.belongsTo(models.Shop, {
+      foreignKey: 'shop_id',
     })
     models.OrderItem.belongsTo(models.GiftCard, {
       foreignKey: 'gift_card_id'

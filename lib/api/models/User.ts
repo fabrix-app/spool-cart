@@ -70,6 +70,15 @@ export class User extends NotificationsUser {
         // },
         allowNull: true
       },
+      // The current Shop ID this user is logged in with
+      current_shop_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'Shop',
+        //   key: 'id'
+        // },
+        allowNull: true
+      },
       first_name: {
         type: Sequelize.STRING
       },
@@ -122,6 +131,10 @@ export class User extends NotificationsUser {
       as: 'current_cart',
       foreignKey: 'current_cart_id',
       constraints: false
+    })
+    models.User.belongsTo(models.Shop, {
+      as: 'current_shop',
+      foreignKey: 'current_shop_id'
     })
     // models.User.belongsToMany(models.Cart, {
     //   as: 'carts',

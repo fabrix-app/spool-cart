@@ -5,7 +5,7 @@ const supertest = require('supertest')
 const _ = require('lodash')
 
 describe('Admin User ShopController', () => {
-  let adminUser, userID, customerID
+  let adminUser, userID, customerID, shopID
 
   before((done) => {
 
@@ -21,6 +21,7 @@ describe('Admin User ShopController', () => {
         assert.ok(res.body.user.current_customer_id)
         userID = res.body.user.id
         customerID = res.body.user.current_customer_id
+        shopID = res.body.user.shop_id
         done(err)
       })
   })
@@ -86,6 +87,102 @@ describe('Admin User ShopController', () => {
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
 
         assert.ok(res.body)
+        done(err)
+      })
+  })
+
+  // This request is already logged into shop, but just to prove they can
+  it('should login to shop', done => {
+    adminUser
+      .post(`/shop/1/login`)
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BROKE', err, res.body)
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, 1)
+        done(err)
+      })
+  })
+
+  it('should have user current_shop_id set to 1', (done) => {
+    adminUser
+      .get(`/user/${ userID }`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('BRK 1', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.current_shop_id, 1)
+        done(err)
+      })
+  })
+
+  it('should switch shop', done => {
+    adminUser
+      .post(`/shop/2/switch`)
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BROKE2', err, res.body)
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, 2)
+        done(err)
+      })
+  })
+
+  it('should have user current_shop_id set to 2', (done) => {
+    adminUser
+      .get(`/user/${ userID }`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('BRK 2', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.current_shop_id, 2)
+        done(err)
+      })
+  })
+
+  it('should logout of shop', done => {
+    adminUser
+      .post(`/shop/2/logout`)
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+
+  it('should have user current_shop_id set to null', (done) => {
+    adminUser
+      .get(`/user/${ userID }`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('BRK 3', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.current_shop_id, null)
+        done(err)
+      })
+  })
+
+  it('should switch back to shop', done => {
+    adminUser
+      .post(`/shop/1/switch`)
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, 1)
+        done(err)
+      })
+  })
+
+  it('should have user current_shop_id set back to 1', (done) => {
+    adminUser
+      .get(`/user/${ userID }`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.current_shop_id, 1)
         done(err)
       })
   })

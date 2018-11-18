@@ -369,8 +369,16 @@ export class Shop extends Model {
       as: 'carts',
       foreignKey: 'shop_id'
     })
-    models.Shop.hasMany(models.Order, {
+    models.Shop.belongsToMany(models.Order, {
       as: 'orders',
+      through: {
+        model: models.ShopOrder,
+        unique: true,
+      },
+      foreignKey: 'shop_id'
+    })
+    models.Shop.hasMany(models.OrderItem, {
+      as: 'order_items',
       foreignKey: 'shop_id'
     })
     models.Shop.belongsToMany(models.Product, {
@@ -380,6 +388,22 @@ export class Shop extends Model {
         foreignKey: 'shop_id'
       },
       // constraints: false
+    })
+    models.Shop.belongsToMany(models.User, {
+      as: 'users',
+      through: {
+        model: models.ShopUser,
+        unique: true,
+      },
+      foreignKey: 'shop_id'
+    })
+    models.Shop.belongsToMany(models.Customer, {
+      as: 'customers',
+      through: {
+        model: models.ShopCustomer,
+        unique: true,
+      },
+      foreignKey: 'shop_id'
     })
   }
 }

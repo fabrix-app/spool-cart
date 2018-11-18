@@ -136,6 +136,71 @@ req.loginCustomer =
   }
 
 /**
+ * Initiate a login session for `shop`.
+ *
+ * Options:
+ *   - `session`  Save login state in session, defaults to _true_
+ *
+ * Examples:
+ *
+ *     req.logInShop(shop, { session: false })
+ *
+ *     req.logInShop(shop, function(err) {
+ *       if (err) { throw err }
+ *       // session saved
+ *     })
+ *
+ * @param {Shop} shop
+ * @param {Object} options
+ * @param {Function} done
+ * @api public
+ */
+req.loginShop =
+  req.logInShop = function(shop, options, done) {
+    if (typeof options === 'function') {
+      done = options
+      options = {}
+    }
+    options = options || {}
+
+    let property = 'shop'
+    if (this._cart && this._cart.instance) {
+      property = this._cart.instance._shopProperty || 'shop'
+    }
+    const session = (options.session === undefined) ? true : options.session
+
+    this[property] = shop
+    if (session) {
+      if (!this._cart) {
+        throw new Error('cart.initialize() middleware not in use')
+      }
+      if (typeof done !== 'function') {
+        throw new Error('req#loginShop requires a callback function')
+      }
+
+      this._cart.instance.serializeShop(shop, (err, obj) => {
+        if (err) {
+          this[property] = null
+          return done(err)
+        }
+        if (!this._cart.session) {
+          this._cart.session = {}
+        }
+        this._cart.session.shop = obj
+        if (!this.session) {
+          this.session = {}
+        }
+        this.session[this._cart.instance._key] = this._cart.session
+        done()
+      })
+    }
+    else {
+      // tslint:disable:no-unused-expression
+      done && done()
+    }
+  }
+
+/**
  * Terminate an existing login session.
  *
  * @api public
@@ -168,6 +233,24 @@ req.logoutCustomer =
     this[property] = null
     if (this._cart && this._cart.session) {
       delete this._cart.session.customer
+    }
+  }
+
+/**
+ * Terminate an existing login session.
+ *
+ * @api public
+ */
+req.logoutShop =
+  req.logOutShop = function() {
+    let property = 'shop'
+    if (this._cart && this._cart.instance) {
+      property = this._cart.instance._shopProperty || 'shop'
+    }
+
+    this[property] = null
+    if (this._cart && this._cart.session) {
+      delete this._cart.session.shop
     }
   }
 
@@ -219,4 +302,30 @@ req.hasCustomer = function() {
  */
 req.hasNoCustomer = function() {
   return !this.hasCustomer()
+}
+
+
+/**
+ * Test if request is has a shop.
+ *
+ * @return {Boolean}
+ * @api public
+ */
+req.hasShop = function() {
+  let property = 'shop'
+  if (this._cart && this._cart.instance) {
+    property = this._cart.instance._shopProperty || 'shop'
+  }
+
+  return !!(this[property])
+}
+
+/**
+ * Test if request has no shop.
+ *
+ * @return {Boolean}
+ * @api public
+ */
+req.hasNoShop = function() {
+  return !this.hasShop()
 }
