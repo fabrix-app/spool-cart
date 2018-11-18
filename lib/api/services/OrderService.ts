@@ -208,6 +208,7 @@ export class OrderService extends Service {
           // Make sure all order items are given the customer id
           const lineItems = obj.line_items.map(item => {
             item.customer_id = resCustomer.id || null
+            // item.shop_id =  null
             return item
           })
 
@@ -329,6 +330,7 @@ export class OrderService extends Service {
           }
         })
         .then(() => {
+          // TODO, most of this should be aggregated by cron or run time
           if (resCustomer instanceof Customer.instance) {
             return resCustomer
               .setTotalSpent(totalPrice)

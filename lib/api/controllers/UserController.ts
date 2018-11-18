@@ -90,6 +90,92 @@ export class UserController extends PermissionsController {
       })
   }
 
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  shop(req, res) {
+    const Shop = this.app.models['Shop']
+    const shopId = req.params.shop
+    let userId = req.params.id
+    if (!userId && req.user) {
+      userId = req.user.id
+    }
+    if (!shopId || !userId || !req.user) {
+      const err = new Error('A shop id and a shop in session are required')
+      res.send(401, err)
+
+    }
+    // TODO, make this a strict relation
+    Shop.findById(shopId)
+      .then(shop => {
+        return this.app.services.PermissionsService.sanitizeResult(req, shop)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  shops(req, res) {
+    const Shop = this.app.models['Shop']
+    let userId = req.params.id
+
+    if (!userId && req.user) {
+      userId = req.user.id
+    }
+    if (!userId && !req.user) {
+      const err = new Error('A user id or a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    // this.app.models['User'].findById(userId)
+    //   .then(user => {
+    //     return user.getShops()
+    //   })
+    //   .then(shops => {
+    //     return res.json(shops)
+    //   })
+    Shop.findAndCountAll({
+      // TODO fix for sqlite
+      // order: sort,
+      where: {
+        '$users.id$': userId
+      },
+      include: [{
+        model: this.app.models['User'].instance,
+        as: 'users',
+        attributes: ['id']
+      }],
+      offset: offset
+      // TODO sequelize breaks if limit is set here
+      // limit: limit
+    })
+      .then(shops => {
+        // Paginate
+        res.paginate(shops.count, limit, offset, sort)
+        return this.app.services.PermissionsService.sanitizeResult(req, shops.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
   /**
    *
    * @param req

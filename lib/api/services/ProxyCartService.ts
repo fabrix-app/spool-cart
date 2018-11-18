@@ -15,6 +15,7 @@ import { initialize as initializeMiddleware } from '../../middleware/initialize'
 import { authenticate as authenticateMiddleware } from '../../middleware/authenticate'
 import { cart as cartMiddleware } from '../../middleware/cart'
 import { customer as customerMiddleware } from '../../middleware/customer'
+import { shop as shopMiddleware } from '../../middleware/shop'
 
 /**
  * @module ProxyCartService
@@ -26,6 +27,7 @@ export class ProxyCartService extends Service {
   authenticate
   cart
   customer
+  shop
 
   constructor(app) {
     super(app)
@@ -35,6 +37,7 @@ export class ProxyCartService extends Service {
     this.authenticate = authenticateMiddleware
     this.cart = cartMiddleware
     this.customer = customerMiddleware
+    this.shop = shopMiddleware
   }
 
   notifyAdmins(preNotification, options: {[key: string]: any} = {}) {
@@ -526,8 +529,7 @@ export class ProxyCartService extends Service {
    * @param options
    * @returns {Promise}
    */
-  resolveItemsFromTo(obj, lineItems, shippingAddress, options) {
-    options = options || {}
+  resolveItemsFromTo(obj, lineItems, shippingAddress, options: {[key: string]: any} = {}) {
 
     const Cart = this.app.models['Cart']
     const Order = this.app.models['Order']
@@ -663,11 +665,11 @@ export class ProxyCartService extends Service {
   /**
    * Resolves what shop address an item is shipping from
    * @param item
+   * @param to
    * @param options
    * @returns {Promise.<T>}
    */
-  resolveItemNexusTo(item, to, options) {
-    options = options || {}
+  resolveItemNexusTo(item, to, options: {[key: string]: any} = {}) {
     const Shop = this.app.models['Shop']
     const Address = this.app.models['Address']
     if (!item.shop_id) {
@@ -852,6 +854,38 @@ export class ProxyCartService extends Service {
     this.app.models['Customer'].findById(id, {transaction: options.transaction || null})
       .then(customer => {
         next(null, customer)
+      })
+      .catch(err => {
+        next(err)
+      })
+  }
+
+  /**
+   *
+   * @param shop
+   * @param next
+   */
+  serializeShop(shop, next) {
+    if (typeof next !== 'function') {
+      throw new Error('instance#serializeShop requires a callback function')
+    }
+    next(null, shop.id)
+  }
+
+  /**
+   *
+   * @param id
+   * @param options
+   * @param next
+   */
+  deserializeShop(id, options, next) {
+    options = options || {}
+    if (typeof next !== 'function') {
+      throw new Error('instance#deserializeShop requires a callback function')
+    }
+    this.app.models['Shop'].findById(id, {transaction: options.transaction || null})
+      .then(shop => {
+        next(null, shop)
       })
       .catch(err => {
         next(err)

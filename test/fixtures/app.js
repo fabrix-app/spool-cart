@@ -116,6 +116,7 @@ const App = {
           'cartSession',
           'cartSessionCart',
           'cartSessionCustomer',
+          'cartSessionShop',
           'methodOverride',
           'router',
           'www',

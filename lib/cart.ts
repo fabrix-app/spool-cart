@@ -20,7 +20,8 @@ export const Cart = {
       cartInit: cart.initialize(cart),
       cartSession: cart.authenticate(cart),
       cartSessionCart: cart.cart(cart),
-      cartSessionCustomer: cart.customer(cart)
+      cartSessionCustomer: cart.customer(cart),
+      cartSessionShop: cart.shop(cart)
     }))
 
     return Promise.resolve()

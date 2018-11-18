@@ -148,5 +148,124 @@ export class ShopController extends Controller {
   users(req, res) {
 
   }
+
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  login(req, res) {
+    let shopId = req.params.id
+    const Shop = this.app.models['Shop']
+    const User = this.app.models['User']
+
+    if (!shopId && req.user) {
+      shopId = req.user.current_shop_id
+    }
+
+    if (!shopId && !req.user) {
+      const err = new Error('A shop id and a user in session are required')
+      return res.send(401, err)
+    }
+    let resShop
+    Shop.findById(shopId)
+      .then(shop => {
+        if (!shop) {
+          throw new Error('Unexpected Error while authenticating shop')
+        }
+        resShop = shop
+        return new Promise((resolve, reject) => {
+          req.loginShop(resShop, function (err) {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(resShop)
+          })
+        })
+      })
+      .then((shop) => {
+        return User.findById(req.user.id, { attributes: ['id', 'current_shop_id']})
+          .then(user => {
+            user.current_shop_id = resShop.id
+            return user.save()
+          })
+      })
+      .then(() => {
+        return this.app.services.PermissionsService.sanitizeResult(req, resShop)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  switchShop(req, res) {
+    const shopId = req.params.id
+    const Shop = this.app.models['Shop']
+    const User = this.app.models['User']
+
+    if (!shopId && !req.user) {
+      const err = new Error('A shop id and a user in session are required')
+      return res.send(401, err)
+    }
+    User.findById(req.user.id, { attributes: ['id', 'current_shop_id']})
+      .then(user => {
+        user.current_shop_id = shopId
+        return user.save()
+      })
+      .then(user => {
+        return Shop.findById(shopId)
+      })
+      .then(shop => {
+        return new Promise((resolve, reject) => {
+          req.loginShop(shop, (err) => {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(shop)
+          })
+        })
+      })
+      .then(shop => {
+        return this.app.services.PermissionsService.sanitizeResult(req, shop)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  logout(req, res) {
+    const User = this.app.models['User']
+    if (!req.user) {
+      const err = new Error('A user in session is required')
+      return res.send(401, err)
+    }
+
+    User.findById(req.user.id, { attributes: ['id', 'current_shop_id']})
+      .then(user => {
+        user.current_shop_id = null
+        return user.save()
+      })
+      .then(() => {
+        req.logoutShop()
+        res.sendStatus(200)
+      })
+  }
 }
 
