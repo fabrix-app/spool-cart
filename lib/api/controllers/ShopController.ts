@@ -264,7 +264,7 @@ export class ShopController extends Controller {
       })
       .then(() => {
         req.logoutShop()
-        res.sendStatus(200)
+        res.json({})
       })
   }
 }

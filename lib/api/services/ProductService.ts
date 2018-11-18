@@ -90,8 +90,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  resolveItems(items, options) {
-    options = options || {}
+  resolveItems(items, options: {[key: string]: any} = {}) {
     if (!Array.isArray(items)) {
       items = [items]
     }
@@ -112,8 +111,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addProducts(products, options) {
-    options = options || {}
+  addProducts(products, options: {[key: string]: any} = {}) {
     if (!Array.isArray(products)) {
       products = [products]
     }
@@ -135,8 +133,7 @@ export class ProductService extends Service {
    * @param options
    * @returns {Promise}
    */
-  addProduct(product, options) {
-    options = options || {}
+  addProduct(product, options: {[key: string]: any} = {}) {
     const Product = this.app.models.Product
 
     return Product.findOne({
@@ -359,7 +356,12 @@ export class ProductService extends Service {
       })
       .then(shops => {
         if (shops && shops.length > 0) {
-          return resProduct.setShops(shops, { transaction: options.transaction || null })
+          // return resProduct.setShops(shops, { transaction: options.transaction || null })
+          //   .then(() => {
+              return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
+                return variant.setShops(shops, {through: {product_id: resProduct.id}, transaction: options.transaction || null})
+              })
+            // })
         }
         return
       })

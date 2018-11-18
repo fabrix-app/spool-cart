@@ -423,6 +423,7 @@ export class SubscriptionService extends Service {
             item,
             items[index].quantity,
             items[index].properties,
+            items[index].shop,
             {transaction: options.transaction || null}
           )
         })

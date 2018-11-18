@@ -135,31 +135,8 @@ describe('Admin User ShopController', () => {
       .get(`/user/${ userID }`)
       .expect(200)
       .end((err, res) => {
-        console.log('BRK 2', res.body)
         assert.ok(res.body)
         assert.equal(res.body.current_shop_id, 2)
-        done(err)
-      })
-  })
-
-  it('should logout of shop', done => {
-    adminUser
-      .post(`/shop/2/logout`)
-      .send({ })
-      .expect(200)
-      .end((err, res) => {
-        done(err)
-      })
-  })
-
-  it('should have user current_shop_id set to null', (done) => {
-    adminUser
-      .get(`/user/${ userID }`)
-      .expect(200)
-      .end((err, res) => {
-        console.log('BRK 3', res.body)
-        assert.ok(res.body)
-        assert.equal(res.body.current_shop_id, null)
         done(err)
       })
   })
@@ -183,6 +160,27 @@ describe('Admin User ShopController', () => {
       .end((err, res) => {
         assert.ok(res.body)
         assert.equal(res.body.current_shop_id, 1)
+        done(err)
+      })
+  })
+
+  it('should logout of shop', done => {
+    adminUser
+      .post(`/shop/2/logout`)
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+
+  it('should have user current_shop_id set to null', (done) => {
+    adminUser
+      .get(`/user/${ userID }`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.current_shop_id, null)
         done(err)
       })
   })

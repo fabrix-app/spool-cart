@@ -413,6 +413,15 @@ export class ProductVariant extends Model {
       // notNull: true
       // onDelete: 'CASCADE'
     })
+    models.ProductVariant.belongsToMany(models.Shop, {
+      as: 'shops',
+      through: {
+        model: models.ShopProduct,
+        unique: false,
+      },
+      foreignKey: 'variant_id',
+      // constraints: false
+    })
     models.ProductVariant.belongsToMany(models.ProductVariant, {
       as: 'associations',
       through: {
@@ -528,8 +537,9 @@ export class ProductVariant extends Model {
 
 export interface ProductVariant {
   checkRestrictions(customer, shippingAddress): any
-  checkAvailability(qty): any
+  checkAvailability(qty, options): any
   resolveImages(options): any
+  resolveShops(options): any
   resolveDiscounts(options): any
   resolveMetadata(options): any
 }
@@ -539,8 +549,9 @@ export interface ProductVariant {
 ProductVariant.prototype.checkRestrictions = function(customer, shippingAddress) {
   return Promise.resolve(false)
 }
-// TODO check fulfillment policies
-ProductVariant.prototype.checkAvailability = function(qty) {
+
+// TODO check fulfillment policies from shops
+ProductVariant.prototype.checkAvailability = function(qty, options: {[key: string]: any} = {}) {
   let allowed = true
   if (qty > this.inventory_quantity && this.inventory_policy === INVENTORY_POLICY.DENY) {
     allowed = false
@@ -549,12 +560,51 @@ ProductVariant.prototype.checkAvailability = function(qty) {
   if (this.inventory_policy === INVENTORY_POLICY.RESTRICT) {
     qty = Math.max(0, qty + ( this.inventory_quantity - qty))
   }
-  const res = {
+
+  const res: {[key: string]: any} = {
     title: this.title,
     allowed: allowed,
     quantity: qty
   }
-  return Promise.resolve(res)
+
+  if (options.shop) {
+    res.shop = options.shop
+  }
+
+  // return Promise.resolve(res)
+  // TODO Resolve the actual Shop to use
+  return this.resolveShops({ transaction: options.transaction || null })
+    .then(() => {
+      // console.log('BRK SHOPS', this.shops)
+      if (!res.shop && this.shops.length > 0) {
+        res.shop = this.shop[0]
+      }
+      return res
+    })
+    .catch(err => {
+      return res
+    })
+}
+
+ProductVariant.prototype.resolveShops = function(options: {[key: string]: any} = {}) {
+  if (
+    this.shops
+    && this.shops.length > 0
+    && this.shops.every(d => d instanceof this.app.models['Shop'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getShops({transaction: options.transaction || null})
+      .then(_shops => {
+        _shops = _shops || []
+        this.shops = _shops
+        this.setDataValue('shops', _shops)
+        this.set('shops', _shops)
+        return this
+      })
+  }
 }
 
 /**
