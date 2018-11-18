@@ -1109,7 +1109,6 @@ Cart.prototype.addLine = function(item, qty, properties, shop, options = {}) {
         throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
       }
       if (availability.shop) {
-
         item.shop_id = availability.shop.id
       }
 
