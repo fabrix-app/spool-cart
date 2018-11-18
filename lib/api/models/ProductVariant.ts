@@ -575,9 +575,8 @@ ProductVariant.prototype.checkAvailability = function(qty, options: {[key: strin
   // TODO Resolve the actual Shop to use
   return this.resolveShops({ transaction: options.transaction || null })
     .then(() => {
-      // console.log('BRK SHOPS', this.shops)
       if (!res.shop && this.shops.length > 0) {
-        res.shop = this.shop[0]
+        res.shop = this.shops[0]
       }
       return res
     })

@@ -277,7 +277,8 @@ export class OrderService extends Service {
 
             // Fulfillments
             fulfillments: fulfillments,
-            total_pending_fulfillments: fulfillments.length
+            total_pending_fulfillments: fulfillments.length,
+            shops: lineItems.map(item => item.shop_id).filter(n => n)
           }, {
             include: [
               // {
@@ -300,7 +301,7 @@ export class OrderService extends Service {
               {
                 model: this.app.models['Transaction'].instance,
                 as: 'transactions'
-              }
+              },
             ],
             transaction: options.transaction || null
           })
