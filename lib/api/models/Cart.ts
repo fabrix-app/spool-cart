@@ -625,7 +625,7 @@ export interface Cart {
   setTotals(): any
   setLineProperties( lines): any
   line( data): any
-  addLine(item, qty, properties, options): any
+  addLine(item, qty, properties, shop, options): any
   removeLine(item, qty, options): any
   addShipping(shipping, options): any
   removeShipping(shipping, options): any
@@ -1044,6 +1044,7 @@ Cart.prototype.line = function(data) {
   }
 
   const line = {
+    shop_id: data.shop_id,
     product_id: data.product_id,
     product_handle: data.Product.handle,
     variant_id: data.id || data.variant_id,
@@ -1094,16 +1095,23 @@ Cart.prototype.line = function(data) {
 /**
  *
  */
-Cart.prototype.addLine = function(item, qty, properties, options = {}) {
+Cart.prototype.addLine = function(item, qty, properties, shop, options = {}) {
   // The quantity available of this variant
   let lineQtyAvailable = -1
   let line
   // Check if Product is Available
-  return item.checkAvailability(qty, {transaction: options.transaction || null})
+  return item.checkAvailability(qty, {
+    shop: options.shop || null,
+    transaction: options.transaction || null
+  })
     .then(availability => {
       if (!availability.allowed) {
         throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
       }
+      if (availability.shop) {
+        item.shop_id = availability.shop.id
+      }
+
       lineQtyAvailable = availability.quantity
       // Check if Product is Restricted
       return item.checkRestrictions(
@@ -1167,7 +1175,6 @@ Cart.prototype.addLine = function(item, qty, properties, options = {}) {
         line = this.line(item)
         line = this.setLineProperties(line)
 
-        // this.app.log.silly('Cart.addLine NEW LINE', line)
         // Add line to line items
         lineItems.push(line)
         // Assign line items

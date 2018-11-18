@@ -132,7 +132,7 @@ export class CartService extends Service {
       })
       .then(resolvedItems => {
         return Cart.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
-          return resCart.addLine(item, items[index].quantity, items[index].properties)
+          return resCart.addLine(item, items[index].quantity, items[index].properties, items[index].shop)
         })
       })
       .then(() => {
@@ -559,6 +559,7 @@ export class CartService extends Service {
             item,
             items[index].quantity,
             items[index].properties,
+            items[index].shop,
             {transaction: options.transaction || null}
           )
         })

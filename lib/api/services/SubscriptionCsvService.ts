@@ -239,7 +239,7 @@ export class SubscriptionCsvService extends Service {
           //   'subscription_unit',
           //   'subscription_interval'
           // ])
-          return resSubscription.addLine(item, 1, [])
+          return resSubscription.addLine(item, 1, [], null)
         })
       })
       .then(resolvedItems => {

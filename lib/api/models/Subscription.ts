@@ -664,7 +664,7 @@ export interface Subscription {
   setTaxLines(lines): any
   setTotals(): any
   line(data): any
-  addLine(item, qty, properties, options): any
+  addLine(item, qty, properties, shop, options): any
   removeLine(item, qty): any
   renew(): any
   willRenew(): any
@@ -1288,7 +1288,7 @@ Subscription.prototype.line = function(data) {
 /**
  *
  */
-Subscription.prototype.addLine = function(item, qty, properties, options: {[key: string]: any} = {}) {
+Subscription.prototype.addLine = function(item, qty, properties, shop, options: {[key: string]: any} = {}) {
   // The quantity available of this variant
   let lineQtyAvailable = -1
   // Check if Product is Available

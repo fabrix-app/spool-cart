@@ -385,7 +385,17 @@ export class Shop extends Model {
       as: 'products',
       through: {
         model: models.ShopProduct,
-        foreignKey: 'shop_id'
+        foreignKey: 'shop_id',
+        unique: false,
+      },
+      // constraints: false
+    })
+    models.Shop.belongsToMany(models.ProductVariant, {
+      as: 'variants',
+      through: {
+        model: models.ShopProduct,
+        foreignKey: 'shop_id',
+        unique: false,
       },
       // constraints: false
     })

@@ -1430,6 +1430,32 @@ Product.prototype.resolveImages = function(options: {[key: string]: any} = {}) {
       })
   }
 }
+
+/**
+ *
+ */
+Product.prototype.resolveVendors = function(options: {[key: string]: any} = {}) {
+  if (
+    this.vendors
+    && this.vendors.every(v => v instanceof this.app.models['Vendor'].instance)
+    && options.reload !== true
+  ) {
+    return Promise.resolve(this)
+  }
+  else {
+    return this.getVendors({
+      limit: 50,
+      transaction: options.transaction || null
+    })
+      .then(vendors => {
+        vendors = vendors || []
+        this.vendors = vendors
+        this.setDataValue('vendors', vendors)
+        this.set('vendors', vendors)
+        return this
+      })
+  }
+}
 /**
  *
  */
