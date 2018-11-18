@@ -443,6 +443,7 @@ export class ProxyCartService extends Service {
             return resolve(null)
           }
           const from = {
+            shop_id: shop.id,
             name: shop.name,
             address_1: shop.address.address_1,
             address_2: shop.address.address_2,
@@ -620,6 +621,7 @@ export class ProxyCartService extends Service {
               }
 
               _nexuses[0] = {
+                shop_id: _shop.id,
                 name: _shop.name,
                 address_1: _shop.address.address_1,
                 address_2: _shop.address.address_2,
@@ -643,17 +645,18 @@ export class ProxyCartService extends Service {
         }
         else {
           // Filter out all the null nexuses
-          return _nexuses.filter(n => n)
+          return _.uniqBy(_nexuses, 'shop_id').filter(n => n)
         }
       })
       .then(_nexuses => {
         if (_nexuses) {
           nexuses = _nexuses
         }
-        if (!nexuses || !to) {
+        if (!nexuses || _nexuses.length === 0 || !to) {
           return null
         }
         else  {
+          // console.log('BRK!', nexuses)
           return {
             nexus_addresses: nexuses,
             to_address: to
@@ -675,6 +678,10 @@ export class ProxyCartService extends Service {
     if (!item.shop_id) {
       return Promise.resolve(null)
     }
+    // // TODO!
+    else if (!this.app.config.get('scott.awesome')) {
+      return Promise.resolve(null)
+    }
     // Find a nexus from item shop id if present
     return Shop.findById(item.shop_id, {
       include: [
@@ -691,6 +698,8 @@ export class ProxyCartService extends Service {
         }
 
         return {
+          shop_id: _shop.id,
+          item_id: item.id,
           name: _shop.name,
           address_1: _shop.address.address_1,
           address_2: _shop.address.address_2,

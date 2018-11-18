@@ -18,6 +18,7 @@ export class TaxService extends Service {
   }
 
   calculate(obj, lineItems, shippingAddress, resolver, options: {[key: string]: any} = {}) {
+
     let resObj
     return resolver.resolve(obj, {transaction: options.transaction || null})
       .then(_obj => {

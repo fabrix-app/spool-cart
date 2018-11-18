@@ -1241,6 +1241,7 @@ Subscription.prototype.line = function(data) {
 
   const line = {
     subscription_id: this.id,
+    shop_id: data.shop_id,
     product_id: data.product_id,
     product_handle: data.Product.handle,
     variant_id: data.id || data.variant_id,
@@ -1292,11 +1293,15 @@ Subscription.prototype.addLine = function(item, qty, properties, shop, options: 
   // The quantity available of this variant
   let lineQtyAvailable = -1
   // Check if Product is Available
-  return item.checkAvailability(qty, {transaction: options.transaction || null})
+  return item.checkAvailability(qty, {shop: shop || null, transaction: options.transaction || null})
     .then(availability => {
       if (!availability.allowed) {
         throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
       }
+      if (availability.shop) {
+        item.shop_id = availability.shop.id
+      }
+
       lineQtyAvailable = availability.quantity
       // Check if Product is Restricted
       return item.checkRestrictions(

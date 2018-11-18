@@ -2059,6 +2059,7 @@ Order.prototype.buildOrderItem = function(item, qty = 0, properties) {
     grams: this.app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,
     average_shipping: item.Product.average_shipping,
     exclude_payment_types: item.Product.exclude_payment_types,
+    shop_id: item.shop_id,
     vendor_id: item.Product.vendors ? item.Product.vendors[0].id : null,
     live_mode: item.live_mode
   })
