@@ -43,44 +43,62 @@ export class StoreAnalytic extends Analytic {
       .startOf('hour')
 
     const end = moment(Date.now()).startOf('hour')
-    return this.app.models.Subscription.findAll({
-      where: {
-        renews_on: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        active: true
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_due)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          const cCount = c instanceof  this.app.models.Subscription.instance
-            ? c.get('count') || 0
-            : c.count || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              renews_on: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              active: true
+            }
+          }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+
+          return this.app.models.Subscription.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_due)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+                const cCount = c instanceof this.app.models.Subscription.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }MMR`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }MMR`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -89,6 +107,7 @@ export class StoreAnalytic extends Analytic {
    * You can see how much money flowed into your business each day, minus any discount.
    * Formula: Gross Volume (Recurring and Non-recurring) - Refunds = Net Revenue
    */
+  // TODO Enable per shop
   NR(options: {[key: string]: any} = {}) {
     const start = moment()
       .subtract(1, 'months')
@@ -96,88 +115,106 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    let resSales
-    return this.app.models.Transaction.findAll({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        status: 'success',
-        kind: ['sale', 'capture']
-      },
-      attributes: [
-        [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
-        [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        resSales = count
-        return this.app.models.Transaction.findAll({
-          where: {
-            created_at: {
-              $gte: start.format('YYYY-MM-DD HH:mm:ss')
-            },
-            status: 'success',
-            kind: 'refund'
-          },
-          attributes: [
-            [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
-            [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
-            'currency'
-          ],
-          group: ['currency']
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
+
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              status: 'success',
+              kind: ['sale', 'capture']
+            }
+          }
+          // TODO Enable per shop
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+
+          let resSales
+          return this.app.models.Transaction.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+              [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              resSales = count
+              return this.app.models.Transaction.findAll({
+                where: {
+                  created_at: {
+                    $gte: start.format('YYYY-MM-DD HH:mm:ss')
+                  },
+                  status: 'success',
+                  kind: 'refund'
+                },
+                attributes: [
+                  [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+                  [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
+                  'currency'
+                ],
+                group: ['currency']
+              })
+            })
+            .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
+              let data = count.map((c, index) => {
+
+                const cTotal = parseInt(
+                  c instanceof this.app.models.Transaction.instance
+                    ? (c.get('total') || 0)
+                    : (c.total || 0)
+                  , 10)
+                const cCount = parseInt(
+                  c instanceof this.app.models.Transaction.instance
+                    ? (c.get('count') || 0)
+                    : (c.count || 0)
+                  , 10)
+
+                const cTotal2 = parseInt(
+                  resSales[index] instanceof this.app.models.Transaction.instance
+                    ? (resSales[index].get('total') || 0)
+                    : (resSales[index].total || 0)
+                  , 10)
+
+                const cCount2 = parseInt(
+                  resSales[index] instanceof this.app.models.Transaction.instance
+                    ? (resSales[index].get('count') || 0)
+                    : (resSales[index].count || 0)
+                  , 10)
+
+                const ct = (cCount2 || 0) - (cCount || 0)
+                const total = (cTotal2 || 0) - (cTotal || 0)
+
+                return [ct, total, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }NR`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-      })
-      .then(count => {
-        if (count.length === 0) {
-          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
-        }
-
-        let data = count.map((c, index) => {
-
-          const cTotal = parseInt(
-            c instanceof this.app.models.Transaction.instance
-            ? (c.get('total') || 0)
-            : (c.total || 0)
-            , 10)
-          const cCount = parseInt(
-            c instanceof this.app.models.Transaction.instance
-            ? (c.get('count') || 0)
-            : (c.count || 0)
-            , 10)
-
-          const cTotal2 = parseInt(
-            resSales[index] instanceof this.app.models.Transaction.instance
-            ? (resSales[index].get('total') || 0)
-            : (resSales[index].total || 0)
-            , 10)
-
-          const cCount2 = parseInt(
-            resSales[index] instanceof this.app.models.Transaction.instance
-            ? (resSales[index].get('count') || 0)
-            : (resSales[index].count || 0)
-            , 10)
-
-          const ct = (cCount2 || 0) - (cCount || 0)
-          const total = (cTotal2 || 0) - (cTotal || 0)
-
-          return [ct, total, c.currency]
-        })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }NR`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -253,7 +290,7 @@ export class StoreAnalytic extends Analytic {
   //       }
   //
   //       return this.publish([{
-  //         name: `store.${ options.shop_id ? options.shop_id + '.' : '' }NR`,
+  //         name: `store.${ shopId ? shopId + '.' : '' }NR`,
   //         start: start.format('YYYY-MM-DD HH:mm:ss'),
   //         end: end.format('YYYY-MM-DD HH:mm:ss'),
   //         group_label: 'currency',
@@ -286,69 +323,86 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    let resCustomers
-    return this.app.models.Customer.findAll({
-      where: {
-        updated_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        total_spent: {
-          $gte: 1
-        }
-      },
-      attributes: [
-        [this.app.models.Customer.sequelize.literal('SUM(total_spent)'), 'total'],
-        [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        resCustomers = count
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-        return this.app.models.Subscription.findAll({
-          where: {
-            renews_on: {
-              $gte: start.format('YYYY-MM-DD HH:mm:ss')
-            }
-          },
-          attributes: [
-            [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-            [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-            'currency'
-          ],
-          group: ['currency']
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              updated_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              total_spent: {
+                $gte: 1
+              }
+            },
+          }
+          // TODO Enable per shop
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          let resCustomers
+          return this.app.models.Customer.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Customer.sequelize.literal('SUM(total_spent)'), 'total'],
+              [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              resCustomers = count
+
+              return this.app.models.Subscription.findAll({
+                where: {
+                  renews_on: {
+                    $gte: start.format('YYYY-MM-DD HH:mm:ss')
+                  }
+                },
+                attributes: [
+                  [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+                  [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+                  'currency'
+                ],
+                group: ['currency']
+              })
+            })
+            .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
+              let data = count.map((c, i) => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+
+                const cCount = resCustomers[i] instanceof this.app.models.Customer.instance
+                  ? resCustomers[i].get('count') : resCustomers[i].count
+
+                const amount = cTotal / cCount
+                return [amount, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }ARPC`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['gross', 'currency'],
+                data: data
+              }])
+            })
         })
-      })
-      .then(count => {
-        if (count.length === 0) {
-          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
-        }
-
-        let data = count.map((c, i) => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
-
-          const cCount = resCustomers[i] instanceof this.app.models.Customer.instance
-            ? resCustomers[i].get('count') : resCustomers[i].count
-
-          const amount = cTotal / cCount
-          return [amount, c.currency]
-        })
-
-        if (data.length === 0) {
-          data = [[0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }ARPC`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -363,84 +417,108 @@ export class StoreAnalytic extends Analytic {
       .startOf('hour')
 
     const end = moment(Date.now()).startOf('hour')
-    let resSales
-    return this.app.models.Transaction.findAll({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        status: 'success',
-        kind: ['sale', 'capture']
-      },
-      attributes: [
-        [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
-        [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then( count => {
-      //   resSales = count
-      //   return this.app.models.Subscription.findAll({
-      //     where: {
-      //       renews_on: {
-      //         $gte: start.format('YYYY-MM-DD HH:mm:ss')
-      //       },
-      //       active: true
-      //     },
-      //     attributes: [
-      //       [this.app.models.Subscription.sequelize.literal('SUM(total_due)'), 'total'],
-      //       [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-      //       'currency'
-      //     ],
-      //     group: ['currency']
-      //   })
-      // })
-      // .then(count => {
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-        let data = count.map((c, index) => {
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              status: 'success',
+              kind: ['sale', 'capture']
+            }
+          }
+          // TODO Enable per shop
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          let resSales
+          return this.app.models.Transaction.findAll({
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              status: 'success',
+              kind: ['sale', 'capture']
+            },
+            attributes: [
+              [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+              [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              //   resSales = count
+              //   return this.app.models.Subscription.findAll({
+              //     where: {
+              //       renews_on: {
+              //         $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              //       },
+              //       active: true
+              //     },
+              //     attributes: [
+              //       [this.app.models.Subscription.sequelize.literal('SUM(total_due)'), 'total'],
+              //       [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              //       'currency'
+              //     ],
+              //     group: ['currency']
+              //   })
+              // })
+              // .then(count => {
 
-          const cTotal = parseInt(
-            c instanceof this.app.models.Transaction.instance
-              ? (c.get('total') || 0)
-              : (c.total || 0)
-            , 10)
-          const cCount = parseInt(
-            c instanceof this.app.models.Transaction.instance
-              ? (c.get('count') || 0)
-              : (c.count || 0)
-            , 10)
+              let data = count.map((c, index) => {
 
-          // const cTotal2 = parseInt(
-          //   resSales[index] instanceof this.app.models.Transaction.instance
-          //     ? (resSales[index].get('total') || 0)
-          //     : (resSales[index].total || 0)
-          //   , 10)
-          //
-          // const cCount2 = parseInt(
-          //   resSales[index] instanceof this.app.models.Transaction.instance
-          //     ? (resSales[index].get('count') || 0)
-          //     : (resSales[index].count || 0)
-          //   , 10)
+                const cTotal = parseInt(
+                  c instanceof this.app.models.Transaction.instance
+                    ? (c.get('total') || 0)
+                    : (c.total || 0)
+                  , 10)
+                const cCount = parseInt(
+                  c instanceof this.app.models.Transaction.instance
+                    ? (c.get('count') || 0)
+                    : (c.count || 0)
+                  , 10)
 
-          const ct = (cCount || 0) * 12// ((cCount2 || 0) + (cCount || 0)) * 12
-          const total = (cTotal || 0) * 12 // ((cTotal2 || 0) + (cTotal || 0)) * 12
+                // const cTotal2 = parseInt(
+                //   resSales[index] instanceof this.app.models.Transaction.instance
+                //     ? (resSales[index].get('total') || 0)
+                //     : (resSales[index].total || 0)
+                //   , 10)
+                //
+                // const cCount2 = parseInt(
+                //   resSales[index] instanceof this.app.models.Transaction.instance
+                //     ? (resSales[index].get('count') || 0)
+                //     : (resSales[index].count || 0)
+                //   , 10)
 
-          return [ct, total, c.currency]
+                const ct = (cCount || 0) * 12// ((cCount2 || 0) + (cCount || 0)) * 12
+                const total = (cTotal || 0) * 12 // ((cTotal2 || 0) + (cTotal || 0)) * 12
+
+                return [ct, total, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }ARR`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }ARR`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -459,63 +537,79 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    let resMMR
-    return this.app.models.Subscription.findAll({
-      where: {
-        renews_on: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        active: true
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('AVG(total_due)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        if (count.length === 0) {
-          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
-        }
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-        resMMR = count
-
-        return this.app.models.Analytic.findOne({
-          where: {
-            name: `store.${ options.shop_id ? options.shop_id + '.' : '' }churn`
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              renews_on: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              active: true
+            },
           }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+
+          let resMMR
+          return this.app.models.Subscription.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('AVG(total_due)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
+              resMMR = count
+
+              return this.app.models.Analytic.findOne({
+                where: {
+                  name: `store.${ shopId ? shopId + '.' : '' }churn`
+                }
+              })
+            })
+            .then(prevChurn => {
+              prevChurn = prevChurn || {
+                data: [[1, this.app.config.get('cart.default_currency')]]
+              }
+
+              let data = resMMR.map((c, index) => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+
+                const ltv = cTotal / (prevChurn.data[index][0] || 1)
+                // return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
+                return [ltv, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }RLTV`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['rltv', 'currency'],
+                data: data
+              }])
+            })
         })
       })
-      .then(prevChurn => {
-        prevChurn = prevChurn || {
-          data: [[1, this.app.config.get('cart.default_currency')]]
-        }
-
-        let data = resMMR.map((c, index) => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
-
-          const ltv = cTotal / (prevChurn.data[index][0] || 1)
-          // return [parseInt(c.get('count'), 10), parseInt(c.get('total'), 10), c.currency]
-          return [ltv, c.currency]
-        })
-
-        if (data.length === 0) {
-          data = [[0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }RLTV`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['rltv', 'currency'],
-          data: data
-        }])
-      })
-
   }
 
   /**
@@ -532,44 +626,59 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Customer.findAll({
-      where: {
-        updated_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        total_spent: {
-          $gte: 1
-        }
-      },
-      attributes: [
-        [this.app.models.Customer.sequelize.literal('AVG(total_spent)'), 'total'],
-        [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof this.app.models.Customer.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          return [parseInt(cTotal, 10), c.currency]
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
+
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              updated_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              total_spent: {
+                $gte: 1
+              }
+            },
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          return this.app.models.Customer.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Customer.sequelize.literal('AVG(total_spent)'), 'total'],
+              [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Customer.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+                return [parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }LTV`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['ltv', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }LTV`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['ltv', 'currency'],
-          data: data
-        }])
       })
-
   }
 
   /**
@@ -589,64 +698,81 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    let resCancelled
-    return this.app.models.Subscription.count({
-      where: {
-        cancelled_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        cancelled: true
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        if (count.length === 0) {
-          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
-        }
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-        resCancelled = count
-
-        return this.app.models.Analytic.findOne({
-          where: {
-            name: `store.${ options.shop_id ? options.shop_id + '.' : '' }activeSubscriptions`,
-            end: {
-              $gte: start2.format('YYYY-MM-DD HH:mm:ss')
-            }
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              cancelled_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              cancelled: true
+            },
           }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+          let resCancelled
+          // TODO count?
+          return this.app.models.Subscription.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
+              resCancelled = count
+
+              return this.app.models.Analytic.findOne({
+                where: {
+                  name: `store.${ shopId ? shopId + '.' : '' }activeSubscriptions`,
+                  end: {
+                    $gte: start2.format('YYYY-MM-DD HH:mm:ss')
+                  }
+                }
+              })
+            })
+            .then(prevChurn => {
+              prevChurn = prevChurn || {
+                data: [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              let data = resCancelled.map((c, index) => {
+                prevChurn.data[index] = prevChurn.data[index] || [0, 0, c.currency]
+                const cTotal = resCancelled instanceof this.app.models.Subscription.instance
+                  ? resCancelled.get('total') || 0
+                  : resCancelled.total || 0
+
+                const total = (cTotal / prevChurn.data[index][0]) * 100
+                return [total, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }churn`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['churn', 'currency'],
+                data: data
+              }])
+            })
         })
-      })
-      .then(prevChurn => {
-        prevChurn = prevChurn || {
-          data: [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        let data = resCancelled.map((c, index) => {
-          prevChurn.data[index] = prevChurn.data[index] || [0, 0, c.currency]
-          const cTotal = resCancelled instanceof this.app.models.Subscription.instance
-            ? resCancelled.get('total') || 0
-            : resCancelled.total || 0
-
-          const total = (cTotal / prevChurn.data[index][0]) * 100
-          return [total, c.currency]
-        })
-
-        if (data.length === 0) {
-          data = [[0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }churn`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['churn', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -668,65 +794,87 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    let resCancelled
-    return this.app.models.Subscription.count({
-      where: {
-        cancelled_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        cancelled: true
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        if (count.length === 0) {
-          count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
-        }
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-        resCancelled = count
-
-        return this.app.models.Analytic.findOne({
-          where: {
-            name: `store.${ options.shop_id ? options.shop_id + '.' : '' }MMR`,
-            end: {
-              $gte: start2.format('YYYY-MM-DD HH:mm:ss')
-            }
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              cancelled_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              cancelled: true
+            },
           }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+          let resCancelled
+          // TODO count
+          return this.app.models.Subscription.findAll({
+            where: {
+              cancelled_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              cancelled: true
+            },
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
+              resCancelled = count
+
+              return this.app.models.Analytic.findOne({
+                where: {
+                  name: `store.${ shopId ? shopId + '.' : '' }MMR`,
+                  end: {
+                    $gte: start2.format('YYYY-MM-DD HH:mm:ss')
+                  }
+                }
+              })
+            })
+            .then(prevMMR => {
+
+              prevMMR = prevMMR || {
+                data: [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              let data = resCancelled.map((c, index) => {
+                prevMMR.data[index] = prevMMR.data[index] || [0, 0, c.currency]
+
+                const cTotal = resCancelled instanceof this.app.models.Subscription.instance
+                  ? resCancelled.get('total') : resCancelled.total
+
+                const total = (cTotal / prevMMR.data[index][0]) * 100
+                return [total, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }MMRChurn`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['churn', 'currency'],
+                data: data
+              }])
+            })
         })
-      })
-      .then(prevMMR => {
-
-        prevMMR = prevMMR || {
-          data: [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        let data = resCancelled.map((c, index) => {
-          prevMMR.data[index] = prevMMR.data[index] || [0, 0, c.currency]
-
-          const cTotal = resCancelled instanceof  this.app.models.Subscription.instance
-            ? resCancelled.get('total') : resCancelled.total
-
-          const total = (cTotal / prevMMR.data[index][0]) * 100
-          return [total, c.currency]
-        })
-
-        if (data.length === 0) {
-          data = [[0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }MMRChurn`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['churn', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -755,47 +903,63 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Customer.findAll({
-      where: {
-        updated_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        total_spent: {
-          $gte: 1
-        }
-      },
-      attributes: [
-        [this.app.models.Customer.sequelize.literal('SUM(total_spent)'), 'total'],
-        [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof this.app.models.Customer.instance
-            ? c.get('total') || 0
-            : c.total || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          const cCount = c instanceof this.app.models.Customer.instance
-            ? c.get('count') || 0
-            : c.count || 0
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              updated_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              total_spent: {
+                $gte: 1
+              }
+            },
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          return this.app.models.Customer.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Customer.sequelize.literal('SUM(total_spent)'), 'total'],
+              [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Customer.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+                const cCount = c instanceof this.app.models.Customer.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }activeCustomers`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }activeCustomers`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -811,44 +975,60 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Customer.findAll({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        }
-      },
-      attributes: [
-        [this.app.models.Customer.sequelize.literal('SUM(total_spent)'), 'total'],
-        [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Customer.instance
-            ? c.get('total') || 0
-            : c.total || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          const cCount = c instanceof  this.app.models.Customer.instance
-            ? c.get('count') || 0
-            : c.count || 0
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              }
+            },
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          return this.app.models.Customer.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Customer.sequelize.literal('SUM(total_spent)'), 'total'],
+              [this.app.models.Customer.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Customer.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+                const cCount = c instanceof this.app.models.Customer.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }newCustomers`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }newCustomers`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -869,45 +1049,61 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Subscription.findAll({
-      where: {
-        renews_on: {
-          $gte: start1.format('YYYY-MM-DD HH:mm:ss')
-        },
-        active: true
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          const cCount = c instanceof  this.app.models.Subscription.instance
-            ? c.get('count') || 0
-            : c.count || 0
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              renews_on: {
+                $gte: start1.format('YYYY-MM-DD HH:mm:ss')
+              },
+              active: true
+            },
+          }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+          return this.app.models.Subscription.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+                const cCount = c instanceof this.app.models.Subscription.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }reactivatedSubscriptions`,
+                start: start1.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }reactivatedSubscriptions`,
-          start: start1.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -923,41 +1119,57 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Subscription.findAll({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        }
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          const cCount = c instanceof  this.app.models.Subscription.instance
-            ? c.get('count') : c.count
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
+
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              }
+            },
+          }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+          return this.app.models.Subscription.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+                const cCount = c instanceof this.app.models.Subscription.instance
+                  ? c.get('count') : c.count
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }newSubscriptions`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }newSubscriptions`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -972,44 +1184,61 @@ export class StoreAnalytic extends Analytic {
       .startOf('hour')
 
     const end = moment(Date.now()).startOf('hour')
-    return this.app.models.Subscription.findAll({
-      where: {
-        renews_on: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        active: true
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          const cCount = c instanceof  this.app.models.Subscription.instance
-            ? c.get('count') || 0
-            : c.count || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              renews_on: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              active: true
+            },
+          }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+          return this.app.models.Subscription.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+                const cCount = c instanceof this.app.models.Subscription.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }activeSubscriptions`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }activeSubscriptions`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -1025,43 +1254,59 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Subscription.count({
-      where: {
-        cancelled_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        cancelled: true
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          const cCount = c instanceof  this.app.models.Subscription.instance
-            ? c.get('count') || 0
-            : c.count || 0
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
+
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              cancelled_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              cancelled: true
+            },
+          }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+          return this.app.models.Subscription.count({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+                const cCount = c instanceof this.app.models.Subscription.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }cancelledSubscriptions`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }cancelledSubscriptions`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -1087,45 +1332,61 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Subscription.count({
-      where: {
-        renews_on: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        }
-      },
-      attributes: [
-        [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Subscription.sequelize.literal('SUM(total_discounts)'), 'total_discounts'],
-        [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Subscription.instance
-            ? c.get('total_discounts') || 0
-            : c.total_discounts || 0
-          const cCount = c instanceof this.app.models.Subscription.instance
-            ? c.get('count') || 0
-            : c.count || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          const total = parseInt(cTotal, 10)
-          return [parseInt(cCount, 10), total, c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              renews_on: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              }
+            },
+          }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
+          return this.app.models.Subscription.count({
+            ...query,
+            attributes: [
+              [this.app.models.Subscription.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Subscription.sequelize.literal('SUM(total_discounts)'), 'total_discounts'],
+              [this.app.models.Subscription.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Subscription.instance
+                  ? c.get('total_discounts') || 0
+                  : c.total_discounts || 0
+                const cCount = c instanceof this.app.models.Subscription.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                const total = parseInt(cTotal, 10)
+                return [parseInt(cCount, 10), total, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }subscriptionDiscountsRedeemed`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }subscriptionDiscountsRedeemed`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -1141,46 +1402,62 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Order.count({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        financial_status: 'paid'
-      },
-      attributes: [
-        [this.app.models.Order.sequelize.literal('SUM(total_price)'), 'total'],
-        [this.app.models.Order.sequelize.literal('SUM(total_discounts)'), 'total_discounts'],
-        [this.app.models.Order.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof this.app.models.Order.instance
-            ? c.get('total_discounts') || 0
-            : c.total_discounts || 0
-          const cCount = c instanceof this.app.models.Order.instance
-            ? c.get('count') || 0
-            : c.count || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          const total = parseInt(cTotal, 10)
-          return [parseInt(cCount, 10), total, c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              financial_status: 'paid'
+            },
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          return this.app.models.Order.count({
+            ...query,
+            attributes: [
+              [this.app.models.Order.sequelize.literal('SUM(total_price)'), 'total'],
+              [this.app.models.Order.sequelize.literal('SUM(total_discounts)'), 'total_discounts'],
+              [this.app.models.Order.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Order.instance
+                  ? c.get('total_discounts') || 0
+                  : c.total_discounts || 0
+                const cCount = c instanceof this.app.models.Order.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                const total = parseInt(cTotal, 10)
+                return [parseInt(cCount, 10), total, c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }discountsRedeemed`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }discountsRedeemed`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -1196,44 +1473,60 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Transaction.findAll({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        status: 'failure'
-      },
-      attributes: [
-        [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
-        [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof this.app.models.Transaction.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          const cCount = c instanceof this.app.models.Transaction.instance
-            ? c.get('count') || 0
-            : c.count || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              status: 'failure'
+            }
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          return this.app.models.Transaction.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+              [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Transaction.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+                const cCount = c instanceof this.app.models.Transaction.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }failedCharges`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }failedCharges`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -1250,44 +1543,60 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Transaction.findAll({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
-        },
-        status: 'cancelled'
-      },
-      attributes: [
-        [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
-        [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof this.app.models.Transaction.instance
-            ? c.get('total') || 0
-            : c.total || 0
-          const cCount = c instanceof this.app.models.Transaction.instance
-            ? c.get('count') || 0
-            : c.count || 0
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              status: 'cancelled'
+            }
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          return this.app.models.Transaction.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
+              [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Transaction.instance
+                  ? c.get('total') || 0
+                  : c.total || 0
+                const cCount = c instanceof this.app.models.Transaction.instance
+                  ? c.get('count') || 0
+                  : c.count || 0
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }cancelledCharges`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }cancelledCharges`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -1310,46 +1619,62 @@ export class StoreAnalytic extends Analytic {
 
     const end = moment(Date.now()).startOf('hour')
 
-    return this.app.models.Cart.findAll({
-      where: {
-        created_at: {
-          $lte: start.format('YYYY-MM-DD HH:mm:ss'),
-          $gte: start2.format('YYYY-MM-DD HH:mm:ss'),
-        },
-        total_items: {
-          $gte: 1
-        },
-        status: 'open'
-      },
-      attributes: [
-        [this.app.models.Cart.sequelize.literal('SUM(total_due)'), 'total'],
-        [this.app.models.Cart.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: ['currency']
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Cart.instance
-            ? c.get('total') : c.total
-          const cCount = c instanceof  this.app.models.Cart.instance
-            ? c.get('count') : c.count
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $lte: start.format('YYYY-MM-DD HH:mm:ss'),
+                $gte: start2.format('YYYY-MM-DD HH:mm:ss'),
+              },
+              total_items: {
+                $gte: 1
+              },
+              status: 'open'
+            }
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          return this.app.models.Cart.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Cart.sequelize.literal('SUM(total_due)'), 'total'],
+              [this.app.models.Cart.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: ['currency']
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Cart.instance
+                  ? c.get('total') : c.total
+                const cCount = c instanceof this.app.models.Cart.instance
+                  ? c.get('count') : c.count
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }abandonedCarts`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }abandonedCarts`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 
@@ -1365,48 +1690,65 @@ export class StoreAnalytic extends Analytic {
       .startOf('hour')
 
     const end = moment(Date.now()).startOf('hour')
-    // return this.app.models.Order.sequelize.query(
-    //   'SELECT * FROM projects',
-    //   { model: this.app.models.Order }
-    // )
-    return this.app.models.Order.findAll({
-      where: {
-        created_at: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss'),
-        },
-        financial_status: 'paid'
-      },
-      attributes: [
-        [this.app.models.Order.sequelize.literal('SUM(total_captured)'), 'total'],
-        [this.app.models.Order.sequelize.literal('COUNT(id)'), 'count'],
-        'currency'
-      ],
-      group: [
-        this.app.models.Order.sequelize.literal('currency HAVING COUNT(customer_id) > 1')
-      ]
+
+    return this.app.models.Shop.findAll({
+      attributes: ['id']
     })
-      .then(count => {
-        let data = count.map(c => {
-          const cTotal = c instanceof  this.app.models.Order.instance
-            ? c.get('total') : c.total
-          const cCount = c instanceof  this.app.models.Order.instance
-            ? c.get('count') : c.count
+      .then(shops => {
+        const ids = shops.map(shop => shop.id)
+        ids.unshift(null)
 
-          return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+        return this.app.models.Shop.sequelize.Promise.mapSeries(ids, shopId => {
+          const query: { where: any } = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss'),
+              },
+              financial_status: 'paid'
+            }
+          }
+          // if (shopId) {
+          //   query.where.shop_id = shopId
+          // }
+          // return this.app.models.Order.sequelize.query(
+          //   'SELECT * FROM projects',
+          //   { model: this.app.models.Order }
+          // )
+          return this.app.models.Order.findAll({
+            ...query,
+            attributes: [
+              [this.app.models.Order.sequelize.literal('SUM(total_captured)'), 'total'],
+              [this.app.models.Order.sequelize.literal('COUNT(id)'), 'count'],
+              'currency'
+            ],
+            group: [
+              this.app.models.Order.sequelize.literal('currency HAVING COUNT(customer_id) > 1')
+            ]
+          })
+            .then(count => {
+              let data = count.map(c => {
+                const cTotal = c instanceof this.app.models.Order.instance
+                  ? c.get('total') : c.total
+                const cCount = c instanceof this.app.models.Order.instance
+                  ? c.get('count') : c.count
+
+                return [parseInt(cCount, 10), parseInt(cTotal, 10), c.currency]
+              })
+
+              if (data.length === 0) {
+                data = [[0, 0, this.app.config.get('cart.default_currency')]]
+              }
+
+              return this.publish([{
+                name: `store.${ shopId ? shopId + '.' : '' }repeatCustomers`,
+                start: start.format('YYYY-MM-DD HH:mm:ss'),
+                end: end.format('YYYY-MM-DD HH:mm:ss'),
+                group_label: 'currency',
+                labels: ['total', 'gross', 'currency'],
+                data: data
+              }])
+            })
         })
-
-        if (data.length === 0) {
-          data = [[0, 0, this.app.config.get('cart.default_currency')]]
-        }
-
-        return this.publish([{
-          name: `store.${ options.shop_id ? options.shop_id + '.' : '' }repeatCustomers`,
-          start: start.format('YYYY-MM-DD HH:mm:ss'),
-          end: end.format('YYYY-MM-DD HH:mm:ss'),
-          group_label: 'currency',
-          labels: ['total', 'gross', 'currency'],
-          data: data
-        }])
       })
   }
 }
