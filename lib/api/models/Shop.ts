@@ -4,7 +4,37 @@ import { ModelError } from '@fabrix/spool-sequelize/dist/errors'
 import { pick, isString, isNumber, isObject, extend } from 'lodash'
 import { UNITS } from '../../enums'
 
+// tslint:disable:no-shadowed-variable
 export class ShopResolver extends SequelizeResolver {
+  /**
+   * Batch Shops
+   */
+  batch(options, batch) {
+    const self = this
+
+    options.limit = options.limit || 100
+    options.offset = options.offset || 0
+    options.regressive = options.regressive || false
+
+    const recursiveQuery = function(options) {
+      let count = 0
+      return self.findAndCountAll(options)
+        .then(results => {
+          count = results.count
+          return batch(results.rows)
+        })
+        .then(batched => {
+          if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+            options.offset = options.regressive ? 0 : options.offset + options.limit
+            return recursiveQuery(options)
+          }
+          else {
+            return Promise.resolve()
+          }
+        })
+    }
+    return recursiveQuery(options)
+  }
   /**
    * Resolve by instance Function
    * @param shop
