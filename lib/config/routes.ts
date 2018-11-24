@@ -7826,6 +7826,7 @@ export const routes = {
       }
     }
   },
+  // TODO Legacy
   '/product/:id/image/:image/add': {
     'POST': {
       handler: 'ProductController.addImage',
@@ -7852,6 +7853,7 @@ export const routes = {
       }
     }
   },
+  // TODO legacy
   '/product/:id/image/:image/remove': {
     'POST': {
       handler: 'ProductController.removeImage',
@@ -7878,7 +7880,57 @@ export const routes = {
       }
     }
   },
+  '/product/:id/image': {
+    'POST': {
+      handler: 'ProductController.addImage',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            image: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPostProductIdImageImageRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
   '/product/:id/image/:image': {
+    'PUT': {
+      handler: 'ProductController.updateImage',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            image: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutProductIdImageImageRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
     'DELETE': {
       handler: 'ProductController.removeImage',
       config: {
@@ -7905,6 +7957,34 @@ export const routes = {
     }
   },
   '/product/:id/variant/:variant/image/:image': {
+    'PUT': {
+      handler: 'ProductController.updateVariantImage',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            variant: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            image: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutProductIdVariantVariantImageImageRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
     'DELETE': {
       handler: 'ProductController.removeVariantImage',
       config: {
@@ -8175,6 +8255,27 @@ export const routes = {
           permissions: {
             resource_name: 'apiGetProductIdImagesRoute',
             roles: ['public', 'registered', 'admin']
+          }
+        }
+      }
+    },
+    // TODO JOI
+    'PUT': {
+      handler: 'ProductController.updateImages',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutProductIdImagesRoute',
+            roles: ['admin']
           }
         }
       }

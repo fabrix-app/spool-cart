@@ -1118,11 +1118,16 @@ export class ProductService extends Service {
         })
       })
       .then(() => {
-        if (options.variant) {
-          return Variant.findByIdDefault(resDestroy.product_variant_id, { transaction: options.transaction || null })
-        }
-        return Product.findByIdDefault(resDestroy.product_id, { transaction: options.transaction || null })
+        return resDestroy
       })
+      // Deprecated in 1.5.19
+      // https://github.com/fabrix-app/spool-cart/issues/58
+      // .then(() => {
+      //   if (options.variant) {
+      //     return Variant.findByIdDefault(resDestroy.product_variant_id, { transaction: options.transaction || null })
+      //   }
+      //   return Product.findByIdDefault(resDestroy.product_id, { transaction: options.transaction || null })
+      // })
   }
 
   /**
@@ -1144,6 +1149,7 @@ export class ProductService extends Service {
           throw new Error('Product could not be resolved')
         }
         resProduct = foundProduct
+
         if (variant) {
           return Variant.resolve(variant, { transaction: options.transaction || null })
         }
@@ -1151,8 +1157,8 @@ export class ProductService extends Service {
           return null
         }
       })
-      .then(foundVariant => {
-        resVariant = foundVariant ? foundVariant.id : null
+      .then(_variant => {
+        resVariant = _variant ? _variant.id : null
 
         return resProduct.createImage({
           product_variant_id: resVariant,
@@ -1176,12 +1182,12 @@ export class ProductService extends Service {
           transaction: options.transaction || null
         })
       })
-      .then(foundImages => {
-        foundImages = foundImages.map((_image, index) => {
+      .then(_images => {
+        _images = _images.map((_image, index) => {
           _image.position = index + 1
           return _image
         })
-        return Image.sequelize.Promise.mapSeries(foundImages, _image => {
+        return Image.sequelize.Promise.mapSeries(_images, _image => {
           return _image.save({
             transaction: options.transaction || null
           })
@@ -1189,6 +1195,72 @@ export class ProductService extends Service {
       })
       .then(updatedImages => {
         return resImage.reload()
+      })
+  }
+
+  /**
+   *
+   * @param images
+   */
+  updateImages(images, options: {[key: string]: any} = {}) {
+    if (!Array.isArray(images)) {
+      images = [images]
+    }
+    const Product = this.app.models['Product']
+    return Product.sequelize.Promise.mapSeries(images, image => {
+      return this.updateImage(image, image, options)
+    })
+  }
+
+  /**
+   *
+   * @param image
+   * @param body
+   * @param options
+   */
+  updateImage(image, body, options: { [key: string]: any } = {}) {
+    const Image = this.app.models['ProductImage']
+    const Product = this.app.models['Product']
+    const Variant = this.app.models['ProductVariant']
+
+    let resUpdate
+    return Image.resolve(image, {
+      transaction: options.transaction || null
+    })
+      .then(_image => {
+        if (!_image) {
+          // TODO proper error
+          throw new Error('Image not found')
+        }
+        resUpdate = _image
+
+        return Image.findAll({
+          where: {
+            product_id: resUpdate.product_id
+          },
+          order: [['position', 'ASC']],
+          transaction: options.transaction || null
+        })
+      })
+      // .then(_images => {
+      //   _images = _images.filter(image => image.id !== id)
+      //   _images = _images.map((image, index) => {
+      //     image.position = index + 1
+      //     return image
+      //   })
+      //   return Image.sequelize.Promise.mapSeries(_images, image => {
+      //     return image.save({
+      //       transaction: options.transaction || null
+      //     })
+      //   })
+      // })
+      .then(updatedImages => {
+        return resUpdate.update(body, {
+          transaction: options.transaction || null
+        })
+      })
+      .then(() => {
+        return resUpdate
       })
   }
 
@@ -1439,8 +1511,11 @@ export class ProductService extends Service {
         return false
       })
       .then(_newAssociation => {
-        return Product.findByIdDefault(resProduct.id, { transaction: options.transaction || null })
+        return resAssociationProduct
       })
+      // .then(_newAssociation => {
+      //   return Product.findByIdDefault(resProduct.id, { transaction: options.transaction || null })
+      // })
   }
 
   /**
