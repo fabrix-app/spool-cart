@@ -787,6 +787,49 @@ export class ProductController extends Controller {
    * @param req
    * @param res
    */
+  updateImage(req, res) {
+    const ProductService = this.app.services.ProductService
+    const product = req.params.id
+    const variant = req.params.variant
+    const image  = req.params.image
+
+    ProductService.updateImage(image, req.body)
+      .then(_image => {
+        return this.app.services.PermissionsService.sanitizeResult(req, _image)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  updateImages(req, res) {
+    const ProductService = this.app.services.ProductService
+
+    ProductService.updatesImage(req.body)
+      .then(_images => {
+        return this.app.services.PermissionsService.sanitizeResult(req, _images)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addVariantImage(req, res) {
     const ProductService = this.app.services.ProductService
 
@@ -794,7 +837,36 @@ export class ProductController extends Controller {
     const variant = req.params.variant
     const image  = req.body
 
+    if (!image) {
+      const err = new Error('Image File failed to upload, check input type is file and try again.')
+      return res.serverError(err)
+    }
+
     ProductService.addImage(product, variant, image.src, req.body)
+      .then(_variant => {
+        return this.app.services.PermissionsService.sanitizeResult(req, _variant)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  updateVariantImage(req, res) {
+    const ProductService = this.app.services.ProductService
+
+    const product = req.params.id
+    const variant = req.params.variant
+    const image  = req.params.image
+
+    ProductService.updateImage(product, variant, image, req.body)
       .then(_variant => {
         return this.app.services.PermissionsService.sanitizeResult(req, _variant)
       })
@@ -1123,6 +1195,10 @@ export class ProductController extends Controller {
    */
   removeAssociation(req, res) {
     const ProductService = this.app.services.ProductService
+    if (!req.params.id || !req.params.association) {
+      const err = new ModelError('E_BAD_REQUEST', 'Request missing product or association id')
+      return res.serverError(err)
+    }
     ProductService.removeAssociation(req.params.id, req.params.association)
       .then(product => {
         return this.app.services.PermissionsService.sanitizeResult(req, product)

@@ -18,7 +18,10 @@ export class ProductVariantResolver extends SequelizeResolver {
    * @returns {*|Promise.<Instance>}
    */
   findByIdDefault (id, options = {}) {
-    options = defaultsDeep(options, ProductVariantQuery.default(this.app))
+    options = this.app.services.SequelizeService.mergeOptionDefaults(
+      options,
+      ProductVariantQuery.default(this.app)
+    )
     return this.findById(id, options)
   }
 

@@ -497,7 +497,6 @@ describe('Admin User ProductController', () => {
       .get(`/product/${createdProductID}/analytics`)
       .expect(200)
       .end((err, res) => {
-        // console.log('BRK ANALYTICS', err, res.body)
         assert.ok(res.body)
         assert.equal(res.body.length, 1)
         assert.equal(res.body[0].total, 0)
@@ -576,14 +575,13 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
-  // TODO complete test
   it('should add association to product', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/addAssociation/1`)
+      .post(`/product/${createdProductID}/association/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, 1)
         done(err)
       })
   })
@@ -610,7 +608,7 @@ describe('Admin User ProductController', () => {
       })
   })
 
-  it('should add association to product', (done) => {
+  it('should add associations to product', (done) => {
     adminUser
       .post(`/product/${createdProductID}/associations`)
       .send(qs.stringify({
@@ -618,7 +616,8 @@ describe('Admin User ProductController', () => {
       }))
       .expect(200)
       .end((err, res) => {
-        // console.log('BROKE ASSOC', res.body)
+        console.log('FIX BROKE ASSOCs', res.body)
+        // assert.equal(res.body.length, 2)
         assert.ok(res.body.length)
         done(err)
       })
@@ -677,7 +676,7 @@ describe('Admin User ProductController', () => {
   // TODO complete test
   it('should remove association from product', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/removeAssociation/1`)
+      .delete(`/product/${createdProductID}/association/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -688,7 +687,7 @@ describe('Admin User ProductController', () => {
   // TODO complete test
   it('should add shop to product', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/addShop/1`)
+      .post(`/product/${createdProductID}/shop/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -720,7 +719,7 @@ describe('Admin User ProductController', () => {
   // TODO complete test
   it('should remove shop from product', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/removeShop/1`)
+      .delete(`/product/${createdProductID}/shop/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -732,7 +731,7 @@ describe('Admin User ProductController', () => {
 
   it('should add a vendor to product', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/addVendor/1`)
+      .post(`/product/${createdProductID}/vendor/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -764,7 +763,7 @@ describe('Admin User ProductController', () => {
   })
   it('should remove a vendor from product', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/removeVendor/1`)
+      .delete(`/product/${createdProductID}/vendor/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -806,14 +805,18 @@ describe('Admin User ProductController', () => {
   // TODO complete test
   it('should make removeImage post adminUser', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/image/${firstImageID}/remove`)
+      .delete(`/product/${createdProductID}/image/${firstImageID}`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, createdProductID)
-        assert.equal(res.body.images.length, 3)
-        const images = _.map(res.body.images, 'id')
-        assert.equal(images.indexOf(firstImageID), -1)
+        // Should return the image that was destroyed
+        assert.equal(res.body.id, firstImageID)
+        assert.equal(res.body.product_id, createdProductID)
+        // Deprecated
+        // assert.equal(res.body.id, createdProductID)
+        // assert.equal(res.body.images.length, 3)
+        // const images = _.map(res.body.images, 'id')
+        // assert.equal(images.indexOf(firstImageID), -1)
 
         done(err)
       })
@@ -947,10 +950,15 @@ describe('Admin User ProductController', () => {
       })
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.id, createdVariantID)
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.sku, 'bscb-1')
         assert.equal(res.body.price, 100001)
-        console.log(res.body);
+        assert.equal(res.body.images.length, 1)
+        res.body.images.forEach(image => {
+          assert.equal(image.product_variant_id, createdVariantID)
+        })
+
         firstVariantImageId = res.body.images[0].id
         done(err)
       })
@@ -961,12 +969,14 @@ describe('Admin User ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('BRK', err, res.body)
-        assert.equal(res.body.id, createdVariantID)
+        assert.equal(res.body.id, firstVariantImageId)
         assert.equal(res.body.product_id, createdProductID)
-        assert.equal(res.body.images.length, 0)
-        const images = _.map(res.body.images, 'id')
-        assert.equal(images.indexOf(firstVariantImageId), -1)
+        // Deprecated
+        // assert.equal(res.body.id, createdVariantID)
+        // assert.equal(res.body.product_id, createdProductID)
+        // assert.equal(res.body.images.length, 0)
+        // const images = _.map(res.body.images, 'id')
+        // assert.equal(images.indexOf(firstVariantImageId), -1)
 
         done(err)
       })
@@ -976,7 +986,6 @@ describe('Admin User ProductController', () => {
       .get(`/product/${createdProductID}/variant/${createdVariantID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log('BRK 2', err, res.body)
         assert.equal(res.body.id, createdVariantID)
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.images.length, 0)
@@ -1015,20 +1024,33 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
         assert.equal(res.body.length, 4)
+        res.body.forEach(variant => {
+          assert.equal(variant.product_id, createdProductID)
+        })
         done(err)
       })
   })
 
 
   // TODO complete test
-  // LEGACY
-  it.skip('should add association to product variant', (done) => {
+  it('should add association to product variant', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/variant/${createdVariantID}/addAssociation/1`)
+      .post(`/product/${createdProductID}/variant/${createdVariantID}/association/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('BRK', err, res.body)
+        console.log('BRK', err, res.body)
+        // assert.equal(res.body[0].id, 1)
+        done(err)
+      })
+  })
+  it.skip('should add associations to product variant', (done) => {
+    adminUser
+      .post(`/product/${createdProductID}/variant/${createdVariantID}/associations`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        console.log('BRK', err, res.body)
         // assert.equal(res.body[0].id, 1)
         done(err)
       })
@@ -1045,7 +1067,7 @@ describe('Admin User ProductController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('BRK 2', err, res.body)
+        assert.equal(res.body.length, 1)
         assert.equal(res.body[0].id, 1)
         done(err)
       })
@@ -1067,7 +1089,6 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
-        // console.log('Show Associations', createdVariantID, res.body)
         assert.equal(res.body.length, 1)
         done(err)
       })
@@ -1081,7 +1102,7 @@ describe('Admin User ProductController', () => {
       }))
       .expect(200)
       .end((err, res) => {
-        // console.log('BROKE ASSOC', res.body)
+        console.log('BROKE ASSOC', res.body)
         assert.ok(res.body.length)
         done(err)
       })
@@ -1111,7 +1132,7 @@ describe('Admin User ProductController', () => {
 
   it('should make removeVariant post adminUser', (done) => {
     adminUser
-      .post(`/product/${createdProductID}/variant/${firstVariantID}/remove`)
+      .delete(`/product/${createdProductID}/variant/${firstVariantID}`)
       .send({})
       .expect(200)
       .end((err, res) => {
