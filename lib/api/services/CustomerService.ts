@@ -848,8 +848,7 @@ export class CustomerService extends Service {
   }
 
 
-  inviteUser(customer, user, options) {
-    options = options || {}
+  inviteUser(customer, user, options: {[key: string]: any } = {}) {
   }
 
   inviteUserAccepted(customer, user, options) {
@@ -863,8 +862,7 @@ export class CustomerService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  removeUser(customer, user, options) {
-    options = options || {}
+  removeUser(customer, user, options: {[key: string]: any } = {}) {
 
     let resCustomer, resUser
     return this.app.models['Customer'].resolve(customer, {transaction: options.transaction || null})
