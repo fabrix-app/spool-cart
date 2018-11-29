@@ -506,6 +506,18 @@ describe('Admin User CustomerController', () => {
       })
   })
 
+  // TODO finish test
+  it('It should add customer user', (done) => {
+    adminUser
+      .post(`/customer/${createdCustomerID}/user/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, 1)
+        done(err)
+      })
+  })
+
   it('It should get customer users', (done) => {
     adminUser
       .get(`/customer/${createdCustomerID}/users`)
@@ -525,6 +537,17 @@ describe('Admin User CustomerController', () => {
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
 
+        done(err)
+      })
+  })
+
+  // TODO finish test
+  it('It should remove customer user', (done) => {
+    adminUser
+      .delete(`/customer/${createdCustomerID}/user/1`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, 1)
         done(err)
       })
   })

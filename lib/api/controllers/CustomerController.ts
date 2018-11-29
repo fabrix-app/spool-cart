@@ -1688,6 +1688,7 @@ export class CustomerController extends Controller {
    */
   addUser(req, res) {
     let customerId = req.params.id
+    let userId = req.params.user
 
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
@@ -1698,9 +1699,9 @@ export class CustomerController extends Controller {
     }
 
     const CustomerService = this.app.services.CustomerService
-    CustomerService.addUser(customerId, req.body)
-      .then(users => {
-        return this.app.services.PermissionsService.sanitizeResult(req, users)
+    CustomerService.addUser(customerId, userId)
+      .then(user => {
+        return this.app.services.PermissionsService.sanitizeResult(req, user)
       })
       .then(result => {
         return res.json(result)
@@ -1730,6 +1731,36 @@ export class CustomerController extends Controller {
     CustomerService.addUsers(customerId, req.body)
       .then(users => {
         return this.app.services.PermissionsService.sanitizeResult(req, users)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeUser(req, res) {
+    let customerId = req.params.id
+    let userId = req.params.user
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id or a user in session are required')
+      return res.send(401, err)
+    }
+
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.removeUser(customerId, userId)
+      .then(user => {
+        return this.app.services.PermissionsService.sanitizeResult(req, user)
       })
       .then(result => {
         return res.json(result)
