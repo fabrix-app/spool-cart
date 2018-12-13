@@ -385,6 +385,13 @@ export class Transaction extends Model {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
+      shop_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'Shop',
+        //   key: 'id'
+        // }
+      },
       // The datetime the transaction was cancelled
       cancelled_at: {
         type: Sequelize.DATE
@@ -420,6 +427,9 @@ export class Transaction extends Model {
     models.Transaction.belongsTo(models.Source, {
       // as: 'Source',
       // allowNull: true
+    })
+    models.Transaction.belongsTo(models.Shop, {
+      foreignKey: 'shop_id',
     })
   }
 }
