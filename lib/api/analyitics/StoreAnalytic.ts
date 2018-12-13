@@ -132,10 +132,20 @@ export class StoreAnalytic extends Analytic {
               kind: ['sale', 'capture']
             }
           }
+          const query2: { where: any} = {
+            where: {
+              created_at: {
+                $gte: start.format('YYYY-MM-DD HH:mm:ss')
+              },
+              status: 'success',
+              kind: 'refund'
+            }
+          }
           // TODO Enable per shop
-          // if (shopId) {
-          //   query.where.shop_id = shopId
-          // }
+          if (shopId) {
+            query.where.shop_id = shopId
+            query2.where.shop_id = shopId
+          }
 
           let resSales
           return this.app.models.Transaction.findAll({
@@ -150,13 +160,7 @@ export class StoreAnalytic extends Analytic {
             .then(count => {
               resSales = count
               return this.app.models.Transaction.findAll({
-                where: {
-                  created_at: {
-                    $gte: start.format('YYYY-MM-DD HH:mm:ss')
-                  },
-                  status: 'success',
-                  kind: 'refund'
-                },
+                ...query2,
                 attributes: [
                   [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
                   [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
@@ -182,7 +186,7 @@ export class StoreAnalytic extends Analytic {
                     ? (c.get('count') || 0)
                     : (c.count || 0)
                   , 10)
-
+                resSales[index] = resSales[index] || [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
                 const cTotal2 = parseInt(
                   resSales[index] instanceof this.app.models.Transaction.instance
                     ? (resSales[index].get('total') || 0)
@@ -436,18 +440,12 @@ export class StoreAnalytic extends Analytic {
             }
           }
           // TODO Enable per shop
-          // if (shopId) {
-          //   query.where.shop_id = shopId
-          // }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
           let resSales
           return this.app.models.Transaction.findAll({
-            where: {
-              created_at: {
-                $gte: start.format('YYYY-MM-DD HH:mm:ss')
-              },
-              status: 'success',
-              kind: ['sale', 'capture']
-            },
+            ...query,
             attributes: [
               [this.app.models.Transaction.sequelize.literal('SUM(amount)'), 'total'],
               [this.app.models.Transaction.sequelize.literal('COUNT(id)'), 'count'],
@@ -1418,9 +1416,9 @@ export class StoreAnalytic extends Analytic {
               financial_status: 'paid'
             },
           }
-          // if (shopId) {
-          //   query.where.shop_id = shopId
-          // }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
           return this.app.models.Order.count({
             ...query,
             attributes: [
@@ -1489,9 +1487,9 @@ export class StoreAnalytic extends Analytic {
               status: 'failure'
             }
           }
-          // if (shopId) {
-          //   query.where.shop_id = shopId
-          // }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
           return this.app.models.Transaction.findAll({
             ...query,
             attributes: [
@@ -1559,9 +1557,9 @@ export class StoreAnalytic extends Analytic {
               status: 'cancelled'
             }
           }
-          // if (shopId) {
-          //   query.where.shop_id = shopId
-          // }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
           return this.app.models.Transaction.findAll({
             ...query,
             attributes: [
@@ -1639,9 +1637,9 @@ export class StoreAnalytic extends Analytic {
               status: 'open'
             }
           }
-          // if (shopId) {
-          //   query.where.shop_id = shopId
-          // }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
           return this.app.models.Cart.findAll({
             ...query,
             attributes: [
@@ -1707,9 +1705,9 @@ export class StoreAnalytic extends Analytic {
               financial_status: 'paid'
             }
           }
-          // if (shopId) {
-          //   query.where.shop_id = shopId
-          // }
+          if (shopId) {
+            query.where.shop_id = shopId
+          }
           // return this.app.models.Order.sequelize.query(
           //   'SELECT * FROM projects',
           //   { model: this.app.models.Order }

@@ -185,6 +185,7 @@ describe('StoreAnalytic', () => {
         done()
       })
       .catch(err => {
+        console.log('BROKE HERE', err)
         done(err)
       })
   })

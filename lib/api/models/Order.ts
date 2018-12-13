@@ -1217,6 +1217,8 @@ Order.prototype.groupTransactions = function(paymentDetails, options: {[key: str
       customer_id: this.customer_id,
       // Set the order id
       order_id: this.id,
+      // Set the Shop Id
+      shop_id: this.shop_id,
       // Set the source if it is given
       source_id: detail.source ? detail.source.id : null,
       // Set the account if it is given
