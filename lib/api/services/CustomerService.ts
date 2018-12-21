@@ -789,6 +789,126 @@ export class CustomerService extends Service {
       })
   }
 
+
+
+
+
+  /**
+   * Add Multiple Customers
+   * @param customer
+   * @param customers
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addCustomers(customer, customers, options: {[key: string]: any} = {}) {
+    if (!Array.isArray(customers)) {
+      customers = [customers]
+    }
+    const Sequelize = this.app.models['Customer'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(customers, subcustomer => {
+        return this.addCustomer(customer, subcustomer, {
+          transaction: t
+        })
+      })
+    })
+  }
+
+  /**
+   *
+   * @param customer
+   * @param subcustomer
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  addCustomer(customer, subcustomer, options: {[key: string]: any} = {}) {
+    let resCustomer, resSubcustomer
+    return this.app.models['Customer'].resolve(customer, {transaction: options.transaction || null})
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer Could Not Be Resolved')
+        }
+        resCustomer = _customer
+        return this.app.models['Customer'].resolve(subcustomer, {transaction: options.transaction || null})
+      })
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer Could Not Be Resolved')
+        }
+        resSubcustomer = _customer
+        return resCustomer.hasCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+      })
+      .then(hasCustomer => {
+        if (hasCustomer) {
+          return
+        }
+        return resCustomer.addCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resSubcustomer
+      })
+  }
+
+  /**
+   * Remove Multiple Customers
+   * @param customer
+   * @param customers
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  removeCustomers(customer, customers, options: {[key: string]: any} = {}) {
+    if (!Array.isArray(customers)) {
+      customers = [customers]
+    }
+    const Sequelize = this.app.models['Customer'].sequelize
+    // const removeedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(customers, subcustomer => {
+        return this.removeCustomer(customer, subcustomer, {
+          transaction: t
+        })
+      })
+    })
+  }
+
+  /**
+   *
+   * @param customer
+   * @param subcustomer
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  removeCustomer(customer, subcustomer, options: {[key: string]: any } = {}) {
+
+    let resCustomer, resSubcustomer
+    return this.app.models['Customer'].resolve(customer, {transaction: options.transaction || null})
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer Could Not Be Resolved')
+        }
+        resCustomer = _customer
+        return this.app.models['Customer'].resolve(subcustomer, {transaction: options.transaction || null})
+      })
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer Could Not Be Resolved')
+        }
+        resSubcustomer = _customer
+        return resCustomer.hasCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+      })
+      .then(hasCustomer => {
+        if (hasCustomer) {
+          return
+        }
+        return resCustomer.removeCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resSubcustomer
+      })
+  }
   /**
    * Add Multiple Users
    * @param customer
