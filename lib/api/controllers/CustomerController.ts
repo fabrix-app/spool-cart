@@ -2217,6 +2217,8 @@ export class CustomerController extends Controller {
    * @param res
    */
   addCustomer(req, res) {
+    // TODO check that user can perform this operation
+
     const CustomerService = this.app.services.CustomerService
     CustomerService.addCustomer(req.params.id, req.params.customer)
       .then(customer => {
@@ -2236,6 +2238,8 @@ export class CustomerController extends Controller {
    * @param res
    */
   addCustomers(req, res) {
+    // TODO check that user can perform this operation
+
     const CustomerService = this.app.services.CustomerService
     CustomerService.addCustomers(req.params.id, req.body)
       .then(customers => {
@@ -2250,11 +2254,13 @@ export class CustomerController extends Controller {
   }
 
   /**
-   *
+   * retuns a list of customers
    * @param req
    * @param res
    */
   customers(req, res) {
+    // TODO check that user can perform this operation
+
     const Customer = this.app.models['Customer']
     let customerId = req.params.id
 
@@ -2306,6 +2312,24 @@ export class CustomerController extends Controller {
     CustomerService.removeCustomer(req.params.id, req.params.customer)
       .then(customer => {
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   * remove customers from a customer
+   * @param req
+   * @param res
+   */
+  removeCustomers(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.removeCustomers(req.params.id, req.body)
+      .then(customers => {
+        return this.app.services.PermissionsService.sanitizeResult(req, customers)
       })
       .then(result => {
         return res.json(result)

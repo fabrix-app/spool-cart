@@ -640,4 +640,86 @@ describe('Admin User CustomerController', () => {
         done(err)
       })
   })
+
+  // TODO Complete Test
+  it('should add customer to customer', (done) => {
+    adminUser
+      .put(`/customer/${createdCustomerID}/customer/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        console.log(res.body)
+        assert.equal(res.body.id, 1)
+        done(err)
+      })
+  })
+  it('should add customers to customer', (done) => {
+    adminUser
+      .put(`/customer/${createdCustomerID}/customers`)
+      .send([
+        {
+          id: 2
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        console.log(res.body)
+        assert.equal(res.body[0].id, 2)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should get customer customers', (done) => {
+    adminUser
+      .get(`/customer/${createdCustomerID}/customers`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
+
+        console.log(res.body)
+        done(err)
+      })
+  })
+  // TODO Complete Test
+  it('should should remove customer from customer', (done) => {
+    adminUser
+      .delete(`/customer/${createdCustomerID}/customer/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        console.log(res.body)
+        assert.equal(res.body.id, 1)
+        done(err)
+      })
+  })
+  // TODO Complete Test
+  it('should should remove customers from customer', (done) => {
+    adminUser
+      .delete(`/customer/${createdCustomerID}/customers`)
+      .send([
+        {
+          id: 2
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        console.log(res.body)
+        assert.equal(res.body[0].id, 2)
+        done(err)
+      })
+  })
 })

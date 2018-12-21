@@ -3340,6 +3340,125 @@ export const routes = {
       }
     }
   },
+  '/customer/:id/customers': {
+    'GET': {
+      handler: 'CustomerController.customers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          },
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCustomerIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'PUT': {
+      handler: 'CustomerController.addCustomers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutCustomerIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'DELETE': {
+      handler: 'CustomerController.removeCustomers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteCustomerIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/customer/:id/customer/:customer': {
+    'PUT': {
+      handler: 'CustomerController.addCustomer',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            customer: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutCustomerIdCustomerCustomerRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    },
+    'DELETE': {
+      handler: 'CustomerController.removeCustomer',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            customer: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteCustomerIdCustomerCustomerRoute',
+            roles: ['admin', 'registered']
+          }
+        }
+      }
+    }
+  },
   '/customer/:id/login': {
     'POST': 'CustomerController.login',
     config: {
