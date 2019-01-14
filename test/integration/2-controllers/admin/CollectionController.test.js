@@ -198,6 +198,81 @@ describe('Admin User CollectionController', () => {
       })
   })
 
+  it('should list collection products with where query', (done) => {
+    adminUser
+      .get(`/collection/${collectionID}/products`)
+      .query({
+        where: {
+          price: {
+            "$lt": 100001,
+            "$gt": 99999
+          }
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
+
+        assert.equal(res.headers['x-pagination-total'], '1')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].position, 1)
+        // console.log('BROKE COLLECTION PRODUCTS 2', res.body)
+        done(err)
+      })
+  })
+
+  it('should list collection products with where query sanity', (done) => {
+    adminUser
+      .get(`/collection/${collectionID}/products`)
+      .query({
+        where: {
+          price: {
+            "$lt": 99999,
+            "$gt": 99998
+          }
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
+
+        assert.equal(res.headers['x-pagination-total'], '0')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
+        assert.ok(res.body)
+        assert.equal(res.body.length, 0)
+        // console.log('BROKE COLLECTION PRODUCTS 3', res.body)
+        done(err)
+      })
+  })
+
   // TODO complete test
   it('should list collection analytics', (done) => {
     adminUser
