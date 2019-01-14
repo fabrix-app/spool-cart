@@ -310,6 +310,7 @@ export class CollectionController extends Controller {
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
+    const where = req.jsonCriteria(req.query.where)
 
     if (!collectionId) {
       const err = new Error('A collection id is required')
@@ -455,55 +456,68 @@ export class CollectionController extends Controller {
     const Product = this.app.models['Product']
     const Collection = this.app.models['Collection']
     const ItemCollection = this.app.models['ItemCollection']
-    const collectionId = req.params.id
+    let collectionId = req.params.id
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['position', 'ASC']]
+    const where = req.jsonCriteria(req.query.where)
 
     if (!collectionId) {
       const err = new Error('A collection id is required')
       return res.send(401, err)
     }
 
-    let count = 0, models = []
+    let count = 0, models = [], resProducts = []
 
     Collection.resolve(collectionId, {
       attributes: ['id']
     })
-      .then(_collection => {
-
-        return ItemCollection.findAndCountAll({
-          where: {
-            collection_id: _collection.id,
-            model: 'product'
-          },
-          attributes: ['model_id', 'position'],
-          order: sort,
-          limit: limit,
-          offset: offset
-        })
-      })
-    .then(arr => {
-
-      count = arr.count
-      models = orderBy(arr.rows, ['position'], ['asc'])
-
-      const productIds = models.map(model => model.model_id)
+    .then(_collection => {
+      collectionId = _collection.id
       return Product.findAllDefault({
-        where: {
-          id: productIds
-        },
+        where: where,
+        include: [{
+          model: Collection.instance,
+          as: 'collections',
+          attributes: ['id'],
+          where: {
+            id: collectionId
+          }
+        }],
         req: req
       })
     })
-    .then(products => {
-      products = products.map(product => {
+    .then((products = []) => {
+      resProducts = products
+      const ids = resProducts.map(p => p.id)
+
+      return ItemCollection.findAndCountAll({
+        where: {
+          collection_id: collectionId,
+          model: 'product',
+          model_id: ids
+        },
+        attributes: ['model_id', 'position'],
+        order: sort,
+        limit: limit,
+        offset: offset
+      })
+    })
+    .then(arr => {
+      count = arr.count
+      models = orderBy(arr.rows, ['position'], ['asc'])
+
+      // Assign the positions from Item Collections to Product
+      resProducts = resProducts.map(product => {
         return extend(product, {position: models.find(m => m.model_id === product.id).position})
       })
-      products = orderBy(products, ['position'], ['asc'])
+
+      // Order the products
+      resProducts = orderBy(resProducts, ['position'], ['asc'])
+
       // Paginate
       res.paginate(count, limit, offset, sort)
-      return this.app.services.PermissionsService.sanitizeResult(req, products)
+      return this.app.services.PermissionsService.sanitizeResult(req, resProducts)
     })
     .then(result => {
       return res.json(result)
