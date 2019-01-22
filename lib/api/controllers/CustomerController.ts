@@ -2218,9 +2218,15 @@ export class CustomerController extends Controller {
    */
   addCustomer(req, res) {
     // TODO check that user can perform this operation
+    let customerId = req.params.id
+
+    if (!customerId || !req.user) {
+      const err = new Error('A customer id or a customer in session are required')
+      return res.send(401, err)
+    }
 
     const CustomerService = this.app.services.CustomerService
-    CustomerService.addCustomer(req.params.id, req.params.customer)
+    CustomerService.addCustomer(customerId, req.params.customer)
       .then(customer => {
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })
@@ -2239,9 +2245,15 @@ export class CustomerController extends Controller {
    */
   addCustomers(req, res) {
     // TODO check that user can perform this operation
+    let customerId = req.params.id
+
+    if (!customerId || !req.user) {
+      const err = new Error('A customer id or a customer in session are required')
+      return res.send(401, err)
+    }
 
     const CustomerService = this.app.services.CustomerService
-    CustomerService.addCustomers(req.params.id, req.body)
+    CustomerService.addCustomers(customerId, req.body)
       .then(customers => {
         return this.app.services.PermissionsService.sanitizeResult(req, customers)
       })
@@ -2308,8 +2320,16 @@ export class CustomerController extends Controller {
    * @param res
    */
   removeCustomer(req, res) {
+
+    let customerId = req.params.id
+
+    if (!customerId || !req.user) {
+      const err = new Error('A customer id or a customer in session are required')
+      return res.send(401, err)
+    }
+
     const CustomerService = this.app.services.CustomerService
-    CustomerService.removeCustomer(req.params.id, req.params.customer)
+    CustomerService.removeCustomer(customerId, req.params.customer)
       .then(customer => {
         return this.app.services.PermissionsService.sanitizeResult(req, customer)
       })
@@ -2326,8 +2346,15 @@ export class CustomerController extends Controller {
    * @param res
    */
   removeCustomers(req, res) {
+    let customerId = req.params.id
+
+    if (!customerId || !req.user) {
+      const err = new Error('A customer id or a customer in session are required')
+      return res.send(401, err)
+    }
+
     const CustomerService = this.app.services.CustomerService
-    CustomerService.removeCustomers(req.params.id, req.body)
+    CustomerService.removeCustomers(customerId, req.body)
       .then(customers => {
         return this.app.services.PermissionsService.sanitizeResult(req, customers)
       })

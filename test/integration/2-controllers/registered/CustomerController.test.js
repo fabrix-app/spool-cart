@@ -62,6 +62,17 @@ describe('Registered User CustomerController', () => {
         done(err)
       })
   })
+  it('should find created customer session', (done) => {
+    const customer = customers[1]
+    registeredUser
+      .get('/customer/session')
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.first_name, customer.first_name)
+        assert.equal(res.body.last_name, customer.last_name)
+        done(err)
+      })
+  })
   it('should update customer', (done) => {
     registeredUser
       .put('/customer')
@@ -234,6 +245,28 @@ describe('Registered User CustomerController', () => {
   it('should get session customer orders', done => {
     registeredUser
       .get('/customer/orders')
+      .expect(200)
+      .end((err, res) => {
+
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
+
+        done(err)
+      })
+  })
+
+  it('should get session customer\'s customers', done => {
+    registeredUser
+      .get('/customer/customers')
       .expect(200)
       .end((err, res) => {
 

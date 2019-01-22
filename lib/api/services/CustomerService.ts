@@ -846,7 +846,31 @@ export class CustomerService extends Service {
         }
         return resCustomer.addCustomer(resSubcustomer.id, {transaction: options.transaction || null})
       })
-      .then(() => {
+      .then((added) => {
+        if (added) {
+          const event = {
+            object_id: resCustomer.id,
+            object: 'customer',
+            objects: [{
+              customer: resCustomer.id,
+            }, {
+              customer: resSubcustomer.id,
+            }],
+            type: 'customer.customer.added',
+            message: `Customer ${resSubcustomer.getSalutation()} added to Customer ${resCustomer.getSalutation()}`,
+            data: {
+              customer: resCustomer,
+              subcustomer: resSubcustomer
+            }
+          }
+          return this.publish(event.type, event, {
+            save: true,
+            transaction: options.transaction || null
+          })
+        }
+        return
+      })
+      .then(event => {
         return resSubcustomer
       })
   }
@@ -905,7 +929,32 @@ export class CustomerService extends Service {
         }
         return resCustomer.removeCustomer(resSubcustomer.id, {transaction: options.transaction || null})
       })
-      .then(() => {
+      .then((removed) => {
+        // console.log('BROKE REMOVED', removed)
+        if (removed) {
+          const event = {
+            object_id: resCustomer.id,
+            object: 'customer',
+            objects: [{
+              customer: resCustomer.id,
+            }, {
+              customer: resSubcustomer.id,
+            }],
+            type: 'customer.customer.removed',
+            message: `Customer ${resSubcustomer.getSalutation()} removed from Customer ${resCustomer.getSalutation()}`,
+            data: {
+              customer: resCustomer,
+              subcustomer: resSubcustomer
+            }
+          }
+          return this.publish(event.type, event, {
+            save: true,
+            transaction: options.transaction || null
+          })
+        }
+        return
+      })
+      .then(event => {
         return resSubcustomer
       })
   }

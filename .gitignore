@@ -1,7 +1,8 @@
 # Compiled version placed here by typescript compiler
 dist
 test/uploads
-
+.floo
+.flooignore
 /.idea
 # Logs
 logs

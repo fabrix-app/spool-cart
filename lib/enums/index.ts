@@ -494,6 +494,8 @@ export const TRANSACTION_KIND = {
 export const COLLECTION_PURPOSE = {
   // The collection is used for navigation
   NAVIGATION: 'navigation',
+  // The collection is used to group objects for a vendor
+  VENDOR: 'vendor',
   // The collection is used to group objects
   GROUP: 'group',
   // The collection applies a discount to products/customers
