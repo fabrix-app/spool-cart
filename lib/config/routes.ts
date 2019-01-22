@@ -4676,6 +4676,29 @@ export const routes = {
       }
     }
   },
+  '/customer/customers': {
+    'GET': {
+      handler: 'CustomerController.customers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCustomerCustomersRoute',
+            roles: ['admin', 'registered']
+          }
+        }
+      }
+    }
+  },
   '/customer/tags': {
     'GET': {
       handler: 'CustomerController.tags',

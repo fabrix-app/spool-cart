@@ -40,6 +40,17 @@ describe('Admin User CustomerController', () => {
       })
   })
 
+  it('should get admin customer account', (done) => {
+    adminUser
+      .get('/customer/session')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.id, customerID)
+        done(err)
+      })
+  })
+
   it('should create a customer with a default address', (done) => {
     const customer = customers[1]
 
