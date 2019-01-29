@@ -2266,7 +2266,7 @@ export class CustomerController extends Controller {
   }
 
   /**
-   * retuns a list of customers
+   * retuns a list of customers of a customer
    * @param req
    * @param res
    */
@@ -2287,25 +2287,39 @@ export class CustomerController extends Controller {
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    Customer.findAndCountAll({
-      // TODO fix for sqlite
-      include: [{
-        model: this.app.models['Customer'].instance,
-        as: 'customers',
-        attributes: ['id'],
-        where: {
-          id: customerId
-        }
-      }],
-      offset: offset,
-      // TODO sequelize breaks if limit is set here
-      limit: limit,
-      order: sort
+
+    const ItemCustomer = this.app.models['ItemCustomer']
+
+    let count = 0
+
+    Customer.resolve(customerId, {
+      attributes: ['id']
     })
+      .then(_customer => {
+
+        return ItemCustomer.findAndCountAll({
+          where: {
+            customer_id: _customer.id,
+            model: 'customer'
+          },
+          attributes: ['model_id'],
+          limit: limit,
+          offset: offset
+        })
+      })
+      .then(arr => {
+        count = arr.count
+        const customerIds = arr.rows.map(model => model.model_id)
+        return Customer.findAll({
+          where: {
+            id: customerIds
+          }
+        })
+      })
       .then(customers => {
         // Paginate
-        res.paginate(customers.count, limit, offset, sort)
-        return this.app.services.PermissionsService.sanitizeResult(req, customers.rows)
+        res.paginate(count, limit, offset, sort)
+        return this.app.services.PermissionsService.sanitizeResult(req, customers)
       })
       .then(result => {
         return res.json(result)
@@ -2313,6 +2327,32 @@ export class CustomerController extends Controller {
       .catch(err => {
         return res.serverError(err)
       })
+    // Customer.findAndCountAll({
+    //   // TODO fix for sqlite
+    //   include: [{
+    //     model: this.app.models['Customer'].instance,
+    //     as: 'customers',
+    //     attributes: ['id'],
+    //     where: {
+    //       id: customerId
+    //     }
+    //   }],
+    //   offset: offset,
+    //   // TODO sequelize breaks if limit is set here
+    //   limit: limit,
+    //   order: sort
+    // })
+    //   .then(customers => {
+    //     // Paginate
+    //     res.paginate(customers.count, limit, offset, sort)
+    //     return this.app.services.PermissionsService.sanitizeResult(req, customers.rows)
+    //   })
+    //   .then(result => {
+    //     return res.json(result)
+    //   })
+    //   .catch(err => {
+    //     return res.serverError(err)
+    //   })
   }
   /**
    * remove a customer from a customer
