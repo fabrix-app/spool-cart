@@ -67,7 +67,8 @@ export class CustomerService extends Service {
       tax_exempt: customer.tax_exempt,
       verified_email: customer.verified_email,
       metadata: Metadata.transform(customer.metadata || {}),
-      account_balance: customer.account_balance
+      account_balance: customer.account_balance,
+      type: customer.type
     }, {
       include: [
         {
@@ -824,14 +825,15 @@ export class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   addCustomer(customer, subcustomer, options: {[key: string]: any} = {}) {
+    const Customer = this.app.models['Customer']
     let resCustomer, resSubcustomer
-    return this.app.models['Customer'].resolve(customer, {transaction: options.transaction || null})
+    return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(_customer => {
         if (!_customer) {
           throw new Error('Customer Could Not Be Resolved')
         }
         resCustomer = _customer
-        return this.app.models['Customer'].resolve(subcustomer, {transaction: options.transaction || null})
+        return Customer.resolve(subcustomer, {transaction: options.transaction || null})
       })
       .then(_customer => {
         if (!_customer) {
@@ -852,8 +854,8 @@ export class CustomerService extends Service {
             object_id: resCustomer.id,
             object: 'customer',
             objects: [{
-              customer: resCustomer.id,
-            }, {
+            //   customer: resCustomer.id,
+            // }, {
               customer: resSubcustomer.id,
             }],
             type: 'customer.customer.added',
@@ -907,14 +909,15 @@ export class CustomerService extends Service {
    */
   removeCustomer(customer, subcustomer, options: {[key: string]: any } = {}) {
 
+    const Customer = this.app.models['Customer']
     let resCustomer, resSubcustomer
-    return this.app.models['Customer'].resolve(customer, {transaction: options.transaction || null})
+    return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(_customer => {
         if (!_customer) {
           throw new Error('Customer Could Not Be Resolved')
         }
         resCustomer = _customer
-        return this.app.models['Customer'].resolve(subcustomer, {transaction: options.transaction || null})
+        return Customer.resolve(subcustomer, {transaction: options.transaction || null})
       })
       .then(_customer => {
         if (!_customer) {
@@ -925,9 +928,9 @@ export class CustomerService extends Service {
       })
       .then(hasCustomer => {
         if (hasCustomer) {
-          return
+          return resCustomer.removeCustomer(resSubcustomer.id, {transaction: options.transaction || null})
         }
-        return resCustomer.removeCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+        return
       })
       .then((removed) => {
         // console.log('BROKE REMOVED', removed)
@@ -936,8 +939,8 @@ export class CustomerService extends Service {
             object_id: resCustomer.id,
             object: 'customer',
             objects: [{
-              customer: resCustomer.id,
-            }, {
+            //   customer: resCustomer.id,
+            // }, {
               customer: resSubcustomer.id,
             }],
             type: 'customer.customer.removed',

@@ -699,7 +699,7 @@ describe('Admin User CustomerController', () => {
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
 
-        console.log(res.body)
+        assert.equal(res.body.length > 0, true)
         done(err)
       })
   })

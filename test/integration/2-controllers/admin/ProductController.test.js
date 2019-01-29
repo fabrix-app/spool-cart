@@ -616,7 +616,7 @@ describe('Admin User ProductController', () => {
       }))
       .expect(200)
       .end((err, res) => {
-        console.log('FIX BROKE ASSOCs', res.body)
+        // console.log('FIX BROKE ASSOCs', res.body)
         // assert.equal(res.body.length, 2)
         assert.ok(res.body.length)
         done(err)
@@ -1102,7 +1102,7 @@ describe('Admin User ProductController', () => {
       }))
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE ASSOC', res.body)
+        // console.log('BROKE ASSOC', res.body)
         assert.ok(res.body.length)
         done(err)
       })

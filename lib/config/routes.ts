@@ -2327,6 +2327,26 @@ export const routes = {
           }
         }
       }
+    },
+    'PUT': {
+      handler: 'CollectionController.addCustomers',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiPutCollectionIdCustomersRoute',
+            roles: ['admin']
+          }
+        }
+      }
     }
   },
   // TODO Deprecate
@@ -2348,70 +2368,70 @@ export const routes = {
         }
       }
     },
-    'POST': {
-      handler: 'CollectionController.addCustomers',
-      config: {
-        prefix: 'cart.prefix',
-        validate: {
-          params: {
-            id: joi.alternatives().try(
-              joi.number(),
-              joi.string()
-            ).required()
-          }
-        },
-        app: {
-          permissions: {
-            resource_name: 'apiPostCollectionIdCustomersRoute',
-            roles: ['admin']
-          }
-        }
-      }
-    },
-    'PUT': {
-      handler: 'CollectionController.addCustomers',
-      config: {
-        prefix: 'cart.prefix',
-        validate: {
-          params: {
-            id: joi.alternatives().try(
-              joi.number(),
-              joi.string()
-            ).required()
-          }
-        },
-        app: {
-          permissions: {
-            resource_name: 'apiPutCollectionIdCustomersRoute',
-            roles: ['admin']
-          }
-        }
-      }
-    },
-    'DELETE': {
-      handler: 'CollectionController.removeCustomer',
-      config: {
-        prefix: 'cart.prefix',
-        validate: {
-          params: {
-            id: joi.alternatives().try(
-              joi.number(),
-              joi.string()
-            ).required(),
-            customer: joi.alternatives().try(
-              joi.number(),
-              joi.string()
-            ).required()
-          }
-        },
-        app: {
-          permissions: {
-            resource_name: 'apiDeleteCollectionIdCustomerCustomerRoute',
-            roles: ['admin']
-          }
-        }
-      }
-    }
+    // 'POST': {
+    //   handler: 'CollectionController.addCustomers',
+    //   config: {
+    //     prefix: 'cart.prefix',
+    //     validate: {
+    //       params: {
+    //         id: joi.alternatives().try(
+    //           joi.number(),
+    //           joi.string()
+    //         ).required()
+    //       }
+    //     },
+    //     app: {
+    //       permissions: {
+    //         resource_name: 'apiPostCollectionIdCustomersRoute',
+    //         roles: ['admin']
+    //       }
+    //     }
+    //   }
+    // },
+    // 'PUT': {
+    //   handler: 'CollectionController.addCustomers',
+    //   config: {
+    //     prefix: 'cart.prefix',
+    //     validate: {
+    //       params: {
+    //         id: joi.alternatives().try(
+    //           joi.number(),
+    //           joi.string()
+    //         ).required()
+    //       }
+    //     },
+    //     app: {
+    //       permissions: {
+    //         resource_name: 'apiPutCollectionIdCustomersRoute',
+    //         roles: ['admin']
+    //       }
+    //     }
+    //   }
+    // },
+    // 'DELETE': {
+    //   handler: 'CollectionController.removeCustomer',
+    //   config: {
+    //     prefix: 'cart.prefix',
+    //     validate: {
+    //       params: {
+    //         id: joi.alternatives().try(
+    //           joi.number(),
+    //           joi.string()
+    //         ).required(),
+    //         customer: joi.alternatives().try(
+    //           joi.number(),
+    //           joi.string()
+    //         ).required()
+    //       }
+    //     },
+    //     app: {
+    //       permissions: {
+    //         resource_name: 'apiDeleteCollectionIdCustomerCustomerRoute',
+    //         roles: ['admin']
+    //       }
+    //     }
+    //   }
+    // }
   },
   // TODO legacy
   '/collection/:id/removeCustomer/:customer': {
