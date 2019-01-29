@@ -304,6 +304,26 @@ export class CollectionController extends Controller {
    * @param req
    * @param res
    */
+  removeCollections(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.removeCollections(req.params.id, req.body)
+      .then(collection => {
+        return this.app.services.PermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   collections(req, res) {
     const Collection = this.app.models['Collection']
     const collectionId = req.params.id

@@ -1421,6 +1421,30 @@ export const routes = {
           }
         }
       }
+    },
+    'DELETE': {
+      handler: 'CollectionController.removeCollection',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          params: {
+            id: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required(),
+            collection: joi.alternatives().try(
+              joi.number(),
+              joi.string()
+            ).required()
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiDeleteCollectionIdCollectionCollectionRoute',
+            roles: ['admin']
+          }
+        }
+      }
     }
   },
   // TODO Legacy
@@ -1512,7 +1536,7 @@ export const routes = {
       }
     },
     'DELETE': {
-      handler: 'CollectionController.removeCollection',
+      handler: 'CollectionController.removeCollections',
       config: {
         prefix: 'cart.prefix',
         validate: {
@@ -1529,7 +1553,7 @@ export const routes = {
         },
         app: {
           permissions: {
-            resource_name: 'apiDeleteCollectionIdCollectionCollectionRoute',
+            resource_name: 'apiDeleteCollectionIdCollectionsRoute',
             roles: ['admin']
           }
         }
