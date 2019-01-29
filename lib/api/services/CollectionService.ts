@@ -281,8 +281,8 @@ export class CollectionService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  addCollection(collection, subCollection, options) {
-    options = options || {}
+  addCollection(collection, subCollection, options: {[key: string]: any} = {}) {
+
     const Collection = this.app.models['Collection']
     // const ItemCollection = this.app.models['ItemCollection']
     let resCollection, resSubCollection
@@ -330,6 +330,29 @@ export class CollectionService extends Service {
       })
   }
 
+
+  /**
+   * Add Multiple Collections
+   * @param collection
+   * @param collections
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  removeCollections(collection, collections, options: {[key: string]: any} = {}) {
+    if (!Array.isArray(collections)) {
+      collections = [collections]
+    }
+    const Sequelize = this.app.models['Collection'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(collections, subCollection => {
+        return this.removeCollection(collection, subCollection, {
+          transaction: t
+        })
+      })
+    })
+  }
   /**
    *
    * @param collection
