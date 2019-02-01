@@ -2225,6 +2225,11 @@ export class CustomerController extends Controller {
       return res.send(401, err)
     }
 
+    if (!req.params.customer) {
+      const err = new Error('A customer id is required')
+      return res.send(401, err)
+    }
+
     const CustomerService = this.app.services.CustomerService
     CustomerService.addCustomer(customerId, req.params.customer)
       .then(customer => {
@@ -2299,17 +2304,19 @@ export class CustomerController extends Controller {
 
         return ItemCustomer.findAndCountAll({
           where: {
-            customer_id: _customer.id,
+            // customer_id: _customer.id,
             model: 'customer'
           },
-          attributes: ['model_id'],
+          attributes: ['model_id', 'model'],
           limit: limit,
           offset: offset
         })
       })
       .then(arr => {
+        // console.log('BROKE HERE', arr)
         count = arr.count
         const customerIds = arr.rows.map(model => model.model_id)
+        // console.log('BROKE 4', customerId, customerIds)
         return Customer.findAll({
           where: {
             id: customerIds
@@ -2365,6 +2372,11 @@ export class CustomerController extends Controller {
 
     if (!customerId || !req.user) {
       const err = new Error('A customer id or a customer in session are required')
+      return res.send(401, err)
+    }
+
+    if (!req.params.customer) {
+      const err = new Error('A customer id is required')
       return res.send(401, err)
     }
 

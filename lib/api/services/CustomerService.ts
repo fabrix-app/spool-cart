@@ -281,7 +281,7 @@ export class CustomerService extends Service {
             customer: resCustomer.id
           }],
           type: 'customer.created',
-          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id} created`,
+          message: `Customer ${ resCustomer.getSalutation() } created`,
           data: resCustomer
         }
         return this.publish(event.type, event, {
@@ -378,7 +378,7 @@ export class CustomerService extends Service {
             customer: resCustomer.id
           }],
           type: 'customer.updated',
-          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } updated`,
+          message: `Customer ${ resCustomer.getSalutation() } updated`,
           data: resCustomer
         }
         return this.publish(event.type, event, {
@@ -825,6 +825,7 @@ export class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   addCustomer(customer, subcustomer, options: {[key: string]: any} = {}) {
+    // console.log('BROKE NEW', customer, subcustomer)
     const Customer = this.app.models['Customer']
     let resCustomer, resSubcustomer
     return Customer.resolve(customer, {transaction: options.transaction || null})
@@ -840,15 +841,38 @@ export class CustomerService extends Service {
           throw new Error('Customer Could Not Be Resolved')
         }
         resSubcustomer = _customer
-        return resCustomer.hasCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+        return this.app.models.ItemCustomer.findOne({
+          where: {
+            customer_id: resCustomer.id,
+            model_id: resSubcustomer.id,
+            model: 'customer'
+          },
+          transaction: options.transaction || null
+        })
+        // return resCustomer.hasCustomer(resSubcustomer.id, {transaction: options.transaction || null})
       })
-      .then(hasCustomer => {
+      .then((hasCustomer = false) => {
+        // console.log('BROkE 2)', resCustomer.id, resSubcustomer.id, hasCustomer)
         if (hasCustomer) {
           return
         }
-        return resCustomer.addCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+        // const through = subcustomer.customer_position ? { position: subcustomer.customer_position } : {}
+        // return resCustomer.addCustomer(resSubcustomer.id, {
+        //   through: through,
+        //   hooks: false,
+        //   individualHooks: false,
+        //   returning: false,
+        //   transaction: options.transaction || null
+        // })
+        return this.app.models.ItemCustomer.create({
+          customer_id: resCustomer.id,
+          model_id: resSubcustomer.id,
+          model: 'customer'
+        }, {transaction: options.transaction})
+
       })
-      .then((added) => {
+      .then((added = false) => {
+        // console.log('BROkE 3)', added)
         if (added) {
           const event = {
             object_id: resCustomer.id,
@@ -924,15 +948,40 @@ export class CustomerService extends Service {
           throw new Error('Customer Could Not Be Resolved')
         }
         resSubcustomer = _customer
-        return resCustomer.hasCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+        // return resCustomer.hasCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+        return this.app.models.ItemCustomer.findOne({
+          where: {
+            customer_id: resCustomer.id,
+            model_id: resSubcustomer.id,
+            model: 'customer'
+          },
+          transaction: options.transaction || null
+        })
       })
       .then(hasCustomer => {
+        // console.log('BROkE 5)', resCustomer.id, resSubcustomer.id, hasCustomer)
+
         if (hasCustomer) {
-          return resCustomer.removeCustomer(resSubcustomer.id, {transaction: options.transaction || null})
+          // return resCustomer.removeCustomer(resSubcustomer.id, {
+          //   through: {},
+          //   hooks: false,
+          //   individualHooks: false,
+          //   returning: false,
+          //   transaction: options.transaction || null
+          // })
+          return this.app.models.ItemCustomer.destroy({
+            where: {
+              customer_id: resCustomer.id,
+              model_id: resSubcustomer.id,
+              model: 'customer'
+            },
+            transaction: options.transaction
+          })
+          // return resCustomer.removeCustomer(resSubcustomer.id, {transaction: options.transaction || null})
         }
         return
       })
-      .then((removed) => {
+      .then((removed = false) => {
         // console.log('BROKE REMOVED', removed)
         if (removed) {
           const event = {
@@ -1433,7 +1482,7 @@ export class CustomerService extends Service {
             customer: resCustomer.id
           }],
           type: 'customer.enabled',
-          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } enabled`,
+          message: `Customer ${ resCustomer.getSalutation() } enabled`,
           data: resCustomer
         }
         return this.publish(event.type, event, {
@@ -1474,7 +1523,7 @@ export class CustomerService extends Service {
             customer: resCustomer.id
           }],
           type: 'customer.disabled',
-          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } disabled`,
+          message: `Customer ${ resCustomer.getSalutation() } disabled`,
           data: resCustomer
         }
         return this.publish(event.type, event, {
