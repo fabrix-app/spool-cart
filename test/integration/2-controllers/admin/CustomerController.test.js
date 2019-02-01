@@ -660,12 +660,72 @@ describe('Admin User CustomerController', () => {
       .expect(200)
       .end((err, res) => {
         // TODO
-        console.log(res.body)
+        console.log('broke added', res.body)
         assert.equal(res.body.id, 1)
-        done(err)
+
+        if (err) {
+          done(err)
+        }
+        global.app.models.ItemCustomer.findOne({where: {
+          customer_id: createdCustomerID,
+          model_id: 1
+        }})
+          .then(result => {
+            console.log('BROKE TEst', result)
+            assert.equal(result.model_id, 1)
+            assert.equal(result.customer_id, createdCustomerID)
+            done()
+          })
+          .catch(err => {
+            done(err)
+          })
+      })
+  })
+  it('should add not add customer to customer twice', (done) => {
+    adminUser
+      .put(`/customer/${createdCustomerID}/customer/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        console.log('broke added', res.body)
+        assert.equal(res.body.id, 1)
+
+        if (err) {
+          done(err)
+        }
+        global.app.models.ItemCustomer.findOne({where: {
+            customer_id: createdCustomerID,
+            model_id: 1
+          }})
+          .then(result => {
+            console.log('BROKE TEst', result)
+            assert.equal(result.model_id, 1)
+            assert.equal(result.customer_id, createdCustomerID)
+            done()
+          })
+          .catch(err => {
+            done(err)
+          })
       })
   })
   it('should add customers to customer', (done) => {
+    adminUser
+      .put(`/customer/${createdCustomerID}/customers`)
+      .send([
+        {
+          id: 2
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        console.log(res.body)
+        assert.equal(res.body[0].id, 2)
+        done(err)
+      })
+  })
+  it('should not add customers to customer twice', (done) => {
     adminUser
       .put(`/customer/${createdCustomerID}/customers`)
       .send([
@@ -700,6 +760,8 @@ describe('Admin User CustomerController', () => {
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
 
         assert.equal(res.body.length > 0, true)
+        assert.equal(res.body.some(customer => customer.id === 1), true)
+        assert.equal(res.body.some(customer => customer.id === 2), true)
         done(err)
       })
   })
@@ -730,6 +792,27 @@ describe('Admin User CustomerController', () => {
         // TODO
         console.log(res.body)
         assert.equal(res.body[0].id, 2)
+        done(err)
+      })
+  })
+  it('should get customer customers', (done) => {
+    adminUser
+      .get(`/customer/${createdCustomerID}/customers`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
+        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
+
+        assert.equal(res.body.length === 0, true)
         done(err)
       })
   })
