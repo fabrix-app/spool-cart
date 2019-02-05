@@ -3,7 +3,9 @@
  *
  * @see {@link https://github.com/CaliStyle/spool-cart}
  */
-module.exports = {
+export const cart = {
+  live_mode: true,
+  prefix: null,
   // The default Shop address (Nexus)
   nexus: {
     name: '',
@@ -30,6 +32,37 @@ module.exports = {
   default_currency: 'USD',
   // The countries to load by default
   default_countries: ['USA'],
+  // Emails to send
+  emails: {
+    customerRetarget: true,
+    customerAccountBalanceDeducted: true,
+    customerAccountBalanceCredited: true,
+    orderCreated: true,
+    orderUpdated: true,
+    orderPaid: true,
+    orderFulfilled: true,
+    orderRefunded: true,
+    orderCancelled: true,
+    sourceExpired: true,
+    sourceWillExpire: true,
+    sourceUpdated: true,
+    subscriptionCreated: true,
+    subscriptionUpdated: true,
+    subscriptionActivated: true,
+    subscriptionDeactivated: true,
+    subscriptionCancelled: true,
+    subscriptionWillRenew: true,
+    subscriptionRenewed: true,
+    subscriptionFailed: true,
+    transactionFailed: true
+  },
+  notifications: {
+    admin: {
+      orderCreated: true
+    }
+  },
+  // Events to allow "publish"
+  events: {},
   // Orders
   orders: {
     // Restock default for refunded order items
@@ -60,36 +93,5 @@ module.exports = {
     authorization_exp_days: 5,
     // The amount of times a Transaction will retry failed
     retry_attempts: 5
-  },
-  // Emails that are allowed to send
-  emails: {
-    customerRetarget: false,
-    customerAccountBalanceDeducted: false,
-    customerAccountBalanceCredited: false,
-    orderCreated: false,
-    orderUpdated: false,
-    orderPaid: false,
-    orderFulfilled: false,
-    orderRefunded: false,
-    orderCancelled: false,
-    sourceExpired: false,
-    sourceWillExpire: false,
-    sourceUpdated: false,
-    subscriptionCreated: false,
-    subscriptionUpdated: false,
-    subscriptionActivated: false,
-    subscriptionDeactivated: false,
-    subscriptionCancelled: false,
-    subscriptionWillRenew: false,
-    subscriptionRenewed: false,
-    subscriptionFailed: false,
-    transactionFailed: false
-  },
-  notifications: {
-    admin: {
-      orderCreated: true
-    }
-  },
-  // Events to allow "publish"
-  events: {},
+  }
 }

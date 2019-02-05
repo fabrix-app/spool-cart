@@ -4743,6 +4743,26 @@ export const routes = {
       }
     }
   },
+  '/customer/customer/:id': {
+    'GET': {
+      handler: 'CustomerController.customerFindByToken',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          id: joi.alternatives().try(
+            joi.number(),
+            joi.string()
+          ).required()
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetCustomerCustomerIdRoute',
+            roles: ['admin', 'registered']
+          }
+        }
+      }
+    }
+  },
   '/customer/tags': {
     'GET': {
       handler: 'CustomerController.tags',
