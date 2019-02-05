@@ -2417,4 +2417,34 @@ export class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  customerFindByToken(req, res) {
+    const Customer = this.app.models['Customer']
+    const subcustomerId = req.params.id
+    const customerId = req.user.current_customer_id
+
+    if (!subcustomerId && !req.user) {
+      const err = new Error('A customer id or a customer in session are required')
+      return res.send(401, err)
+    }
+
+    Customer.findByTokenDefault(subcustomerId, {})
+      .then(customer => {
+        if (!customer) {
+          throw new ModelError('E_NOT_FOUND', `Customer ${subcustomerId} not found`)
+        }
+        return this.app.services.PermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
