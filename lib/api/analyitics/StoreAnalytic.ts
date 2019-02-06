@@ -158,6 +158,10 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               resSales = count
               return this.app.models.Transaction.findAll({
                 ...query2,
@@ -360,6 +364,10 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               resCustomers = count
 
               return this.app.models.Subscription.findAll({
@@ -454,6 +462,9 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
               //   resSales = count
               //   return this.app.models.Subscription.findAll({
               //     where: {
@@ -655,6 +666,10 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Customer.instance
                   ? c.get('total') || 0
@@ -932,6 +947,10 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Customer.instance
                   ? c.get('total') || 0
@@ -1001,6 +1020,10 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Customer.instance
                   ? c.get('total') || 0
@@ -1076,6 +1099,10 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Subscription.instance
                   ? c.get('total') || 0
@@ -1145,6 +1172,10 @@ export class StoreAnalytic extends Analytic {
             group: ['currency']
           })
             .then(count => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Subscription.instance
                   ? c.get('total') || 0
@@ -1211,7 +1242,11 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Subscription.instance
                   ? c.get('total') || 0
@@ -1280,7 +1315,10 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Subscription.instance
                   ? c.get('total') || 0
@@ -1358,7 +1396,11 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, total_discounts: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Subscription.instance
                   ? c.get('total_discounts') || 0
@@ -1429,7 +1471,11 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, total_discounts: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Order.instance
                   ? c.get('total_discounts') || 0
@@ -1499,7 +1545,11 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Transaction.instance
                   ? c.get('total') || 0
@@ -1569,7 +1619,11 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Transaction.instance
                   ? c.get('total') || 0
@@ -1649,7 +1703,11 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Cart.instance
                   ? c.get('total') : c.total
@@ -1723,7 +1781,10 @@ export class StoreAnalytic extends Analytic {
               this.app.models.Order.sequelize.literal('currency HAVING COUNT(customer_id) > 1')
             ]
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total_captured: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Order.instance
                   ? c.get('total') : c.total
