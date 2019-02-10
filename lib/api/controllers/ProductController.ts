@@ -361,7 +361,7 @@ export class ProductController extends Controller {
           offset: offset
         })
       })
-      .then(arr => {
+      .then((arr = {count: 0, rows: []}) => {
         count = arr.count
         models = orderBy(arr.rows, ['position'], ['asc'])
         const productIds = models.map(model => model.model_id)

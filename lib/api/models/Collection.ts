@@ -53,6 +53,7 @@ export class CollectionResolver extends SequelizeResolver {
       CollectionQuery.findAndCountDefault(this.app),
       options
     )
+    // console.log('BROKE', options)
     return this.findAndCountAll(options)
   }
 
