@@ -98,7 +98,8 @@ describe('Admin User CollectionController', () => {
       .send({
         title: 'Have you seen my Pants? Again?',
         body: '# Honey, have you seen my Pants? Again?',
-        excerpt: '# Lego Batman Movie is so funny!'
+        excerpt: '# Lego Batman Movie is so funny!',
+        primary_purpose: 'navigation'
       })
       .expect(200)
       .end((err, res) => {
@@ -112,6 +113,32 @@ describe('Admin User CollectionController', () => {
         assert.equal(res.body.collections[0].handle, 'lego-movie')
         assert.equal(res.body.collections[0].title, 'Lego Movie')
         assert.equal(res.body.images.length, 2)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should list collections by primary_purpose', (done) => {
+    adminUser
+      .get(`/collections`)
+      .query({
+        where: {
+          primary_purpose: 'navigation'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.equal(res.headers['x-pagination-total'], '1')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
+        assert.ok(res.body)
+        // console.log('BROKE 2', res.body)
         done(err)
       })
   })

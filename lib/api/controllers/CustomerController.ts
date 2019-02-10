@@ -1481,6 +1481,7 @@ export class CustomerController extends Controller {
     const CustomerService = this.app.services.CustomerService
     // const source = req.params.source
     let customerId = req.params.id
+
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }

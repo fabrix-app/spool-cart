@@ -118,6 +118,7 @@ export class CollectionController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
     const where = req.jsonCriteria(req.query.where)
+
     Collection.findAndCountDefault({
       where: where,
       order: sort,
@@ -523,7 +524,7 @@ export class CollectionController extends Controller {
         offset: offset
       })
     })
-    .then(arr => {
+    .then((arr = { count: 0, rows: []}) => {
       count = arr.count
       models = orderBy(arr.rows, ['position'], ['asc'])
 
