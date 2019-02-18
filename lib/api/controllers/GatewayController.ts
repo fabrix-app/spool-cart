@@ -20,9 +20,13 @@ export class GatewayController extends Controller {
       }).filter(generic => generic.type === 'payment_processor')
 
     const hasKeyRegex = function(gateway) {
-      return Object.keys(gateway).find(function(key) {
+      const pub = Object.keys(gateway).find(function(key) {
         return /public/.test(key)
       })
+      if (pub) {
+        return gateway[pub]
+      }
+      return false
     }
 
     const opts = gateways.map(gate => {

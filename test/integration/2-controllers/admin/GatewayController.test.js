@@ -39,7 +39,10 @@ describe('Admin User OrderController', () => {
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body)
+        assert.equal(res.body.length, 1)
         // console.log('WORKING ON GATEWAYS', res.body)
+        assert.equal(res.body[0].name, 'Default')
+        assert.equal(res.body[0].public, '123')
         done(err)
       })
   })
