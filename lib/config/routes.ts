@@ -10139,6 +10139,7 @@ export const routes = {
       }
     }
   },
+  // Legacy
   '/order/search': {
     'GET': {
       handler: 'OrderController.search',
@@ -10157,6 +10158,30 @@ export const routes = {
         app: {
           permissions: {
             resource_name: 'apiGetOrderSearchRoute',
+            roles: ['admin']
+          }
+        }
+      }
+    }
+  },
+  '/orders/search': {
+    'GET': {
+      handler: 'OrderController.search',
+      config: {
+        prefix: 'cart.prefix',
+        validate: {
+          query: {
+            offset: joi.number(),
+            limit: joi.number(),
+            sort: joi.array().items(joi.array()),
+            where: joi.any(),
+            term: joi.string().required(),
+            include: joi.array().items(joi.string())
+          }
+        },
+        app: {
+          permissions: {
+            resource_name: 'apiGetOrdersSearchRoute',
             roles: ['admin']
           }
         }

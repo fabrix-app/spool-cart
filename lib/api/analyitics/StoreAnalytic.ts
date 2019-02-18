@@ -47,7 +47,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -73,7 +73,11 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
+              if (count.length === 0) {
+                count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
+              }
+
               let data = count.map(c => {
                 const cTotal = c instanceof this.app.models.Subscription.instance
                   ? c.get('total') || 0
@@ -118,7 +122,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -157,7 +161,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -173,7 +177,7 @@ export class StoreAnalytic extends Analytic {
                 group: ['currency']
               })
             })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -255,7 +259,7 @@ export class StoreAnalytic extends Analytic {
   //     ],
   //     group: ['currency']
   //   })
-  //     .then(count => {
+  //     .then((count = []) => {
   //       resSales = count
   //
   //       return this.app.models.Transaction.findAll({
@@ -274,7 +278,7 @@ export class StoreAnalytic extends Analytic {
   //         group: ['currency']
   //       })
   //     })
-  //     .then(count => {
+  //     .then((count = []) => {
   //       let data = count.map((c, index) => {
   //
   //         const cTotal = c instanceof this.app.models.Transaction.instance
@@ -334,7 +338,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -363,7 +367,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -384,7 +388,7 @@ export class StoreAnalytic extends Analytic {
                 group: ['currency']
               })
             })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -433,7 +437,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -461,7 +465,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -481,7 +485,7 @@ export class StoreAnalytic extends Analytic {
               //     group: ['currency']
               //   })
               // })
-              // .then(count => {
+              // .then((count = []) => {
 
               let data = count.map((c, index) => {
 
@@ -549,7 +553,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -576,7 +580,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -638,7 +642,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -665,7 +669,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -714,7 +718,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -741,7 +745,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -810,7 +814,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -842,7 +846,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -919,7 +923,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -946,7 +950,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -995,7 +999,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1019,7 +1023,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -1073,7 +1077,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1098,7 +1102,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -1147,7 +1151,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1171,7 +1175,7 @@ export class StoreAnalytic extends Analytic {
             ],
             group: ['currency']
           })
-            .then(count => {
+            .then((count = []) => {
               if (count.length === 0) {
                 count = [{total: 0, count: 0, currency: this.app.config.get('cart.default_currency')}]
               }
@@ -1217,7 +1221,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1290,7 +1294,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1371,7 +1375,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1445,7 +1449,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1520,7 +1524,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1594,7 +1598,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1674,7 +1678,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
@@ -1750,7 +1754,7 @@ export class StoreAnalytic extends Analytic {
     return this.app.models.Shop.findAll({
       attributes: ['id']
     })
-      .then(shops => {
+      .then((shops = []) => {
         const ids = shops.map(shop => shop.id)
         ids.unshift(null)
 
