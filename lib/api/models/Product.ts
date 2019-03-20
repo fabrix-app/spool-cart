@@ -449,8 +449,9 @@ export class Product extends Model {
         defaultValue: PRODUCT_DEFAULTS.PRICE
       },
       // Pricing after
+      // CHANGED 190320
       calculated_price: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.VIRTUAL(Sequelize.INTEGER),
         defaultValue: PRODUCT_DEFAULTS.CALCULATED_PRICE
       },
       // Default currency of the product
@@ -1267,7 +1268,8 @@ Product.prototype.toJSON = function() {
   // Make JSON
   const resp = this instanceof this.app.models['Product'].instance ? this.get({ plain: true }) : this
   // Set Defaults
-  // resp.calculated_price = resp.price
+  // CHANGE SBW 190320
+  resp.calculated_price = resp.price
 
   // Transform Tags to array on toJSON
   if (resp.tags) {

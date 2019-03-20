@@ -227,7 +227,7 @@ export class ProductVariant extends Model {
       },
       // The calculated Price of the product
       calculated_price: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.VIRTUAL(Sequelize.INTEGER),
         defaultValue: 0
       },
       // Competitor price of the variant in cents
