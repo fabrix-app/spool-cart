@@ -94,6 +94,9 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.seo_description, 'Chalk Bag')
         assert.notEqual(res.body.vendors.indexOf('B.A.G'), -1)
         assert.equal(res.body.type, 'Chalk Bag')
+        assert.equal(res.body.price, 10000)
+        assert.equal(res.body.compare_at_price, 10000)
+        assert.equal(res.body.calculated_price, 10000)
         assert.notEqual(res.body.options.indexOf('capacity'), -1)
         // Metadata
         assert.equal(res.body.metadata.test, 'value')
@@ -200,6 +203,10 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body[0].type, 'Snowboard')
         assert.notEqual(res.body[0].options.indexOf('size'), -1)
         assert.notEqual(res.body[0].options.indexOf('width'), -1)
+
+        assert.equal(res.body[0].price, 10000)
+        assert.equal(res.body[0].compare_at_price, 10000)
+        assert.equal(res.body[0].calculated_price, 10000)
         // Metadata
         assert.equal(res.body[0].metadata.test, 'value')
         // Collections
@@ -244,6 +251,8 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body[0].variants[0].sku, 'board-m-123')
         assert.equal(res.body[0].variants[0].title, res.body[0].title)
         assert.equal(res.body[0].variants[0].price, res.body[0].price)
+        // assert.equal(res.body[0].variants[0].compare_at_price, res.body[0].compare_at_price)
+        assert.equal(res.body[0].variants[0].calculated_price, res.body[0].calculated_price)
         assert.equal(res.body[0].variants[0].weight, res.body[0].weight)
         assert.equal(res.body[0].variants[0].weight_unit, res.body[0].weight_unit)
         assert.equal(res.body[0].variants[0].option.width, '18in')

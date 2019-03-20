@@ -355,7 +355,7 @@ export class ProxyCartService extends Service {
    * @param address
    * @returns {*}
    */
-  normalizeAddress(address) {
+  normalizeAddress(address: {[key: string]: any} = {}) {
     const CartCountryService = this.app.services.CartCountryService
     const Address = this.app.models['Address']
     const countryNorm = address.country_code || address.country || address.country_name

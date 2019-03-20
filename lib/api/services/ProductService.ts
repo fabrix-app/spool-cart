@@ -2068,6 +2068,9 @@ export class ProductService extends Service {
     if (_.isNil(product.tax_code)) {
       product.tax_code = PRODUCT_DEFAULTS.TAX_CODE
     }
+    if (_.isNumber(product.price) && _.isNil(product.compare_at_price)) {
+      product.compare_at_price = product.price
+    }
     // If no currency set default currency
     if (_.isNil(product.currency)) {
       product.currency = PRODUCT_DEFAULTS.CURRENCY
