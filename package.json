@@ -1,6 +1,6 @@
 {
   "name": "@fabrix/spool-cart",
-  "version": "1.6.12",
+  "version": "1.6.13",
   "description": "Spool - eCommerce Spool for Fabrix",
   "homepage": "https://fabrix.app",
   "author": {
@@ -48,21 +48,21 @@
     "papaparse": "^4.6.2",
     "remove-markdown": "^0.3.0",
     "request": "^2.88.0",
-    "sharp": "0.17.1",
+    "sharp": "0.22.1",
     "shortid": "^2.2.14",
     "striptags": "^3.0.1",
     "utf8": "^3.0.0"
   },
   "devDependencies": {
-    "@fabrix/fabrix": "^1.6.0",
+    "@fabrix/fabrix": "^1.6.2",
     "@fabrix/generics-render": "^1.5.0",
     "@fabrix/lint": "^1.0.0-alpha.3",
     "@fabrix/spool-analytics": "^1.5.0",
-    "@fabrix/spool-cart-countries": "^1.5.0",
+    "@fabrix/spool-cart-countries": "^1.6.0",
     "@fabrix/spool-crons": "^1.5.0",
     "@fabrix/spool-email": "^1.5.0",
     "@fabrix/spool-events": "^1.6.0",
-    "@fabrix/spool-express": "^1.5.1",
+    "@fabrix/spool-express": "^1.6.3",
     "@fabrix/spool-generics": "^1.5.0",
     "@fabrix/spool-i18n": "^1.5.1",
     "@fabrix/spool-notifications": "^1.5.0",
@@ -105,7 +105,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 7.6.0 =< 10.0.0",
+    "node": ">= 7.6.0 <= 12.4.0",
     "npm": ">= 3.10.0"
   }
 }
