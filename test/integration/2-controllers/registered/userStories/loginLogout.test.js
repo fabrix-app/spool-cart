@@ -111,7 +111,6 @@ describe('Registered User Login, Logout, recover, and log back in', () => {
         assert.equal(res.body.user.email, 'loginlogout@example.com')
         assert.equal(res.body.user.current_customer_id, customerID)
         assert.equal(res.body.user.current_cart_id, cartID)
-        assert.equal()
         done(err)
       })
   })
