@@ -45,7 +45,7 @@
     "joi": "^14.1.1",
     "moment": "^2.22.2",
     "multer": "^1.2.1",
-    "papaparse": "^4.6.2",
+    "papaparse": "^5.2.0",
     "remove-markdown": "^0.3.0",
     "request": "^2.88.0",
     "sharp": "0.22.1",
